@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>히브리어 자음 퀴즈 v8</title>
+  <style>
+    :root{
+      --bg:#0b0f16; --card:#121a27; --border:rgba(255,255,255,.10);
+      --ink:#e8eefc; --muted:rgba(232,238,252,.78);
+      --btn:#1a2a47; --btn2:#0b1220;
+      --ok:#8cf2a0; --bad:#ff9aa2;
+    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; margin: 0; background:var(--bg); color:var(--ink); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+    h1 { font-size: 18px; margin: 0 0 12px 0; opacity:.95; }
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 13px; opacity:.9; }
+    select, input, button {
+      font-size: 14px; padding: 10px 12px; border-radius: 10px;
+      border:1px solid rgba(255,255,255,.14); background:var(--btn2); color:var(--ink);
+      outline: none;
+    }
+    button { cursor:pointer; background:var(--btn); }
+    button:hover { filter: brightness(1.08); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: .45; cursor: not-allowed; filter:none; }
+    .center { display:flex; align-items:center; justify-content:center; gap: 14px; margin: 14px 0 8px 0; flex-wrap: wrap; }
+    .big { font-size: clamp(64px, 10vw, 120px); line-height: 1.0; letter-spacing: 1px; user-select: none; }
+    .pronBox{
+      display:flex; flex-direction:column; gap:6px;
+      padding: 10px 12px; border:1px solid var(--border);
+      background: rgba(0,0,0,.12); border-radius: 12px; min-width: 260px;
+    }
+    .heName{ font-size: 22px; letter-spacing: .5px; }
+    .trName{ font-size: 13px; opacity:.85; }
+    .small { font-size: 12px; opacity: .85; color: var(--muted); }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+    @media (min-width: 720px){ .grid{ grid-template-columns: 1fr 1fr; } }
+    .status { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border:1px dashed rgba(255,255,255,.14); background: rgba(0,0,0,.12); min-height: 22px; }
+    .ok { color:var(--ok); }
+    .bad { color:var(--bad); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .footer { margin-top: 12px; opacity:.7; font-size: 12px; }
+    .stats { display:flex; gap: 10px; flex-wrap:wrap; font-size: 13px; opacity:.9; }
+    .pill { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10); }
+    .kbd { padding: 2px 6px; border:1px solid rgba(255,255,255,.16); border-bottom-color: rgba(255,255,255,.28); border-radius: 6px; background: rgba(0,0,0,.18); }
+    .sep { width:1px; height: 30px; background: rgba(255,255,255,.12); }
+    .hide{ display:none !important; }
+
+    /* Learn view */
+    .learnStage{ display:flex; flex-direction:column; gap:14px; align-items:center; }
+    .canvasWrap{
+      width:min(720px, 92vw);
+      aspect-ratio: 16/9;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .layer{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      display:block;
+    }
+    .learnTitle{
+      font-size: clamp(24px, 3vw, 34px);
+      opacity:.95;
+      margin-top: 6px;
+    }
+    .learnControls{
+      width:min(860px, 98vw);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btnBig{
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 15px;
+    }
+    .btnIcon{
+      width: 64px; height: 52px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 20px;
+      border-radius: 14px;
+    }
+    .learnMid{
+      display:flex; align-items:center; justify-content:center; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .optRow{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      background: rgba(0,0,0,.10);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ======================= QUIZ VIEW ======================= -->
+    <div class="card" id="quizView">
+      <h1>히브리어 자음 퀴즈 v8</h1>
+
+      <div class="row" style="justify-content:space-between;">
+        <div class="row">
+          <label>
+            모드
+            <select id="mode">
+              <option value="random">22자 랜덤 퀴즈</option>
+              <option value="sequential">22자 순차 퀴즈(알레프→타브)</option>
+              <option value="predict_seq">미리 맞혀봐(순차)</option>
+              <option value="predict_rand">미리 맞혀봐(랜덤)</option>
+              <option value="learn">22자 순차 학습(따라그리기+발음)</option>
+            </select>
+          </label>
+
+          <label class="row" style="gap:8px;">
+            <input type="checkbox" id="autoNext" checked />
+            <span class="small">정답 시 자동 다음</span>
+          </label>
+
+          <div class="sep"></div>
+
+          <label class="row" style="gap:8px;">
+            <span class="small">정답 발음 반복</span>
+            <select id="repeatCount">
+              <option value="1">1회</option>
+              <option value="2">2회</option>
+              <option value="3" selected>3회</option>
+              <option value="4">4회</option>
+              <option value="5">5회</option>
+            </select>
+          </label>
+
+          <label class="row" style="gap:8px;">
+            <span class="small">반복 간격</span>
+            <select id="repeatGap">
+              <option value="0.5">0.5초</option>
+              <option value="1">1초</option>
+              <option value="2">2초</option>
+              <option value="3">3초</option>
+              <option value="4">4초</option>
+              <option value="5">5초</option>
+              <option value="6">6초</option>
+              <option value="7">7초</option>
+              <option value="8">8초</option>
+              <option value="9">9초</option>
+              <option value="10">10초</option>
+            </select>
+          </label>
+
+          <label class="row" style="gap:8px;">
+            <span class="small">TTS 속도</span>
+            <select id="rateSel">
+              <option value="0.8">0.8</option>
+              <option value="0.9">0.9</option>
+              <option value="1.0" selected>1.0</option>
+              <option value="1.1">1.1</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row">
+          <button id="newBtn" title="새 문제"><span class="mono">새 문제</span></button>
+          <button id="resetBtn" title="기록 초기화"><span class="mono">리셋</span></button>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="big" id="char">?</div>
+
+        <div class="pronBox">
+          <div class="heName" id="heName">—</div>
+          <div class="trName hide" id="trName">—</div>
+
+          <div class="row" style="gap:8px;">
+            <button id="speakBtn" disabled title="채점(정답/오답) 후에만 활성화">🔊 발음</button>
+            <span class="small">※ 문제 푸는 중에는 비활성(채점 후 활성).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" id="quizInputs">
+        <label>이름
+          <input id="nameIn" autocomplete="off" />
+        </label>
+        <label>발음기호
+          <input id="soundIn" autocomplete="off" />
+        </label>
+      </div>
+
+      <div class="row" style="margin-top: 12px;" id="quizButtons">
+        <button id="checkBtn"><b>채점</b> (<span class="kbd">Enter</span>)</button>
+        <button id="showBtn">정답 보기</button>
+        <button id="nextBtn">다음</button>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <div class="row" style="margin-top: 12px; justify-content:space-between;">
+        <div class="stats">
+          <div class="pill">문제: <span id="cntTotal">0</span></div>
+          <div class="pill ok">정답: <span id="cntOk">0</span></div>
+          <div class="pill bad">오답: <span id="cntBad">0</span></div>
+          <div class="pill">순차 진행: <span id="seqPos">—/22</span></div>
+        </div>
+        <div class="footer">Enter = 채점</div>
+      </div>
+    </div>
+
+    <!-- ======================= LEARN VIEW ======================= -->
+    <div class="card hide" id="learnView">
+      <h1>순차 학습 모드 (따라그리기 + 자동 발음)</h1>
+
+      <div class="learnStage">
+        <div class="canvasWrap" id="canvasWrap">
+          <canvas class="layer" id="guideCanvas" width="1280" height="720"></canvas>
+          <canvas class="layer" id="drawCanvas"  width="1280" height="720"></canvas>
+        </div>
+
+        <div class="learnTitle" id="learnLabel">Alef</div>
+
+        <div class="optRow row" style="justify-content:center;">
+          <label class="row" style="gap:8px;">
+            <span class="small">학습 발음 반복</span>
+            <select id="learnRepeatCount">
+              <option value="1">1회</option>
+              <option value="2">2회</option>
+              <option value="3" selected>3회</option>
+              <option value="4">4회</option>
+              <option value="5">5회</option>
+            </select>
+          </label>
+
+          <label class="row" style="gap:8px;">
+            <span class="small">반복 간격</span>
+            <select id="learnRepeatGap">
+              <option value="0.5">0.5초</option>
+              <option value="1">1초</option>
+              <option value="2">2초</option>
+              <option value="3">3초</option>
+              <option value="4">4초</option>
+              <option value="5">5초</option>
+              <option value="6">6초</option>
+              <option value="7">7초</option>
+              <option value="8">8초</option>
+              <option value="9">9초</option>
+              <option value="10">10초</option>
+            </select>
+          </label>
+
+          <label class="row" style="gap:8px;">
+            <span class="small">펜 굵기</span>
+            <select id="penSize">
+              <option value="6">6</option>
+              <option value="8" selected>8</option>
+              <option value="10">10</option>
+              <option value="14">14</option>
+              <option value="18">18</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="learnControls">
+          <div class="row" style="gap:8px;">
+            <button class="btnBig" id="homeBtn">처음으로</button>
+            <button class="btnBig" id="autoPlayBtn">자동재생</button>
+            <button class="btnBig" id="drawBtn">그리기</button>
+            <button class="btnBig" id="clearBtn">지우기</button>
+          </div>
+
+          <div class="learnMid">
+            <button class="btnIcon" id="prevBtn" title="이전">←</button>
+            <button class="btnIcon" id="playBtn" title="발음(반복)">▶</button>
+            <button class="btnIcon" id="nextLearnBtn" title="다음">→</button>
+          </div>
+
+          <button class="btnBig" id="exitBtn">EXIT</button>
+        </div>
+
+        <div class="small" id="learnHint">※ “그리기” ON이면 글자가 연해지고, 위에 펜으로 따라 그릴 수 있어.</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+const ALL = [
+  { char:"א", name:"알레프", sound:"ㅇ", heName:"אָלֶף", trName:"Alef",  note:"무음" },
+  { char:"ב", name:"베트",   sound:"ㅂ", heName:"בֵּית", trName:"Bet" },
+  { char:"ג", name:"기멜",   sound:"ㄱ", heName:"גִּימֵל", trName:"Gimel" },
+  { char:"ד", name:"달레트", sound:"ㄷ", heName:"דָּלֶת", trName:"Dalet" },
+  { char:"ה", name:"헤이",   sound:"ㅎ", heName:"הֵא", trName:"He" },
+  { char:"ו", name:"바브",   sound:"ㅂ", heName:"וָו", trName:"Vav" },
+  { char:"ז", name:"자인",   sound:"ㅈ", heName:"זַיִן", trName:"Zayin" },
+  { char:"ח", name:"헤트",   sound:"ㅎ", heName:"חֵית", trName:"Chet" },
+  { char:"ט", name:"테트",   sound:"ㅌ", heName:"טֵית", trName:"Tet" },
+  { char:"י", name:"요드",   sound:"ㅇ", heName:"יוֹד", trName:"Yod" },
+  { char:"כ", name:"카프",   sound:"ㅋ", heName:"כַּף", trName:"Kaf" },
+  { char:"ל", name:"라메드", sound:"ㄹ", heName:"לָמֶד", trName:"Lamed" },
+  { char:"מ", name:"멤",     sound:"ㅁ", heName:"מֵם", trName:"Mem" },
+  { char:"נ", name:"눈",     sound:"ㄴ", heName:"נוּן", trName:"Nun" },
+  { char:"ס", name:"사메크", sound:"ㅅ", heName:"סָמֶךְ", trName:"Samekh" },
+  { char:"ע", name:"아인",   sound:"ㅇ", heName:"עַיִן", trName:"Ayin" },
+  { char:"פ", name:"페",     sound:"ㅍ", heName:"פֵּה", trName:"Pe" },
+  { char:"צ", name:"차디",   sound:"ㅊ", heName:"צָדִי", trName:"Tsadi" },
+  { char:"ק", name:"코프",   sound:"ㄲ", heName:"קוֹף", trName:"Qof" },
+  { char:"ר", name:"레쉬",   sound:"ㄹ", heName:"רֵישׁ", trName:"Resh" },
+  { char:"ש", name:"쉰",     sound:"ㅅ", heName:"שִׁין", trName:"Shin" },
+  { char:"ת", name:"타브",   sound:"ㅌ", heName:"תָּו", trName:"Tav" },
+];
+const byChar = new Map(ALL.map(x => [x.char, x]));
+const ORDER = ALL.map(x => x.char);
+function nextCharInAlphabet(ch){
+  const i = ORDER.indexOf(ch);
+  return ORDER[(i + 1) % ORDER.length];
+}
+
+const elQuizView = document.getElementById("quizView");
+const elLearnView = document.getElementById("learnView");
+
+const elMode = document.getElementById("mode");
+const elAutoNext = document.getElementById("autoNext");
+const elRateSel = document.getElementById("rateSel");
+const elRepeatCount = document.getElementById("repeatCount");
+const elRepeatGap = document.getElementById("repeatGap");
+
+const elChar = document.getElementById("char");
+const elHeName = document.getElementById("heName");
+const elTrName = document.getElementById("trName");
+const elName = document.getElementById("nameIn");
+const elSound = document.getElementById("soundIn");
+const elStatus = document.getElementById("status");
+const elCheckBtn = document.getElementById("checkBtn");
+const elShowBtn  = document.getElementById("showBtn");
+
+const elSpeakBtn = document.getElementById("speakBtn");
+
+const elCntTotal = document.getElementById("cntTotal");
+const elCntOk = document.getElementById("cntOk");
+const elCntBad = document.getElementById("cntBad");
+const elSeqPos = document.getElementById("seqPos");
+
+let total = 0, ok = 0, bad = 0;
+let seqIndex = 0;
+let qObj = byChar.get("א");
+let aObj = byChar.get("א");
+let lastSpeakText = null;
+
+function normalizeName(s){ return (s || "").trim().replace(/\s+/g,""); }
+function normalizeSound(s){ return (s || "").trim().replace(/\s+/g,""); }
+function updateSeqLabel(){
+  const m = elMode.value;
+  if (m === "sequential" || m === "predict_seq") elSeqPos.textContent = (seqIndex+1) + "/22";
+  else elSeqPos.textContent = "—/22";
+}
+
+/* TTS */
+let voices = [];
+function loadVoices(){ voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+if (window.speechSynthesis){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+function pickHebrewVoice(){
+  if (!voices || !voices.length) return null;
+  return voices.find(v => (v.lang || "").toLowerCase().startsWith("he")) || null;
+}
+function cancelSpeak(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
+function speakHebrewOnce(text){
+  if (!window.speechSynthesis || !text) return;
+  cancelSpeak();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickHebrewVoice();
+  if (v){ u.voice = v; u.lang = v.lang; }
+  else { u.lang = "he-IL"; }
+  u.rate = parseFloat(elRateSel.value || "1.0");
+  window.speechSynthesis.speak(u);
+}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function speakHebrewTimes(text, times=3, gapMs=500){
+  for (let i=0;i<times;i++){
+    speakHebrewOnce(text);
+    await sleep(gapMs);
+  }
+}
+
+/* Questions */
+function setQuestion(questionObj, answerObj){
+  qObj = questionObj;
+  aObj = answerObj;
+
+  elChar.textContent = qObj.char;
+  elHeName.textContent = qObj.heName || "—";
+  elTrName.textContent = qObj.trName || "—";
+  elTrName.classList.add("hide");
+  elName.value = "";
+  elSound.value = "";
+  elStatus.innerHTML = "";
+  elSpeakBtn.disabled = true;
+  lastSpeakText = null;
+
+  // re-enable quiz controls
+  elName.disabled = false;
+  elSound.disabled = false;
+  elCheckBtn.disabled = false;
+  elShowBtn.disabled = false;
+
+  updateSeqLabel();
+  elName.focus();
+}
+function makeQuestion_random(){
+  const idx = Math.floor(Math.random() * ORDER.length);
+  const ch = ORDER[idx];
+  setQuestion(byChar.get(ch), byChar.get(ch));
+}
+function makeQuestion_sequential(){
+  const ch = ORDER[seqIndex];
+  setQuestion(byChar.get(ch), byChar.get(ch));
+}
+function makeQuestion_predict_seq(){
+  const qch = ORDER[seqIndex];
+  const ach = ORDER[(seqIndex + 1) % ORDER.length];
+  setQuestion(byChar.get(qch), byChar.get(ach));
+}
+function makeQuestion_predict_rand(){
+  const idx = Math.floor(Math.random() * ORDER.length);
+  const qch = ORDER[idx];
+  const ach = nextCharInAlphabet(qch);
+  setQuestion(byChar.get(qch), byChar.get(ach));
+}
+function newQuestion(){
+  const m = elMode.value;
+  if (m === "sequential") return makeQuestion_sequential();
+  if (m === "predict_seq") return makeQuestion_predict_seq();
+  if (m === "predict_rand") return makeQuestion_predict_rand();
+  return makeQuestion_random();
+}
+function nextQuestion_manual(){
+  const m = elMode.value;
+  if (m === "sequential"){
+    seqIndex = (seqIndex + 1) % ORDER.length;
+    return makeQuestion_sequential();
+  }
+  if (m === "predict_seq"){
+    seqIndex = (seqIndex + 1) % ORDER.length;
+    return makeQuestion_predict_seq();
+  }
+  if (m === "predict_rand") return makeQuestion_predict_rand();
+  return makeQuestion_random();
+}
+function newQuestion_manual(){
+  const m = elMode.value;
+  if (m === "sequential") return makeQuestion_sequential();
+  if (m === "predict_seq") return makeQuestion_predict_seq();
+  if (m === "predict_rand") return makeQuestion_predict_rand();
+  return makeQuestion_random();
+}
+
+/* Check */
+function isSoundCorrect(inputSound){
+  if (aObj.char === "י") return (inputSound === "ㅇ" || inputSound === "ㅣ" || inputSound === "ㅇㅣ");
+  if (aObj.char === "ו") return (inputSound === "ㅂ" || inputSound === "ㅜ" || inputSound === "오");
+  return inputSound === aObj.sound;
+}
+function isNameCorrect(inputName){
+  if (normalizeName(aObj.name) === inputName) return true;
+  const aliases = new Map([
+    ["달레트", ["달렛"]],
+    ["차디", ["짜디","차디"]],
+    ["테트", ["텟","테트"]],
+    ["사메크", ["사멕","사메크"]],
+    ["알레프", ["알렙","알레프"]],
+    ["바브", ["와브","바브"]],
+    ["레쉬", ["레시","레쉬"]],
+    ["쉰", ["신","쉰"]],
+  ]);
+  const alt = aliases.get(aObj.name);
+  if (alt && alt.some(a => normalizeName(a) === inputName)) return true;
+  return false;
+}
+function showAnswer(prefix){
+  const note = aObj.note ? ` <span class="small">(${aObj.note})</span>` : "";
+  const m = elMode.value;
+  const extra = (m === "predict_seq" || m === "predict_rand")
+    ? `<div class="small" style="margin-top:6px;">(다음 글자 정답)</div>`
+    : "";
+  elStatus.innerHTML = `${prefix} <b>${aObj.char}</b> = <b>${aObj.name}</b> (${aObj.sound})${note}${extra}`;
+}
+async function check(){
+  if (elMode.value === "learn") return;
+
+  const inName = normalizeName(elName.value);
+  const inSound = normalizeSound(elSound.value);
+  if (!inName || !inSound){
+    elStatus.innerHTML = `<span class="bad">이름/발음기호 둘 다 입력</span>`;
+    return;
+  }
+
+  total++;
+  const nameOk = isNameCorrect(inName);
+  const soundOk = isSoundCorrect(inSound);
+
+  elTrName.classList.remove("hide");
+  elSpeakBtn.disabled = false;
+
+  const times = parseInt(elRepeatCount.value || "3", 10);
+  const gapMs = Math.round(parseFloat(elRepeatGap.value || "0.5") * 1000);
+  const sayAnswer = aObj.heName || aObj.trName || aObj.char;
+  lastSpeakText = sayAnswer;
+
+  if (nameOk && soundOk){
+    ok++;
+    const m = elMode.value;
+    const tag = (m === "predict_seq" || m === "predict_rand") ? " (다음글자)" : "";
+    elStatus.innerHTML = `<span class="ok">⭕ 정답!</span>${tag} ${aObj.char} = ${aObj.name} (${aObj.sound})`;
+
+    await speakHebrewTimes(sayAnswer, times, gapMs);
+
+    if (elAutoNext.checked){
+      if (m === "sequential") seqIndex = (seqIndex + 1) % ORDER.length;
+      if (m === "predict_seq") seqIndex = (seqIndex + 1) % ORDER.length;
+      newQuestion();
+    }
+  } else {
+    bad++;
+    const m = elMode.value;
+    const tag = (m === "predict_seq" || m === "predict_rand") ? " (다음글자 정답)" : "";
+    elStatus.innerHTML =
+      `<span class="bad">❌ 오답</span>` +
+      `<div class="small" style="margin-top:6px; line-height:1.5;">` +
+      `정답${tag}: <b>${aObj.char}</b> = <b>${aObj.name}</b> (${aObj.sound})` +
+      `</div>`;
+    speakHebrewOnce(sayAnswer);
+  }
+
+  elCntTotal.textContent = total;
+  elCntOk.textContent = ok;
+  elCntBad.textContent = bad;
+  updateSeqLabel();
+}
+
+/* Learn (trace) */
+const guideCanvas = document.getElementById("guideCanvas");
+const drawCanvas  = document.getElementById("drawCanvas");
+const gctx = guideCanvas.getContext("2d");
+const dctx = drawCanvas.getContext("2d");
+
+const elLearnLabel = document.getElementById("learnLabel");
+const elDrawBtn = document.getElementById("drawBtn");
+const elClearBtn = document.getElementById("clearBtn");
+const elPrevBtn = document.getElementById("prevBtn");
+const elPlayBtn = document.getElementById("playBtn");
+const elNextLearnBtn = document.getElementById("nextLearnBtn");
+const elExitBtn = document.getElementById("exitBtn");
+const elHomeBtn = document.getElementById("homeBtn");
+const elAutoPlayBtn = document.getElementById("autoPlayBtn");
+
+
+const elLearnRepeatCount = document.getElementById("learnRepeatCount");
+const elLearnRepeatGap = document.getElementById("learnRepeatGap");
+const elPenSize = document.getElementById("penSize");
+
+let learnIndex = 0;
+let drawMode = false;
+let isDrawing = false;
+
+let autoPlayOn = false;
+let autoPlayTimer = null;
+
+function stopAutoPlay(){
+  autoPlayOn = false;
+  if (autoPlayTimer){ clearTimeout(autoPlayTimer); autoPlayTimer = null; }
+  if (elAutoPlayBtn) elAutoPlayBtn.textContent = "자동재생";
+}
+function startAutoPlay(){
+  if (autoPlayOn) return;
+  autoPlayOn = true;
+  if (elAutoPlayBtn) elAutoPlayBtn.textContent = "STOP";
+  scheduleNextAutoStep(0);
+}
+function scheduleNextAutoStep(delayMs){
+  if (autoPlayTimer){ clearTimeout(autoPlayTimer); autoPlayTimer = null; }
+  autoPlayTimer = setTimeout(async () => {
+    if (!autoPlayOn) return;
+
+    const times = parseInt(elLearnRepeatCount.value || "3", 10);
+    const gapMs = Math.round(parseFloat(elLearnRepeatGap.value || "0.5") * 1000);
+
+    // Play current letter with proper gaps (including after the last play)
+    const o = ALL[learnIndex];
+    const say = o.heName || o.trName || o.char;
+
+    for (let i=0;i<times;i++){
+      if (!autoPlayOn) return;
+      speakHebrewOnce(say);
+      await sleep(gapMs); // wait gap AFTER each play (so last play also waits)
+    }
+
+    if (!autoPlayOn) return;
+    learnIndex = (learnIndex + 1) % ORDER.length;
+    renderLearnStatic(false);
+    scheduleNextAutoStep(0);
+  }, delayMs);
+}
+
+
+function clearGuide(){
+  gctx.clearRect(0,0,guideCanvas.width,guideCanvas.height);
+  gctx.fillStyle = "#ffffff";
+  gctx.fillRect(0,0,guideCanvas.width,guideCanvas.height);
+}
+function clearDraw(){
+  dctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+}
+function drawGuideLetter(letter, alpha=1.0){
+  clearGuide();
+  gctx.save();
+  gctx.globalAlpha = alpha;
+  gctx.fillStyle = "#000000";
+  gctx.textAlign = "center";
+  gctx.textBaseline = "middle";
+  gctx.font = "520px serif";
+  gctx.fillText(letter, guideCanvas.width/2, guideCanvas.height/2 + 40);
+  gctx.restore();
+}
+function autoSpeakLearn(){
+  const o = ALL[learnIndex];
+  const times = parseInt(elLearnRepeatCount.value || "3", 10);
+  const gapMs = Math.round(parseFloat(elLearnRepeatGap.value || "0.5") * 1000);
+  const say = o.heName || o.trName || o.char;
+  speakHebrewTimes(say, times, gapMs);
+}
+function renderLearnStatic(doSpeak=true){
+  const o = ALL[learnIndex];
+  elLearnLabel.textContent = o.trName;
+  const alpha = drawMode ? 0.15 : 1.0;
+  drawGuideLetter(o.char, alpha);
+  clearDraw();
+  if (doSpeak) autoSpeakLearn();
+}
+function toggleDrawMode(){
+  drawMode = !drawMode;
+  elDrawBtn.textContent = drawMode ? "그리기 ON" : "그리기";
+  renderLearnStatic(false);
+}
+
+/* Pointer drawing */
+function getCanvasPos(evt){
+  const rect = drawCanvas.getBoundingClientRect();
+  const x = (evt.clientX - rect.left) * (drawCanvas.width / rect.width);
+  const y = (evt.clientY - rect.top) * (drawCanvas.height / rect.height);
+  return {x,y};
+}
+function startDraw(evt){
+  if (!drawMode) return;
+  isDrawing = true;
+  const p = getCanvasPos(evt);
+  dctx.lineCap = "round";
+  dctx.lineJoin = "round";
+  dctx.strokeStyle = "#000000";
+  dctx.lineWidth = parseInt(elPenSize.value || "8", 10);
+  dctx.beginPath();
+  dctx.moveTo(p.x, p.y);
+}
+function moveDraw(evt){
+  if (!drawMode || !isDrawing) return;
+  const p = getCanvasPos(evt);
+  dctx.lineTo(p.x, p.y);
+  dctx.stroke();
+}
+function endDraw(){
+  if (!drawMode) return;
+  isDrawing = false;
+  dctx.closePath();
+}
+
+drawCanvas.addEventListener("pointerdown", (e) => { e.preventDefault(); drawCanvas.setPointerCapture(e.pointerId); startDraw(e); });
+drawCanvas.addEventListener("pointermove", (e) => { e.preventDefault(); moveDraw(e); });
+drawCanvas.addEventListener("pointerup",   (e) => { e.preventDefault(); endDraw(); });
+drawCanvas.addEventListener("pointercancel",(e)=> { e.preventDefault(); endDraw(); });
+
+function learnPrev(){
+  stopAutoPlay();
+  learnIndex = (learnIndex - 1 + ORDER.length) % ORDER.length;
+  renderLearnStatic(true);
+}
+function learnNext(){
+  stopAutoPlay();
+  learnIndex = (learnIndex + 1) % ORDER.length;
+  renderLearnStatic(true);
+}
+
+/* View switch */
+function showQuizView(){
+  stopAutoPlay();
+  elLearnView.classList.add("hide");
+  elQuizView.classList.remove("hide");
+}
+function showLearnView(){
+  stopAutoPlay();
+  elQuizView.classList.add("hide");
+  elLearnView.classList.remove("hide");
+  drawMode = false;
+  elDrawBtn.textContent = "그리기";
+  renderLearnStatic(true);
+}
+
+/* Events */
+document.getElementById("checkBtn").addEventListener("click", () => check());
+document.getElementById("showBtn").addEventListener("click", () => showAnswer("정답:"));
+document.getElementById("nextBtn").addEventListener("click", () => nextQuestion_manual());
+document.getElementById("newBtn").addEventListener("click", () => newQuestion_manual());
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  total=0; ok=0; bad=0; seqIndex=0; learnIndex=0;
+  elCntTotal.textContent = "0";
+  elCntOk.textContent = "0";
+  elCntBad.textContent = "0";
+  elStatus.innerHTML = "";
+  newQuestion();
+});
+
+elSpeakBtn.addEventListener("click", () => {
+  if (elSpeakBtn.disabled) return;
+  speakHebrewOnce(lastSpeakText || (aObj.heName || aObj.trName || aObj.char));
+});
+
+document.addEventListener("keydown", (e) => {
+  if (elMode.value === "learn") return;
+  if (e.key === "Enter") check();
+});
+
+elMode.addEventListener("change", () => {
+  if (elMode.value === "learn"){
+    learnIndex = 0;
+    showLearnView();
+    return;
+  }
+  showQuizView();
+  if (elMode.value === "sequential" || elMode.value === "predict_seq") seqIndex = 0;
+  newQuestion();
+});
+
+elDrawBtn.addEventListener("click", () => toggleDrawMode());
+
+elHomeBtn.addEventListener("click", () => {
+  stopAutoPlay();
+  learnIndex = 0;
+  renderLearnStatic(true); // auto speak
+});
+
+elAutoPlayBtn.addEventListener("click", () => {
+  if (autoPlayOn) stopAutoPlay();
+  else {
+    learnIndex = 0;
+    renderLearnStatic(false); // don't auto speak; autoplay will
+    startAutoPlay();
+  }
+});
+
+elClearBtn.addEventListener("click", () => clearDraw());
+elPrevBtn.addEventListener("click", () => learnPrev());
+elNextLearnBtn.addEventListener("click", () => learnNext());
+elPlayBtn.addEventListener("click", () => autoSpeakLearn());
+elExitBtn.addEventListener("click", () => {
+  stopAutoPlay();
+  showQuizView();
+  elMode.value = "random";
+  newQuestion();
+});
+
+elLearnRepeatCount.addEventListener("change", () => autoSpeakLearn());
+elLearnRepeatGap.addEventListener("change", () => autoSpeakLearn());
+
+/* Init */
+showQuizView();
+newQuestion();
+</script>
+</body>
+</html>
