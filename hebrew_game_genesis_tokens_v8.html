@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hebrew Genesis Token Game (v7)</title>
+  <style>
+    :root { --pad: 14px; }
+    body { font-family: system-ui, -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif; margin: 0; background:#0b0f14; color:#e8eef6; }
+    header { padding: var(--pad); border-bottom: 1px solid rgba(255,255,255,.08); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    header h1 { font-size: 16px; margin: 0; opacity:.9; }
+    .btn { background:#1b2430; color:#e8eef6; border:1px solid rgba(255,255,255,.12); padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; }
+    .btn:hover { border-color: rgba(255,255,255,.25); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background:#121821; font-weight:700; }
+    .btn.good { background:#12301f; border-color: rgba(88,255,160,.25); }
+    .btn.warn { background:#2b2513; border-color: rgba(255,210,120,.25); }
+    .btn.pill { padding:8px 10px; border-radius:999px; font-size:13px; }
+    .wrap { padding: var(--pad); display:grid; gap:14px; max-width: 1180px; margin: 0 auto; }
+    .grid { display:grid; grid-template-columns: 1.25fr .75fr; gap:14px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card { background:#0f1520; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding: var(--pad); }
+    .hebrew { font-family: "SBL Hebrew", "Ezra SIL", "Taamey David CLM", "Noto Sans Hebrew", serif; font-size: 64px; line-height: 1.2; text-align:center; padding: 8px 0 2px; letter-spacing: .5px; }
+    .sub { text-align:center; opacity:.82; margin-top:6px; font-size:14px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-top: 10px; }
+    .tokens { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .token { font-size:14px; padding:10px 12px; border-radius:12px; background:#151d2a; border:1px solid rgba(255,255,255,.10); cursor:pointer; font-weight:650;; color:#e8eef6 !important; -webkit-text-fill-color:#e8eef6 !important; opacity:1 !important; text-shadow: 0 0 0 rgba(0,0,0,0.001);}
+    .token:hover { border-color: rgba(255,255,255,.22); }
+    .answerBox { min-height: 54px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; padding:10px; border-radius:12px; background:#0c121b; border:1px dashed rgba(255,255,255,.16); }
+    .chip { padding:8px 10px; border-radius:999px; background:#172233; border:1px solid rgba(255,255,255,.10); font-size:13px; }
+    .meta { display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:10px; opacity:.95; }
+    .meta div { font-size:13px; opacity:.88; }
+    .log { font-size: 13px; line-height: 1.5; opacity:.9; white-space:pre-wrap; }
+    .small { font-size: 12px; opacity:.78; }
+    .pill { padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:#121a27; font-size:12px; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; padding: 2px 6px; border-radius: 6px; background:#111925; border:1px solid rgba(255,255,255,.14); }
+    .settings { display:grid; gap:10px; margin-top:10px; }
+    .settings .row2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 980px){ .settings .row2{ grid-template-columns: 1fr; } }
+    label { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    input[type="number"], input[type="range"] {
+      width: 140px; max-width: 45vw;
+      background:#0c121b; color:#e8eef6;
+      border:1px solid rgba(255,255,255,.14); border-radius:10px;
+      padding:8px 10px; font-weight:650;
+    }
+    input[type="checkbox"]{ transform: scale(1.2); }
+    .slot { display:inline-flex; align-items:center; justify-content:center; padding: 10px 12px; border-radius:12px; background:#0c121b; border:1px dashed rgba(255,255,255,.18); min-width: 110px; font-size:13px; }
+    .slots { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .typingWrap{ display:none; margin-top: 12px; }
+    .typingRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; }
+    .typingRow input{
+      width: min(520px, 85vw);
+      background:#0c121b; color:#e8eef6;
+      border:1px solid rgba(255,255,255,.16); border-radius:12px;
+      padding:12px 14px; font-weight:750; font-size:16px;
+    }
+  
+    button, .btn, .token { color:#e8eef6; -webkit-text-fill-color:#e8eef6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hebrew Genesis Token Game (v7)</h1>
+
+  <button class="btn" id="btnNext">다음</button> <button class="btn" id="btnSeq" title="순차/랜덤(무중복) 전환">순차: OFF</button>
+  <button class="btn secondary" id="btnReset">초기화</button>
+  <button class="btn secondary" id="btnReveal">정답</button>
+
+  <button class="btn pill warn" id="btnMode">모드: 분해</button>
+  <button class="btn pill secondary" id="btnReview">전체 랜덤</button>
+
+  <button class="btn pill secondary" id="btnSpeak">발음 ▶</button>
+
+  <span class="pill">
+    단축키:
+    <span class="kbd">N</span>=다음,
+    <span class="kbd">R</span>=초기화,
+    <span class="kbd">Backspace</span>=1개삭제,
+    <span class="kbd">Enter</span>=채점,
+    <span class="kbd">S</span>=발음
+  </span>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <div class="hebrew" id="wordHeb">—</div>
+      <div class="sub" id="wordHint">—</div>
+
+      <div class="meta">
+        <div>
+          문제: <b id="wordId">—</b>
+          <span id="wordTags" class="small"></span>
+        </div>
+        <div>
+          정답률: <b id="acc">0%</b> · 연속정답: <b id="streak">0</b> · 총: <b id="tot">0</b>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;" id="buildWrap">
+        <div class="small" style="margin-bottom:8px;">내가 고른 토큰(순서):</div>
+        <div class="answerBox" id="answerBox"></div>
+      </div>
+
+      <div id="blankSlotsWrap" style="margin-top:12px; display:none;">
+        <div class="small" style="margin-bottom:8px;">빈칸 채우기(슬롯):</div>
+        <div class="slots" id="blankSlots"></div>
+      </div>
+
+      <div class="typingWrap" id="typingWrap">
+        <div class="small" style="margin-bottom:8px; text-align:center;">소리를 직접 입력 (예: 키-토브 / 바예히 / 하마임)</div>
+        <div class="typingRow">
+          <input id="typingInput" type="text" autocomplete="off" spellcheck="false" placeholder="여기에 입력">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="btn secondary" id="btnUndo">1개 취소</button>
+        <button class="btn good" id="btnCheck">채점</button>
+      </div>
+
+      <div style="margin-top:12px;" id="tokenWrap">
+        <div class="small" style="margin-bottom:8px;">토큰 선택:</div>
+        <div class="tokens" id="tokenPool"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div><b>로그</b> <span class="small">(오답은 자동 복습 목록 저장)</span></div>
+      </div>
+
+      <div class="settings">
+        <div class="small"><b>옵션</b></div>
+
+        <div class="row2">
+          <label>정답 후 자동 다음(초)
+            <input type="number" id="optNextDelay" min="0" max="10" step="0.2" value="3.0">
+          </label>
+          <label>뜻 표시(태그 옆)
+            <input type="checkbox" id="optShowGloss" checked>
+          </label>
+        </div>
+
+        <div class="row2">
+          <label>자동 발음(채점 후)
+            <input type="checkbox" id="optAutoSpeak">
+          </label>
+          <label>발음 횟수
+            <input type="number" id="optSpeakRepeat" min="1" max="5" step="1" value="3">
+          </label>
+        </div>
+
+        <div class="row2">
+          <label>발음 속도(0.5~1.5)
+            <input type="range" id="optSpeakRate" min="0.5" max="1.5" step="0.05" value="1.0">
+          </label>
+          <label>발음 간격(ms)
+            <input type="number" id="optSpeakGap" min="0" max="2000" step="50" value="250">
+          </label>
+        </div>
+
+        <div class="row2">
+          <label>보기(토큰) 개수
+            <input type="number" id="optChoiceCount" min="10" max="24" step="1" value="16">
+          </label>
+          <label>헷갈리게(유사토큰 강화)
+            <input type="checkbox" id="optSpicy" checked>
+          </label>
+        </div>
+
+        <div class="small">
+          - v4: 보기 버튼에서 <b>히브리어 글자 숨김</b>(설명만 표시).<br>
+          - v4: 새 모드 <b>소리 맞춰봐</b>(직접 입력) 추가.
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(255,255,255,.08); margin: 14px 0;">
+
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORDS = [
+  { id:"gen1_02_ruach", ref:"창 1:2", heb:"רוּחַ", gloss:"영/바람", tags:["슈룩","푸르티브 파타흐"],
+    reading_ko:["루아흐","루아하"],
+    answer:[ {label:"레쉬", heb:"ר"}, {label:"바브+슈룩", heb:"וּ"}, {label:"헤트+파타흐", heb:"חַ"} ] },
+
+  { id:"gen1_02_elohim", ref:"창 1:2", heb:"אֱלֹהִים", gloss:"하나님", tags:["하타프세골","홀람","히리크말레"],
+    reading_ko:["엘로힘","에로힘"],
+    answer:[ {label:"알레프+하타프세골", heb:"אֱ"}, {label:"라메드+홀람", heb:"לֹ"}, {label:"헤이+히리크", heb:"הִ"}, {label:"요드+멤소핏", heb:"ים"} ] },
+
+  { id:"gen1_02_al_pnei", ref:"창 1:2", heb:"עַל־פְּנֵי", gloss:"~위에/표면 위에", tags:["마케프","다게쉬","체레"],
+    reading_ko:["알-프네","알프네","알-프네이","알프네이"],
+    answer:[ {label:"아인+파타흐+라메드", heb:"עַל"}, {label:"마케프", heb:"־"}, {label:"페+다게쉬+쉐바", heb:"פְּ"}, {label:"눈+체레+요드", heb:"נֵי"} ] },
+
+  { id:"gen1_02_hamayim", ref:"창 1:2", heb:"הַמָּיִם", gloss:"그 물들", tags:["정관사","다게쉬","히리크말레"],
+    reading_ko:["하마임"],
+    answer:[ {label:"헤이+파타흐", heb:"הַ"}, {label:"멤+다게쉬+카맛츠", heb:"מָּ"}, {label:"요드+히리크말레+멤소핏", heb:"יִם"} ] },
+
+  { id:"gen1_03_vayomer", ref:"창 1:3", heb:"וַיֹּאמֶר", gloss:"그리고 말했다", tags:["서사형","홀람","다게쉬"],
+    reading_ko:["바요메르","바요아메르"],
+    answer:[ {label:"바브+파타흐", heb:"וַ"}, {label:"요드+다게쉬+홀람", heb:"יֹּ"}, {label:"알레프", heb:"א"}, {label:"멤+세골", heb:"מֶ"}, {label:"레쉬", heb:"ר"} ] },
+
+  { id:"gen1_03_yehi", ref:"창 1:3", heb:"יְהִי", gloss:"있어라/되라", tags:["쉐바","히리크말레"],
+    reading_ko:["예히","여히"],
+    answer:[ {label:"요드+쉐바", heb:"יְ"}, {label:"헤이+히리크", heb:"הִ"}, {label:"요드", heb:"י"} ] },
+
+  { id:"gen1_03_or", ref:"창 1:3", heb:"אוֹר", gloss:"빛", tags:["홀람말레"],
+    reading_ko:["오르"],
+    answer:[ {label:"알레프", heb:"א"}, {label:"바브+홀람말레", heb:"וֹ"}, {label:"레쉬", heb:"ר"} ] },
+
+  { id:"gen1_04_et", ref:"창 1:4", heb:"אֶת־", gloss:"(목적격 표지)", tags:["마케프","세골"],
+    reading_ko:["에트","에트-"],
+    answer:[ {label:"알레프+세골", heb:"אֶ"}, {label:"타브", heb:"ת"}, {label:"마케프", heb:"־"} ] },
+
+  { id:"gen1_04_haor", ref:"창 1:4", heb:"הָאוֹר", gloss:"그 빛", tags:["정관사","홀람말레"],
+    reading_ko:["하오르"],
+    answer:[ {label:"헤이+카맛츠", heb:"הָ"}, {label:"알레프", heb:"א"}, {label:"바브+홀람말레", heb:"וֹ"}, {label:"레쉬", heb:"ר"} ] },
+
+  { id:"gen1_04_ki_tov", ref:"창 1:4", heb:"כִּי־טוֹב", gloss:"~이 좋다/좋음을", tags:["다게쉬","마케프","히리크말레","홀람말레"],
+    reading_ko:["키-토브","키토브","키-톱","키톱"],
+    answer:[ {label:"카프+다게쉬+히리크", heb:"כִּ"}, {label:"요드", heb:"י"}, {label:"마케프", heb:"־"}, {label:"테트", heb:"ט"}, {label:"바브+홀람말레", heb:"וֹ"}, {label:"베트", heb:"ב"} ] },
+
+  { id:"gen1_04_vayavdel", ref:"창 1:4", heb:"וַיַּבְדֵּל", gloss:"그리고 구별했다", tags:["서사형","다게쉬","체레"],
+    reading_ko:["바야브델"],
+    answer:[ {label:"바브+파타흐", heb:"וַ"}, {label:"요드+다게쉬+파타흐", heb:"יַּ"}, {label:"베트+쉐바", heb:"בְ"}, {label:"달레트+다게쉬+체레", heb:"דֵּ"}, {label:"라메드", heb:"ל"} ] }
+
+  ,{ id:"gen1_01_bereshit", ref:"창 1:1", heb:"בְּרֵאשִׁית", gloss:"태초에", tags:["체레","쉐바"], reading_ko:["브레시트","베레시트"],
+    answer:[ {label:"בְּ 베트+다게쉬+쉐바", heb:"בְּ"}, {label:"רֵ 레쉬+체레", heb:"רֵ"}, {label:"א 알레프", heb:"א"}, {label:"שִׁ 쉰+히릭", heb:"שִׁ"}, {label:"ת 타브", heb:"ת"} ] }
+  ,{ id:"gen1_01_bara", ref:"창 1:1", heb:"בָּרָא", gloss:"창조했다", tags:["카맛츠","다게쉬"], reading_ko:["바라"],
+    answer:[ {label:"בָּ 베트+다게쉬+카맛츠", heb:"בָּ"}, {label:"רָ 레쉬+카맛츠", heb:"רָ"}, {label:"א 알레프", heb:"א"} ] }
+  ,{ id:"gen1_01_elohim", ref:"창 1:1", heb:"אֱלֹהִים", gloss:"하나님", tags:["세골","홀람말레"], reading_ko:["엘로힘"],
+    answer:[ {label:"אֱ 알레프+세골", heb:"אֱ"}, {label:"ל 라메드", heb:"ל"}, {label:"וֹ 홀람말레", heb:"וֹ"}, {label:"הִ 헤이+히릭", heb:"הִ"}, {label:"י 요드", heb:"י"}, {label:"ם 멤소핏", heb:"ם"} ] }
+  ,{ id:"gen1_01_et", ref:"창 1:1", heb:"אֵת", gloss:"(목적격)", tags:["체레"], reading_ko:["에트"],
+    answer:[ {label:"אֵ 알레프+체레", heb:"אֵ"}, {label:"ת 타브", heb:"ת"} ] }
+  ,{ id:"gen1_01_hashamayim", ref:"창 1:1", heb:"הַשָּׁמַיִם", gloss:"그 하늘들", tags:["정관사","다게쉬"], reading_ko:["하샤마임"],
+    answer:[ {label:"הַ 헤이+파타흐", heb:"הַ"}, {label:"שָּׁ 쉰+다게쉬+카맛츠", heb:"שָּׁ"}, {label:"מַ 멤+파타흐", heb:"מַ"}, {label:"יִ 요드+히릭", heb:"יִ"}, {label:"ם 멤소핏", heb:"ם"} ] }
+  ,{ id:"gen1_01_haaretz", ref:"창 1:1", heb:"הָאָרֶץ", gloss:"그 땅", tags:["정관사"], reading_ko:["하아레츠","하아레쯔"],
+    answer:[ {label:"הָ 헤이+카맛츠", heb:"הָ"}, {label:"א 알레프", heb:"א"}, {label:"רֶ 레쉬+세골", heb:"רֶ"}, {label:"ץ 차디소핏", heb:"ץ"} ] }
+  ,{ id:"gen1_02_tohu", ref:"창 1:2", heb:"תֹהוּ", gloss:"혼돈", tags:["홀람","슈룩"], reading_ko:["토후"],
+    answer:[ {label:"תֹ 타브+홀람", heb:"תֹ"}, {label:"ה 헤이", heb:"ה"}, {label:"וּ 슈룩", heb:"וּ"} ] }
+  ,{ id:"gen1_02_vavohu", ref:"창 1:2", heb:"וָבֹהוּ", gloss:"그리고 공허", tags:["바브","홀람"], reading_ko:["바보후"],
+    answer:[ {label:"וָ 바브+카맛츠", heb:"וָ"}, {label:"ב 베트", heb:"ב"}, {label:"וֹ 홀람말레", heb:"וֹ"}, {label:"ה 헤이", heb:"ה"}, {label:"וּ 슈룩", heb:"וּ"} ] }
+  ,{ id:"gen1_02_vechoshekh", ref:"창 1:2", heb:"וְחֹשֶׁךְ", gloss:"그리고 어둠", tags:["바브","홀람"], reading_ko:["브호셰크","브호쉐크"],
+    answer:[ {label:"וְ 바브+쉐바", heb:"וְ"}, {label:"חֹ 헤트+홀람", heb:"חֹ"}, {label:"שֶׁ 쉰+세골", heb:"שֶׁ"}, {label:"ךְ 카프소핏+쉐바", heb:"ךְ"} ] }
+  ,{ id:"gen1_02_tehom", ref:"창 1:2", heb:"תְּהוֹם", gloss:"깊음", tags:["다게쉬","홀람말레"], reading_ko:["테홈"],
+    answer:[ {label:"תְּ 타브+다게쉬+쉐바", heb:"תְּ"}, {label:"ה 헤이", heb:"ה"}, {label:"וֹ 홀람말레", heb:"וֹ"}, {label:"ם 멤소핏", heb:"ם"} ] }
+  ,{ id:"gen1_02_hamayim", ref:"창 1:2", heb:"הַמָּיִם", gloss:"그 물들", tags:["정관사","다게쉬"], reading_ko:["하마임"],
+    answer:[ {label:"הַ 헤이+파타흐", heb:"הַ"}, {label:"מָּ 멤+다게쉬+카맛츠", heb:"מָּ"}, {label:"יִ 요드+히릭", heb:"יִ"}, {label:"ם 멤소핏", heb:"ם"} ] }
+  ,{ id:"gen1_03_yehi", ref:"창 1:3", heb:"יְהִי", gloss:"있어라", tags:["쉐바","히릭"], reading_ko:["예히"],
+    answer:[ {label:"יְ 요드+쉐바", heb:"יְ"}, {label:"הִ 헤이+히릭", heb:"הִ"}, {label:"י 요드", heb:"י"} ] }
+  ,{ id:"gen1_03_or", ref:"창 1:3", heb:"אוֹר", gloss:"빛", tags:["홀람말레"], reading_ko:["오르"],
+    answer:[ {label:"א 알레프", heb:"א"}, {label:"וֹ 홀람말레", heb:"וֹ"}, {label:"ר 레쉬", heb:"ר"} ] }
+
+];
+
+//------------------- 출제 순서 (랜덤 무중복 / 순차)
+let orderMode = "random"; // "random" | "seq"
+let bag = [];             // 랜덤 무중복용 인덱스 스택
+let seqIndex = 0;
+
+function refillBag(){
+  bag = Array.from({length: WORDS.length}, (_,i)=>i);
+  for(let i=bag.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const t=bag[i]; bag[i]=bag[j]; bag[j]=t;
+  }
+}
+function nextIndex(){
+  if(orderMode === "seq"){
+    const idx = seqIndex % WORDS.length;
+    seqIndex = (seqIndex + 1) % WORDS.length;
+    return idx;
+  }
+  if(bag.length === 0) refillBag();
+  return bag.pop();
+}
+
+const MODES = [
+  { id:0, name:"분해", hint:"단어를 보고 토큰을 정답 순서대로 조립" },
+  { id:1, name:"니쿳", hint:"자음 스켈레톤(니쿳 제거)을 보고 니쿳 포함 토큰으로 완성" },
+  { id:2, name:"빈칸", hint:"일부 토큰은 고정. 빈칸 슬롯만 채우기" },
+  { id:3, name:"소리 맞춰봐", hint:"단어(완전체)를 보고 발음을 직접 입력 (채점 후에만 발음)" },
+];
+
+function stripNiqqud(s){
+  return s.replace(/[\u0591-\u05BD\u05BF\u05C1-\u05C2\u05C4-\u05C7]/g, "");
+}
+
+const TOKEN_BANK = (() => {
+  const out = [];
+  for(const w of WORDS){
+    for(const t of w.answer) out.push({label:t.label, heb:t.heb});
+  }
+  return out;
+})();
+
+const SPICY_DECOYS = [
+  {label:"헤이+파타흐", heb:"הַ"},
+  {label:"헤이+카맛츠", heb:"הָ"},
+  {label:"바브+파타흐", heb:"וַ"},
+  {label:"바브+카맛츠", heb:"וָ"},
+  {label:"베트+쉐바", heb:"בְ"},
+  {label:"베트+다게쉬+쉐바", heb:"בְּ"},
+  {label:"페+쉐바", heb:"פְ"},
+  {label:"페+다게쉬+쉐바", heb:"פְּ"},
+  {label:"요드+쉐바", heb:"יְ"},
+  {label:"요드+히리크", heb:"יִ"},
+  {label:"알레프+세골", heb:"אֶ"},
+  {label:"알레프+카맛츠", heb:"אָ"},
+  {label:"바브+홀람말레", heb:"וֹ"},
+  {label:"바브+슈룩", heb:"וּ"},
+  {label:"마케프", heb:"־"}
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function uniq(tokens){
+  const seen = new Set();
+  const out = [];
+  for(const t of tokens){
+    const k = t.heb + "|" + t.label;
+    if(seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+  }
+  return out;
+}
+function keyOf(t){ return t.heb + "|" + t.label; }
+
+let mode = 0;
+let current = null;
+let picks = [];
+let blankPlan = null;
+let useReviewOnly = false;
+let stats = { total:0, correct:0, streak:0 };
+const reviewSet = new Set();
+let allowSpeakInSound = false; // 소리맞춰봐 모드에서 채점 전 발음 금지
+
+
+const $ = (id) => document.getElementById(id);
+const elWordHeb = $("wordHeb");
+const elWordHint = $("wordHint");
+const elWordId = $("wordId");
+const elWordTags = $("wordTags");
+const elAnswerBox = $("answerBox");
+const elTokenPool = $("tokenPool");
+const elLog = $("log");
+const elAcc = $("acc");
+const elStreak = $("streak");
+const elTot = $("tot");
+const elBlankSlotsWrap = $("blankSlotsWrap");
+const elBlankSlots = $("blankSlots");
+const elTypingWrap = $("typingWrap");
+const elTypingInput = $("typingInput");
+const elTokenWrap = $("tokenWrap");
+const elBuildWrap = $("buildWrap");
+
+function getOpt(){
+  return {
+    nextDelay: Math.max(0, Math.min(10, parseFloat($("optNextDelay").value || "0"))),
+    showGloss: $("optShowGloss").checked,
+    autoSpeak: $("optAutoSpeak").checked,
+    speakRepeat: Math.max(1, Math.min(5, parseInt($("optSpeakRepeat").value || "1", 10))),
+    speakRate: Math.max(0.5, Math.min(1.5, parseFloat($("optSpeakRate").value || "1"))),
+    speakGap: Math.max(0, Math.min(2000, parseInt($("optSpeakGap").value || "0", 10))),
+    choiceCount: Math.max(10, Math.min(24, parseInt($("optChoiceCount").value || "16", 10))),
+    spicy: $("optSpicy").checked,
+  };
+}
+
+function logLine(s){
+  const now = new Date();
+  const ts = now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  elLog.textContent = `[${ts}] ${s}\n` + elLog.textContent;
+}
+
+function buildPool(word, forcedTokens){
+  const opt = getOpt();
+  const forced = forcedTokens ? forcedTokens.slice() : [];
+  const forcedKeys = new Set(forced.map(keyOf));
+
+  const answer = uniq(word.answer.slice());
+  const answerKeys = new Set(answer.map(keyOf));
+
+  const other = TOKEN_BANK.filter(t => !answerKeys.has(keyOf(t)) && !forcedKeys.has(keyOf(t)));
+  const spicyPick = opt.spicy ? shuffle(SPICY_DECOYS.filter(t => !forcedKeys.has(keyOf(t)))).slice(0, 10) : [];
+
+  let pool = uniq(forced.concat(answer)).slice();
+  const target = Math.max(opt.choiceCount, pool.length, forced.length);
+  const remain = target - pool.length;
+
+  const filler = uniq(shuffle(other).concat(shuffle(spicyPick)));
+  pool = uniq(pool.concat(filler)).slice(0, target);
+
+  const poolKeys = new Set(pool.map(keyOf));
+  for(const t of forced){
+    if(!poolKeys.has(keyOf(t))){
+      for(let i=pool.length-1;i>=0;i--){
+        const k = keyOf(pool[i]);
+        if(!forcedKeys.has(k)){
+          pool[i] = t;
+          poolKeys.add(keyOf(t));
+          break;
+        }
+      }
+    }
+  }
+  return shuffle(pool).slice(0, target);
+}
+
+function planBlank(word){
+  const n = word.answer.length;
+  const idxs = [...Array(n).keys()];
+  const shownCount = Math.max(1, Math.floor(n/2));
+  const shownIdx = new Set(shuffle(idxs).slice(0, shownCount));
+  const missingIdx = new Set(idxs.filter(i => !shownIdx.has(i)));
+  return { shownIdx, missingIdx };
+}
+
+function render(){
+  const m = MODES.find(x => x.id === mode);
+  $("btnMode").textContent = `모드: ${m.name}`;
+  elWordHint.textContent = m.hint;
+
+  if(!current){
+    elWordHeb.textContent = "—";
+    elWordId.textContent = "—";
+    elWordTags.textContent = "";
+    return;
+  }
+
+  if(mode === 1){
+    elWordHeb.textContent = stripNiqqud(current.heb);
+  } else {
+    elWordHeb.textContent = current.heb;
+  }
+
+  const opt = getOpt();
+  const tags = opt.showGloss ? `${current.tags.join(", ")} · 뜻: ${current.gloss}` : `${current.tags.join(", ")}`;
+  elWordId.textContent = `${current.ref} · ${current.id}`;
+  elWordTags.textContent = `(${tags})`;
+
+  const isTyping = (mode === 3);
+  elTypingWrap.style.display = isTyping ? "block" : "none";
+  // 소리 맞춰봐 모드: 채점 전에는 발음 버튼 비활성
+  const btnSpeak = document.getElementById("btnSpeak");
+  if(isTyping){
+    btnSpeak.disabled = !allowSpeakInSound;
+    btnSpeak.style.opacity = allowSpeakInSound ? "1" : ".45";
+    btnSpeak.textContent = allowSpeakInSound ? "발음 ▶" : "발음 🔒";
+  } else {
+    btnSpeak.disabled = false;
+    btnSpeak.style.opacity = "1";
+    btnSpeak.textContent = "발음 ▶";
+  }
+
+  elTokenWrap.style.display = isTyping ? "none" : "";
+  elBuildWrap.style.display = isTyping ? "none" : "";
+  $("btnUndo").style.display = isTyping ? "none" : "";
+  elBlankSlotsWrap.style.display = (mode === 2 && !isTyping) ? "" : "none";
+
+  elAnswerBox.innerHTML = "";
+  if(!isTyping){
+    if(picks.length === 0){
+      const s = document.createElement("div");
+      s.className = "small";
+      s.textContent = (mode === 2) ? "빈칸 토큰만 순서대로 선택" : "토큰을 눌러서 순서대로 조립";
+      elAnswerBox.appendChild(s);
+    } else {
+      picks.forEach((t, idx) => {
+        const c = document.createElement("div");
+        c.className = "chip";
+        c.textContent = `${t.label}`;
+        c.title = `#${idx+1}`;
+        elAnswerBox.appendChild(c);
+      });
+    }
+  } else {
+    setTimeout(()=>elTypingInput.focus(), 50);
+  }
+
+  if(mode === 2 && blankPlan){
+    elBlankSlots.innerHTML = "";
+    current.answer.forEach((t, i) => {
+      const d = document.createElement("div");
+      d.className = "slot";
+      d.textContent = blankPlan.shownIdx.has(i) ? `${t.label}` : `? 빈칸`;
+      elBlankSlots.appendChild(d);
+    });
+  }
+
+  elTokenPool.innerHTML = "";
+  if(!isTyping){
+    let forced = [];
+    if(mode === 2 && blankPlan){
+      const missingIdx = [...blankPlan.missingIdx].sort((a,b)=>a-b);
+      forced = missingIdx.map(i => current.answer[i]);
+    }
+    const pool = buildPool(current, forced);
+    pool.forEach((t) => {
+      const b = document.createElement("button");
+      b.className = "token";
+      b.type = "button";
+      b.textContent = `${t.label}`;
+      b.onclick = () => { picks.push(t); render(); };
+      elTokenPool.appendChild(b);
+    });
+  }
+
+  elTot.textContent = String(stats.total);
+  elStreak.textContent = String(stats.streak);
+  const acc = stats.total === 0 ? 0 : Math.round((stats.correct / stats.total) * 100);
+  elAcc.textContent = `${acc}%`;
+
+  $("btnReview").textContent = useReviewOnly ? "오답 랜덤" : "전체 랜덤";
+}
+
+function pickWord(){
+  allowSpeakInSound = false;
+
+  const list = useReviewOnly ? WORDS.filter(w => reviewSet.has(w.id)) : WORDS;
+  const use = (list.length === 0) ? WORDS : list;
+  current = use[Math.floor(Math.random()*use.length)];
+  picks = [];
+  blankPlan = (mode === 2) ? planBlank(current) : null;
+  elTypingInput.value = "";
+  render();
+}
+
+function normalizePicksForBlank(){
+  const missingIdx = [...blankPlan.missingIdx].sort((a,b)=>a-b);
+  const expected = missingIdx.map(i => current.answer[i].heb);
+  const got = picks.map(t => t.heb);
+  return { expected, got };
+}
+
+function normSound(s){
+  return (s||"")
+    .toLowerCase()
+    .replace(/[\s·•]/g,"")
+    .replace(/—|–/g,"-")
+    .replace(/[()\[\]{},.!?]/g,"");
+}
+
+function check(){
+  if(!current) return;
+  const opt = getOpt();
+  stats.total++;
+
+  let ok = false;
+  let expectedStr = "";
+  let gotStr = "";
+
+  if(mode === 3){
+    // 한글 발음만 채점 (라틴 문자 불필요)
+    const gotRaw = (elTypingInput.value || "").trim();
+    const got = normSound(gotRaw);
+    const ansRaw = (current.reading_ko || current.reading || []);
+    const ans = (ansRaw || []).map(normSound).filter(x=>x);
+    ok = ans.includes(got) && got.length > 0;
+    expectedStr = (ansRaw || []).join(" / ") || "—";
+    gotStr = gotRaw || "—";
+  } else if(mode === 2){
+    const { expected, got } = normalizePicksForBlank();
+    ok = (got.length === expected.length) && got.every((h,i)=>h===expected[i]);
+    expectedStr = expected.join("  ");
+    gotStr = got.join("  ") || "—";
+  } else {
+    const ansHeb = current.answer.map(t => t.heb);
+    const pickedHeb = picks.map(t => t.heb);
+    ok = (pickedHeb.length === ansHeb.length) && pickedHeb.every((h, i) => h === ansHeb[i]);
+    expectedStr = current.answer.map(t => `${t.label}`).join("  ");
+    gotStr = picks.map(t => `${t.label}`).join("  ") || "—";
+  }
+
+  if(ok){
+    stats.correct++;
+    stats.streak++;
+    reviewSet.delete(current.id);
+    logLine(`✅ 정답!  ${current.heb}  (${current.ref})${opt.showGloss ? " · " + current.gloss : ""}${mode===3 ? " · 입력: " + gotStr : ""}`);
+  } else {
+    stats.streak = 0;
+    reviewSet.add(current.id);
+    logLine(`❌ 오답  ${current.heb}  (${current.ref})${opt.showGloss ? " · " + current.gloss : ""}\n   기대: ${expectedStr}\n   입력: ${gotStr}`);
+  }
+
+  if(mode === 3){
+    // 채점 후에만 발음 허용 + 즉시 발음
+    allowSpeakInSound = true;
+    speakCurrent();
+  } else if(opt.autoSpeak){
+    speakCurrent();
+  }
+
+  render();
+
+  if(ok){
+    const delayMs = Math.round(opt.nextDelay * 1000);
+    if(delayMs > 0) setTimeout(pickWord, delayMs);
+    else pickWord();
+  }
+}
+
+function reveal(){
+  if(!current) return;
+  if(mode === 3){
+    elTypingInput.value = (current.reading_ko && current.reading_ko[0]) ? current.reading_ko[0] : "";
+    allowSpeakInSound = true;
+    logLine(`👀 정답 보기(소리): ${elTypingInput.value}`);
+  } else if(mode === 2){
+    const missingIdx = [...blankPlan.missingIdx].sort((a,b)=>a-b);
+    picks = missingIdx.map(i => current.answer[i]);
+    logLine(`👀 정답 보기: ${current.heb} (빈칸 토큰 채움)`);
+  } else {
+    picks = current.answer.slice();
+    logLine(`👀 정답 보기: ${current.heb}`);
+  }
+  render();
+}
+
+function speakText(text, repeat, rate, gapMs){
+  if(!window.speechSynthesis) { logLine("⚠️ 이 브라우저는 TTS 미지원"); return; }
+  window.speechSynthesis.cancel();
+
+  const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+  const heVoice = voices.find(v => (v.lang || "").toLowerCase().startsWith("he")) ||
+                  voices.find(v => (v.name || "").toLowerCase().includes("hebrew")) || null;
+
+  let i = 0;
+  const playOnce = () => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "he-IL";
+    u.rate = rate;
+    if(heVoice) u.voice = heVoice;
+    u.onend = () => {
+      i++;
+      if(i < repeat) setTimeout(playOnce, gapMs);
+    };
+    window.speechSynthesis.speak(u);
+  };
+  playOnce();
+}
+
+function speakCurrent(){
+  if(!current) return;
+  const opt = getOpt();
+  speakText(current.heb, opt.speakRepeat, opt.speakRate, opt.speakGap);
+}
+
+function cycleMode(){
+  mode = (mode + 1) % MODES.length;
+  picks = [];
+  allowSpeakInSound = false;
+  blankPlan = (mode === 2 && current) ? planBlank(current) : null;
+  elTypingInput.value = "";
+  render();
+  logLine(`🎛 모드 변경: ${MODES[mode].name}`);
+}
+
+$("btnNext").onclick = () => pickWord();
+$("btnReset").onclick = () => { picks = []; elTypingInput.value=""; allowSpeakInSound = false; render(); };
+$("btnUndo").onclick = () => { picks.pop(); render(); };
+$("btnCheck").onclick = () => check();
+$("btnReveal").onclick = () => reveal();
+$("btnMode").onclick = () => cycleMode();
+$("btnSeq").onclick = () => {
+  orderMode = (orderMode === "seq") ? "random" : "seq";
+  if(orderMode === "random"){ refillBag(); }
+  $("btnSeq").textContent = (orderMode === "seq") ? "순차: ON" : "순차: OFF";
+  logLine(`🔁 출제: ${orderMode === "seq" ? "순차" : "랜덤(무중복)"}`);
+};
+
+$("btnReview").onclick = () => { useReviewOnly = !useReviewOnly; logLine(useReviewOnly ? "🔁 오답 랜덤 ON" : "🎲 전체 랜덤 ON"); pickWord(); };
+$("btnSpeak").onclick = () => {
+  if(mode === 3 && !allowSpeakInSound){
+    logLine("🔒 소리 맞춰봐 모드: 채점 후에만 발음 가능");
+    render();
+    return;
+  }
+  speakCurrent();
+  logLine(`🔊 발음: ${current ? current.heb : "—"}`);
+};
+
+window.addEventListener("keydown", (e) => {
+  if(e.key === "n" || e.key === "N"){ e.preventDefault(); pickWord(); }
+  if(e.key === "r" || e.key === "R"){ e.preventDefault(); picks = []; elTypingInput.value=""; render(); }
+  if(e.key === "Backspace"){
+    if(mode === 3) return;
+    e.preventDefault();
+    picks.pop();
+    render();
+  }
+  if(e.key === "Enter"){ e.preventDefault(); check(); }
+  if(e.key === "s" || e.key === "S"){ e.preventDefault(); speakCurrent(); }
+});
+
+if(window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined){
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+pickWord();
+logLine("시작! v7: '소리 맞춰봐' 입력칸 추가 + 채점 전 발음 잠금 + 한글 정답만.");
+</script>
+</body>
+</html>
