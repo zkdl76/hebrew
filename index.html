@@ -304,6 +304,11 @@
       display: inline-block;
       margin-left: 10px; /* 단어 사이 간격 */
     }
+
+.hebrew-word {
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -682,11 +687,27 @@
 
       applyResponsiveFontForGroup(group.length);
 
-      const html = group
-        .map(w => `<span class="heb-word">${w.text}</span>`)
-        .join("");
+      // ==== 여기부터: 그룹 단어 span + 클릭 → 자세히 팝업 ====
+      wordDisplay.innerHTML = "";
 
-      wordDisplay.innerHTML = html;
+      for (let i = 0; i < group.length; i++) {
+        const w = group[i];
+        const span = document.createElement("span");
+        span.textContent = w.text;
+        span.className = "heb-word";
+
+        const globalIndex = currentWordIndex + i;
+
+        span.addEventListener("click", () => {
+          if (drawingEnabled) return;        // 그리기 모드 켜져 있으면 무시
+          const wordObj = currentWords[globalIndex];
+          if (!wordObj) return;
+          openDetail(wordObj);               // 공통 팝업 함수
+        });
+
+        wordDisplay.appendChild(span);
+      }
+      // ==== 여기까지 수정 ====
 
       if (settings.groupSize === "all") {
         meaningDisplay.textContent =
@@ -921,7 +942,20 @@
       updateWordDisplay();
     });
 
-    /* ===== DETAIL MODAL ===== */
+    /* ===== DETAIL MODAL 공통 함수 ===== */
+    function openDetail(w) {
+      if (!w) return;
+      detailTitle.textContent = w.text;
+      detailBody.innerHTML =
+        `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
+         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>
+         <p><strong>발음:</strong> ${w.pron || "등록된 발음 없음"}</p>
+         <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
+         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
+      detailOverlay.classList.add("show");
+    }
+
+    /* ===== DETAIL MODAL (버튼 클릭) ===== */
     meaningDisplay.addEventListener("click", e => {
       const target = e.target;
       if (!target.classList.contains("detail-button")) return;
@@ -930,15 +964,7 @@
       const w = currentWords[idx];
       if (!w) return;
 
-      detailTitle.textContent = w.text;
-      detailBody.innerHTML =
-        `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
-         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>
-         <p><strong>발음:</strong> ${w.pron || "등록된 발음 없음"}</p>
-         <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
-         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
-
-      detailOverlay.classList.add("show");
+      openDetail(w);
     });
 
     detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
@@ -1090,6 +1116,7 @@
 
     init();
   </script>
+
 
 </body>
 </html>
