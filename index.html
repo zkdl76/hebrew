@@ -282,18 +282,22 @@
       }
     }
 
-    /* 자세히 팝업 글자 크기 클래스 */
-    #detailBody.size-small {
-      font-size: 13px;
-    }
+    /* 자세히 팝업 글자 크기 클래스 (제목 + 내용 같이 변경) */
+#detailBody.size-small,
+#detailTitle.size-small {
+  font-size: 13px;
+}
 
-    #detailBody.size-medium {
-      font-size: 16px;
-    }
+#detailBody.size-medium,
+#detailTitle.size-medium {
+  font-size: 16px;
+}
 
-    #detailBody.size-large {
-      font-size: 20px;
-    }
+#detailBody.size-large,
+#detailTitle.size-large {
+  font-size: 20px;
+}
+
 #wordDisplay {
   direction: rtl !important;
   unicode-bidi: bidi-override !important;
@@ -534,17 +538,21 @@
     document.getElementById("sizeMedium").addEventListener("click", () => changeDetailSize("medium"));
     document.getElementById("sizeLarge").addEventListener("click", () => changeDetailSize("large"));
 
-    function changeDetailSize(size) {
-      const detail = detailBody;
+   function changeDetailSize(size) {
+  const body = detailBody;
+  const title = detailTitle;
 
-      detail.classList.remove("size-small", "size-medium", "size-large");
+  [body, title].forEach(el => {
+    el.classList.remove("size-small", "size-medium", "size-large");
 
-      if (size === "small") detail.classList.add("size-small");
-      if (size === "medium") detail.classList.add("size-medium");
-      if (size === "large") detail.classList.add("size-large");
+    if (size === "small") el.classList.add("size-small");
+    if (size === "medium") el.classList.add("size-medium");
+    if (size === "large") el.classList.add("size-large");
+  });
 
-      localStorage.setItem("detailSize", size);
-    }
+  localStorage.setItem("detailSize", size);
+}
+
 
     window.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem("detailSize") || "medium";
