@@ -528,6 +528,8 @@
 
       currentWords = allWords;
       currentWordIndex = 0;   // 기본은 1절 첫 단어
+      verseSelect.value = verseKeys[0];   // ← 기본 절을 1절로 강제 설정
+
       updateWordDisplay();
     }
 
@@ -852,6 +854,8 @@
       settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
 
       currentWordIndex = 0;
+  
+
 
       closeSettings();
       updateWordDisplay();
