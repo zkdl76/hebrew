@@ -744,7 +744,7 @@ window.speechSynthesis.onvoiceschanged = () => {
       }
     }
 
-function speakOnce(text, rate) {
+async function speakOnce(text, rate) {
   const synth = window.speechSynthesis;
   if (!synth) return;
 
@@ -761,21 +761,23 @@ function speakOnce(text, rate) {
     });
   }
 
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = rate;
+  return new Promise(resolve => {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = rate;
+    utter.lang = "he-IL";
 
-  // 히브리 어도전
-  utter.lang = "he-IL";
+    const voices = speechSynthesis.getVoices();
+    if (!voices.some(v => v.lang === "he-IL")) {
+      utter.lang = "en-US";
+    }
 
-  // fallback (히브리 없음 → 영어)
-  const voices = speechSynthesis.getVoices();
-  if (!voices.some(v => v.lang === "he-IL")) {
-    utter.lang = "en-US";
-  }
+    utter.onend = resolve;
+    utter.onerror = resolve;
 
-  speechSynthesis.speak(utter);
-});
+    synth.speak(utter);
+  });
 }
+
 
 
     async function speakGroupWordsOneByOne(group, rate) {
