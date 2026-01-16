@@ -418,7 +418,7 @@
     </div>
   </div>
 
-  <script>
+    <script>
     /* ===== 전역 상태 ===== */
     let verseData = null;
     let currentWords = [];
@@ -531,18 +531,56 @@
       updateWordDisplay();
     }
 
+    /* ===== 절별 단어 범위 계산 ===== */
+    function getRangeForVerse(verseValue) {
+      if (!currentWords.length) return { start: 0, end: -1 };
+
+      // 전체 선택이면 장 전체
+      if (verseValue === "all") {
+        return { start: 0, end: currentWords.length - 1 };
+      }
+
+      const start = verseWordStartIndex[verseValue];
+      if (typeof start !== "number") {
+        return { start: 0, end: currentWords.length - 1 };
+      }
+
+      const idx = verseOrder.indexOf(verseValue);
+      let end;
+      if (idx >= 0 && idx < verseOrder.length - 1) {
+        const nextVerse = verseOrder[idx + 1];
+        const nextStart = verseWordStartIndex[nextVerse];
+        end = (typeof nextStart === "number" ? nextStart : currentWords.length) - 1;
+      } else {
+        end = currentWords.length - 1;
+      }
+
+      return { start, end };
+    }
+
+    function getActiveRange() {
+      return getRangeForVerse(verseSelect.value);
+    }
+
     /* ===== GROUP ===== */
     function getCurrentGroup() {
       if (!currentWords.length) return [];
 
-      // 전체 모드면 전체 단어
+      const range = getActiveRange();
+      if (range.end < range.start) return [];
+
+      // 전체 모드면 "현재 선택된 절" 전체
       if (settings.groupSize === "all") {
-        return currentWords.slice();
+        return currentWords.slice(range.start, range.end + 1);
       }
 
       const g = settings.groupSize;
-      const start = currentWordIndex;   // 항상 현재 인덱스부터
-      return currentWords.slice(start, start + g);
+      const start = Math.min(Math.max(currentWordIndex, range.start), range.end);
+      const result = [];
+      for (let i = start; i <= range.end && result.length < g; i++) {
+        result.push(currentWords[i]);
+      }
+      return result;
     }
 
     /* ===== AUTO FONT ADJUST ===== */
@@ -595,7 +633,21 @@
         return;
       }
 
+      const range = getActiveRange();
+
+      // 현재 인덱스가 선택된 절 범위를 넘어가지 않게 조정
+      if (currentWordIndex < range.start) currentWordIndex = range.start;
+      if (currentWordIndex > range.end) currentWordIndex = range.end;
+
       const group = getCurrentGroup();
+      if (!group.length) {
+        wordDisplay.textContent = "단어 없음";
+        meaningDisplay.textContent = "";
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+        return;
+      }
+
       applyResponsiveFontForGroup(group.length);
 
       const html = group
@@ -604,7 +656,6 @@
 
       wordDisplay.innerHTML = html;
 
-      // 전체 모드이거나 그룹이 여러 단어면 "자세히" 버튼 없이 뜻만 나열
       if (settings.groupSize === "all") {
         meaningDisplay.textContent =
           group.map(w => w.meaning || "").join(" / ");
@@ -619,13 +670,15 @@
           group.map(w => w.meaning || "").join(" / ");
       }
 
+      // 이전/다음 버튼 활성화 여부 (절 범위 기준)
       if (settings.groupSize === "all") {
         prevWordBtn.disabled = true;
         nextWordBtn.disabled = true;
       } else {
         const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
-        prevWordBtn.disabled = currentWordIndex <= 0;
-        nextWordBtn.disabled = currentWordIndex + step >= currentWords.length;
+        prevWordBtn.disabled = currentWordIndex <= range.start;
+        const maxStart = Math.max(range.start, range.end - step + 1);
+        nextWordBtn.disabled = currentWordIndex >= maxStart;
       }
     }
 
@@ -633,10 +686,11 @@
     prevWordBtn.addEventListener("click", () => {
       if (settings.groupSize === "all") return;
 
+      const range = getActiveRange();
       const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
 
-      if (currentWordIndex > 0) {
-        currentWordIndex = Math.max(0, currentWordIndex - step);
+      if (currentWordIndex > range.start) {
+        currentWordIndex = Math.max(range.start, currentWordIndex - step);
         updateWordDisplay();
       }
     });
@@ -644,10 +698,11 @@
     nextWordBtn.addEventListener("click", () => {
       if (settings.groupSize === "all") return;
 
+      const range = getActiveRange();
       const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
 
-      if (currentWordIndex < currentWords.length - 1) {
-        const maxStart = Math.max(0, currentWords.length - step);
+      if (currentWordIndex < range.end) {
+        const maxStart = Math.max(range.start, range.end - step + 1);
         currentWordIndex = Math.min(maxStart, currentWordIndex + step);
         updateWordDisplay();
       }
@@ -682,7 +737,6 @@
       });
     }
 
-    /* 단어 단위 순차 재생 */
     async function speakGroupWordsOneByOne(group, rate) {
       for (let w of group) {
         if (!isPlaying) break;
@@ -712,7 +766,6 @@
       playTimeoutId = null;
     }
 
-    /* 전체 TTS 실행 */
     async function playSequence() {
       if (!currentWords.length) return;
 
@@ -783,7 +836,6 @@
 
       settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
 
-      // 전체 모드로 바꿀 때도 처음 단어부터 다시 보이게
       currentWordIndex = 0;
 
       closeSettings();
@@ -914,16 +966,44 @@
       if (!currentWords.length) return;
 
       const selectedVerse = verseSelect.value;
+      const range = getRangeForVerse(selectedVerse);
 
-      if (selectedVerse === "all") {
-        currentWordIndex = 0;         // 장 전체 첫 단어
-      } else {
-        const idx = verseWordStartIndex[selectedVerse];
-        currentWordIndex = (typeof idx === "number") ? idx : 0;
-      }
-
+      // 선택된 절의 첫 단어로 이동
+      currentWordIndex = range.start;
       updateWordDisplay();
       clearCanvas();
+    });
+
+    /* ===== 이전절 / 다음절 버튼 ===== */
+    prevVerseBtn.addEventListener("click", () => {
+      if (!verseOrder.length) return;
+
+      let sel = verseSelect.value;
+      if (sel === "all") {
+        // 전체에서 이전절은 1절로
+        sel = verseOrder[0];
+      }
+      const idx = verseOrder.indexOf(sel);
+      if (idx > 0) {
+        const newVerse = verseOrder[idx - 1];
+        verseSelect.value = newVerse;
+        confirmBtn.click();
+      }
+    });
+
+    nextVerseBtn.addEventListener("click", () => {
+      if (!verseOrder.length) return;
+
+      let sel = verseSelect.value;
+      if (sel === "all") {
+        sel = verseOrder[0];
+      }
+      const idx = verseOrder.indexOf(sel);
+      if (idx >= 0 && idx < verseOrder.length - 1) {
+        const newVerse = verseOrder[idx + 1];
+        verseSelect.value = newVerse;
+        confirmBtn.click();
+      }
     });
 
     /* ===== INIT ===== */
@@ -935,5 +1015,6 @@
 
     init();
   </script>
+
 </body>
 </html>
