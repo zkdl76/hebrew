@@ -197,18 +197,7 @@
       background: #f7f7f7;
       cursor: pointer;
     }
-    .detail-button {
-      margin-left: 8px;
-      padding: 2px 8px;
-      font-size: 12px;
-      border-radius: 999px;
-      border: 1px solid #888;
-      background: #f5f5f5;
-      cursor: pointer;
-    }
-    .detail-button:hover {
-      background: #e2e2e2;
-    }
+    
 
     .settings-body {
       text-align: left;
@@ -719,13 +708,11 @@
       if (settings.groupSize === "all") {
         meaningDisplay.textContent =
           group.map(w => w.meaning || "").join(" / ");
-      } else if (group.length === 1) {
-        const idx = currentWordIndex;
+           } else if (group.length === 1) {
         const w = group[0];
-        meaningDisplay.innerHTML =
-          (w.meaning || "") +
-          ` <button class="detail-button" data-word-index="${idx}">자세히</button>`;
+        meaningDisplay.textContent = w.meaning || "";
       } else {
+
         meaningDisplay.textContent =
           group.map(w => w.meaning || "").join(" / ");
       }
@@ -963,16 +950,11 @@
     }
 
     /* ===== DETAIL MODAL (버튼 클릭) ===== */
-    meaningDisplay.addEventListener("click", e => {
-      const target = e.target;
-      if (!target.classList.contains("detail-button")) return;
+    span.addEventListener("click", () => {
+  if (drawingEnabled) return;
+  openDetail(w);
+});
 
-      const idx = parseInt(target.dataset.wordIndex, 10);
-      const w = currentWords[idx];
-      if (!w) return;
-
-      openDetail(w);
-    });
 
     detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
     detailOverlay.addEventListener("click", e => {
