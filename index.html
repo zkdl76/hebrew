@@ -537,6 +537,7 @@ window.speechSynthesis.onvoiceschanged = () => {
       verseSelect.value = verseKeys[0];   // ← 기본 절을 1절로 강제 설정
 
       updateWordDisplay();
+updateVerseNavButtons();   // ← 이 줄 추가
     }
 
     /* ===== 절별 단어 범위 계산 ===== */
@@ -569,6 +570,28 @@ window.speechSynthesis.onvoiceschanged = () => {
     function getActiveRange() {
       return getRangeForVerse(verseSelect.value);
     }
+
+// ===== 절 네비 버튼 활성/비활성 =====
+function updateVerseNavButtons() {
+  if (!verseOrder.length) {
+    prevVerseBtn.disabled = true;
+    nextVerseBtn.disabled = true;
+    return;
+  }
+
+  // verseSelect가 "all"이면 1절 기준으로 본다
+  let sel = verseSelect.value;
+  if (sel === "all") sel = verseOrder[0];
+
+  const idx = verseOrder.indexOf(sel);
+
+  // 첫 절이면 이전절 비활성
+  prevVerseBtn.disabled = (idx <= 0);
+  // 마지막 절이면 다음절 비활성
+  nextVerseBtn.disabled = (idx >= verseOrder.length - 1);
+}
+
+
 
     /* ===== GROUP ===== */
     function getCurrentGroup() {
@@ -1017,39 +1040,38 @@ async function speakOnce(text, rate) {
       currentWordIndex = range.start;
       updateWordDisplay();
       clearCanvas();
+updateVerseNavButtons();  // ← 이 줄 추가
     });
 
     /* ===== 이전절 / 다음절 버튼 ===== */
     prevVerseBtn.addEventListener("click", () => {
-      if (!verseOrder.length) return;
+  if (!verseOrder.length) return;
 
-      let sel = verseSelect.value;
-      if (sel === "all") {
-        // 전체에서 이전절은 1절로
-        sel = verseOrder[0];
-      }
-      const idx = verseOrder.indexOf(sel);
-      if (idx > 0) {
-        const newVerse = verseOrder[idx - 1];
-        verseSelect.value = newVerse;
-        confirmBtn.click();
-      }
-    });
+  let sel = verseSelect.value;
+  if (sel === "all") sel = verseOrder[0];
+  const idx = verseOrder.indexOf(sel);
+  if (idx > 0) {
+    const newVerse = verseOrder[idx - 1];
+    verseSelect.value = newVerse;
+    confirmBtn.click();
+    // updateVerseNavButtons();  // 사실 confirm 안에서 이미 호출됨
+  }
+});
 
-    nextVerseBtn.addEventListener("click", () => {
-      if (!verseOrder.length) return;
+nextVerseBtn.addEventListener("click", () => {
+  if (!verseOrder.length) return;
 
-      let sel = verseSelect.value;
-      if (sel === "all") {
-        sel = verseOrder[0];
-      }
-      const idx = verseOrder.indexOf(sel);
-      if (idx >= 0 && idx < verseOrder.length - 1) {
-        const newVerse = verseOrder[idx + 1];
-        verseSelect.value = newVerse;
-        confirmBtn.click();
-      }
-    });
+  let sel = verseSelect.value;
+  if (sel === "all") sel = verseOrder[0];
+  const idx = verseOrder.indexOf(sel);
+  if (idx >= 0 && idx < verseOrder.length - 1) {
+    const newVerse = verseOrder[idx + 1];
+    verseSelect.value = newVerse;
+    confirmBtn.click();
+    // updateVerseNavButtons();
+  }
+});
+
 
     /* ===== INIT ===== */
     function init() {
