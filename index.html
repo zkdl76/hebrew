@@ -595,20 +595,27 @@ wordDisplay.innerHTML = html;
 
     /* ===== WORD NAVIGATION ===== */
     prevWordBtn.addEventListener("click", () => {
-      if (settings.groupSize === "all") return;
-      if (currentWordIndex > 0) {
-        currentWordIndex--;
-        updateWordDisplay();
-      }
-    });
+  if (settings.groupSize === "all") return;
 
-    nextWordBtn.addEventListener("click", () => {
-      if (settings.groupSize === "all") return;
-      if (currentWordIndex < currentWords.length - 1) {
-        currentWordIndex++;
-        updateWordDisplay();
-      }
-    });
+  const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+
+  if (currentWordIndex > 0) {
+    currentWordIndex = Math.max(0, currentWordIndex - step);
+    updateWordDisplay();
+  }
+});
+
+nextWordBtn.addEventListener("click", () => {
+  if (settings.groupSize === "all") return;
+
+  const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+
+  if (currentWordIndex < currentWords.length - 1) {
+    currentWordIndex = Math.min(currentWords.length - 1, currentWordIndex + step);
+    updateWordDisplay();
+  }
+});
+
 
     /* ===== TTS ===== */
     let isPlaying = false;
