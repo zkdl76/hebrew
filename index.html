@@ -423,6 +423,12 @@
     let verseData = null;
     let currentWords = [];
     let currentWordIndex = 0;
+let voicesLoaded = false;
+
+window.speechSynthesis.onvoiceschanged = () => {
+  voicesLoaded = true;
+};
+
 
     // 절별 첫 단어 인덱스 기록용
     let verseWordStartIndex = {};
@@ -738,26 +744,37 @@
       }
     }
 
-    function speakOnce(text, rate) {
-  return new Promise(resolve => {
-    const synth = window.speechSynthesis;
-    if (!synth) return resolve();
+function speakOnce(text, rate) {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
 
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = rate;
-    utter.lang = "he-IL";
+  // 크롬 버그 대비: 음성 목록 로딩 대기
+  if (!voicesLoaded) {
+    await new Promise(res => {
+      const id = setInterval(() => {
+        if (speechSynthesis.getVoices().length > 0) {
+          clearInterval(id);
+          voicesLoaded = true;
+          res();
+        }
+      }, 100);
+    });
+  }
 
-    // 크롬 he-IL 미지원 → 영어 엔진으로 변경
-    const voices = synth.getVoices();
-    if (!voices.some(v => v.lang === "he-IL")) {
-      utter.lang = "en-US";
-    }
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = rate;
 
-    utter.onend = resolve;
-    utter.onerror = resolve;
+  // 히브리 어도전
+  utter.lang = "he-IL";
 
-    synth.speak(utter);
-  });
+  // fallback (히브리 없음 → 영어)
+  const voices = speechSynthesis.getVoices();
+  if (!voices.some(v => v.lang === "he-IL")) {
+    utter.lang = "en-US";
+  }
+
+  speechSynthesis.speak(utter);
+});
 }
 
 
