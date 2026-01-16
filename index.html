@@ -293,6 +293,10 @@
   unicode-bidi: bidi-override !important;
   text-align: right !important;
 }
+.heb-word {
+  display: inline-block;
+  margin-left: 10px; /* 단어 사이 간격 */
+}
 
   </style>
 </head>
@@ -556,7 +560,12 @@
       const group = getCurrentGroup();
       applyResponsiveFontForGroup(group.length);
 
-      wordDisplay.textContent = group.map(w => w.text).join(" ");
+      const html = group
+  .map(w => `<span class="heb-word">${w.text}</span>`)
+  .join("");
+
+wordDisplay.innerHTML = html;
+
 
       // 🔹 전체 모드이거나 그룹이 여러 단어면 "자세히" 버튼 없이 뜻만 나열
       if (settings.groupSize === "all") {
