@@ -142,10 +142,12 @@
 
 /* 자세히 팝업만 높이 고정 + flex 레이아웃 */
 .detail-modal {
-  height: 260px;              /* ← 팝업 박스 높이 고정 (필요하면 숫자 조절) */
+  height: 260px;              /* 팝업 박스 높이 고정 */
   display: flex;
   flex-direction: column;
+  min-height: 0;              /* ✅ flex 안 자식이 제대로 줄어들도록 */
 }
+
 
     .detail-header,
     .settings-header {
@@ -172,9 +174,13 @@
     .detail-body {
   font-size: 16px;
   text-align: left;
-  flex: 1;            /* 헤더+크기 버튼 아래 남은 공간 전부 차지 */
-  overflow-y: auto;   /* 내용이 넘치면 안에서만 스크롤 */
+  flex: 1 1 auto;            /* ✅ flex 축소/확대 허용 */
+  overflow-y: auto;          /* 내용이 넘치면 안에서만 스크롤 */
+  overflow-x: hidden;        /* 가로 스크롤은 숨김 (선택) */
+  min-height: 0;             /* ✅ 이게 핵심! flex 안에서 스크롤 되도록 */
+  -webkit-overflow-scrolling: touch;  /* 모바일에서 부드러운 스크롤 */
 }
+
 
     .detail-body p {
       margin: 6px 0;
