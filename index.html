@@ -59,7 +59,7 @@
       direction: rtl;
       color: #000000;   /* 기본: 진하게 */
       user-select: none;
-      pointer-events: none;
+ 
     }
     #drawCanvas {
       position: absolute;
@@ -688,25 +688,32 @@
       applyResponsiveFontForGroup(group.length);
 
       // ==== 여기부터: 그룹 단어 span + 클릭 → 자세히 팝업 ====
+            // ==== 여기부터: 그룹 단어 span + 클릭 → 자세히 팝업 ====
       wordDisplay.innerHTML = "";
 
       for (let i = 0; i < group.length; i++) {
-        const w = group[i];
+        // 절 범위 기준 실제 인덱스 계산
+        const wordIndex =
+          (settings.groupSize === "all")
+            ? (range.start + i)          // 전체 모드는 절 시작부터
+            : (currentWordIndex + i);    // 1/3/5 모드는 현재 그룹 시작부터
+
+        const w = currentWords[wordIndex];
+        if (!w) continue;
+
         const span = document.createElement("span");
         span.textContent = w.text;
         span.className = "heb-word";
 
-        const globalIndex = currentWordIndex + i;
-
         span.addEventListener("click", () => {
-          if (drawingEnabled) return;        // 그리기 모드 켜져 있으면 무시
-          const wordObj = currentWords[globalIndex];
-          if (!wordObj) return;
-          openDetail(wordObj);               // 공통 팝업 함수
+          if (drawingEnabled) return;    // 그리기 모드 켜져 있으면 무시
+          openDetail(w);
         });
 
         wordDisplay.appendChild(span);
       }
+
+
       // ==== 여기까지 수정 ====
 
       if (settings.groupSize === "all") {
