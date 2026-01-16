@@ -49,6 +49,7 @@
       display: flex;
       align-items: center;   /* 전체 모드일 때 JS에서 flex-start로 바꿔줌 */
       justify-content: center;
+      touch-action: pan-y; /* 스크롤은 허용, 좌우 스와이프는 JS에서 판별 */
     }
     #wordDisplay {
       position: relative;
@@ -57,9 +58,8 @@
       line-height: 1.3;
       margin: 0;
       direction: rtl;
-      color: #000000;   /* 기본: 진하게 */
+      color: #000000;
       user-select: none;
- 
     }
     #drawCanvas {
       position: absolute;
@@ -67,7 +67,7 @@
       z-index: 2;
       background: transparent;
       cursor: crosshair;
-      touch-action: none; /* 모바일에서 스크롤 대신 그리기 (전체 모드에서는 JS로 pointer-events 막음) */
+      touch-action: none; /* 캔버스에서는 스크롤 대신 그리기 */
     }
 
     #meaningDisplay {
@@ -197,7 +197,6 @@
       background: #f7f7f7;
       cursor: pointer;
     }
-    
 
     .settings-body {
       text-align: left;
@@ -274,15 +273,9 @@
       font-size: 25px !important;
       font-weight: 600;
     }
-    #detailBody.size-small {
-      font-size: 13px;
-    }
-    #detailBody.size-medium {
-      font-size: 16px;
-    }
-    #detailBody.size-large {
-      font-size: 20px;
-    }
+    #detailBody.size-small { font-size: 13px; }
+    #detailBody.size-medium { font-size: 16px; }
+    #detailBody.size-large { font-size: 20px; }
 
     #wordDisplay {
       direction: rtl !important;
@@ -291,13 +284,9 @@
     }
     .heb-word {
       display: inline-block;
-      margin-left: 10px; /* 단어 사이 간격 */
+      margin-left: 10px;
     }
-
-.hebrew-word {
-  cursor: pointer;
-}
-
+    .hebrew-word { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -317,8 +306,6 @@
       <option value="all">전체</option>
     </select>
     절
-    <button id="confirmBtn">확인</button>
-    
   </div>
 
   <div class="card">
@@ -433,7 +420,7 @@
       repeatCount: 3,
       intervalSec: 3,
       groupSize: 1,
-      wordGap: 1   // 단어 간 간격(초)
+      wordGap: 1
     };
 
     /* ===== DOM ===== */
@@ -446,7 +433,6 @@
     const bookSelect = document.getElementById("bookSelect");
     const chapterSelect = document.getElementById("chapterSelect");
     const verseSelect = document.getElementById("verseSelect");
-    const confirmBtn = document.getElementById("confirmBtn");
     const prevVerseBtn = document.getElementById("prevVerseBtn");
     const nextVerseBtn = document.getElementById("nextVerseBtn");
 
@@ -497,7 +483,6 @@
       const verses = verseData.verses || {};
       const allWords = [];
 
-      // 절 번호 정렬 + 시작 인덱스 계산
       verseWordStartIndex = {};
       verseOrder = [];
 
@@ -506,7 +491,7 @@
 
       verseKeys.forEach(v => {
         verseOrder.push(v);
-        verseWordStartIndex[v] = idx;   // 해당 절의 첫 단어 인덱스 기록
+        verseWordStartIndex[v] = idx;
 
         const obj = verses[v];
         if (obj.words) {
@@ -517,7 +502,7 @@
         }
       });
 
-      // 절 선택 셀렉트 박스 갱신
+      // 절 선택 갱신
       verseSelect.innerHTML = '<option value="all">전체</option>';
       verseKeys.forEach(v => {
         const opt = document.createElement("option");
@@ -527,18 +512,20 @@
       });
 
       currentWords = allWords;
-      currentWordIndex = 0;   // 기본은 1절 첫 단어
-      verseSelect.value = verseKeys[0];
+
+      // 기본은 1절
+      if (verseKeys.length) verseSelect.value = verseKeys[0];
+      currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
       updateWordDisplay();
       updateVerseNavButtons();
+      clearCanvas();
     }
 
     /* ===== 절별 단어 범위 계산 ===== */
     function getRangeForVerse(verseValue) {
       if (!currentWords.length) return { start: 0, end: -1 };
 
-      // 전체 선택이면 장 전체
       if (verseValue === "all") {
         return { start: 0, end: currentWords.length - 1 };
       }
@@ -565,7 +552,6 @@
       return getRangeForVerse(verseSelect.value);
     }
 
-    // ===== 절 네비 버튼 활성/비활성 =====
     function updateVerseNavButtons() {
       if (!verseOrder.length) {
         prevVerseBtn.disabled = true;
@@ -573,12 +559,10 @@
         return;
       }
 
-      // verseSelect가 "all"이면 1절 기준으로 본다
       let sel = verseSelect.value;
       if (sel === "all") sel = verseOrder[0];
 
       const idx = verseOrder.indexOf(sel);
-
       prevVerseBtn.disabled = (idx <= 0);
       nextVerseBtn.disabled = (idx >= verseOrder.length - 1);
     }
@@ -590,7 +574,6 @@
       const range = getActiveRange();
       if (range.end < range.start) return [];
 
-      // 전체 모드면 선택된 절 전체
       if (settings.groupSize === "all") {
         return currentWords.slice(range.start, range.end + 1);
       }
@@ -623,24 +606,20 @@
       if (groupLength >= 10) baseSize -= 8;
 
       if (baseSize < 32) baseSize = 32;
-
       wordDisplay.style.fontSize = baseSize + "px";
     }
 
-    /* ===== DETAIL SIZE (글자 크기) ===== */
+    /* ===== DETAIL SIZE ===== */
     document.getElementById("sizeSmall").addEventListener("click", () => changeDetailSize("small"));
     document.getElementById("sizeMedium").addEventListener("click", () => changeDetailSize("medium"));
     document.getElementById("sizeLarge").addEventListener("click", () => changeDetailSize("large"));
 
     function changeDetailSize(size) {
       const body = detailBody;
-
       body.classList.remove("size-small", "size-medium", "size-large");
-
       if (size === "small") body.classList.add("size-small");
       if (size === "medium") body.classList.add("size-medium");
       if (size === "large") body.classList.add("size-large");
-
       localStorage.setItem("detailSize", size);
     }
 
@@ -677,16 +656,14 @@
 
       applyResponsiveFontForGroup(group.length);
 
-      // ==== 여기부터: 그룹 단어 span + 클릭 → 자세히 팝업 ====
-            // ==== 여기부터: 그룹 단어 span + 클릭 → 자세히 팝업 ====
+      // 그룹 단어 span + 클릭 → 자세히 팝업
       wordDisplay.innerHTML = "";
 
       for (let i = 0; i < group.length; i++) {
-        // 절 범위 기준 실제 인덱스 계산
         const wordIndex =
           (settings.groupSize === "all")
-            ? (range.start + i)          // 전체 모드는 절 시작부터
-            : (currentWordIndex + i);    // 1/3/5 모드는 현재 그룹 시작부터
+            ? (range.start + i)
+            : (currentWordIndex + i);
 
         const w = currentWords[wordIndex];
         if (!w) continue;
@@ -696,26 +673,19 @@
         span.className = "heb-word";
 
         span.addEventListener("click", () => {
-          if (drawingEnabled) return;    // 그리기 모드 켜져 있으면 무시
+          if (drawingEnabled) return;
           openDetail(w);
         });
 
         wordDisplay.appendChild(span);
       }
 
-
-      // ==== 여기까지 수정 ====
-
       if (settings.groupSize === "all") {
-        meaningDisplay.textContent =
-          group.map(w => w.meaning || "").join(" / ");
-           } else if (group.length === 1) {
-        const w = group[0];
-        meaningDisplay.textContent = w.meaning || "";
+        meaningDisplay.textContent = group.map(w => w.meaning || "").join(" / ");
+      } else if (group.length === 1) {
+        meaningDisplay.textContent = group[0].meaning || "";
       } else {
-
-        meaningDisplay.textContent =
-          group.map(w => w.meaning || "").join(" / ");
+        meaningDisplay.textContent = group.map(w => w.meaning || "").join(" / ");
       }
 
       // 이전/다음 버튼 (그룹 단위 이동)
@@ -725,15 +695,15 @@
       } else {
         const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
         const maxStart = range.start + Math.floor((range.end - range.start) / g) * g;
-
         prevWordBtn.disabled = currentWordIndex <= range.start;
         nextWordBtn.disabled = currentWordIndex >= maxStart;
       }
     }
 
     /* ===== WORD NAVIGATION ===== */
-    prevWordBtn.addEventListener("click", () => {
+    function goPrevWord() {
       if (settings.groupSize === "all") return;
+      if (prevWordBtn.disabled) return;
 
       const range = getActiveRange();
       const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
@@ -741,11 +711,13 @@
       if (currentWordIndex > range.start) {
         currentWordIndex = Math.max(range.start, currentWordIndex - g);
         updateWordDisplay();
+        clearCanvas();
       }
-    });
+    }
 
-    nextWordBtn.addEventListener("click", () => {
+    function goNextWord() {
       if (settings.groupSize === "all") return;
+      if (nextWordBtn.disabled) return;
 
       const range = getActiveRange();
       const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
@@ -754,8 +726,81 @@
       if (currentWordIndex < maxStart) {
         currentWordIndex = Math.min(maxStart, currentWordIndex + g);
         updateWordDisplay();
+        clearCanvas();
+      }
+    }
+
+    prevWordBtn.addEventListener("click", goPrevWord);
+    nextWordBtn.addEventListener("click", goNextWord);
+
+    /* ===== PC: 좌/우 화살표로 이전/다음 ===== */
+    window.addEventListener("keydown", (e) => {
+      // 팝업 열려있거나 입력 중이면 무시
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "select" || tag === "textarea") return;
+      if (settingsOverlay.classList.contains("show")) return;
+      if (detailOverlay.classList.contains("show")) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrevWord();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNextWord();
       }
     });
+
+    /* ===== 모바일: 드래그(스와이프)로 이전/다음 ===== */
+    let swipeStartX = null;
+    let swipeStartY = null;
+    let swipeStarted = false;
+
+    function canSwipeNow() {
+      if (settings.groupSize === "all") return false;     // 전체 모드 스크롤 우선
+      if (drawingEnabled) return false;                  // 그리기 중이면 스와이프 금지
+      if (!currentWords.length) return false;
+      if (settingsOverlay.classList.contains("show")) return false;
+      if (detailOverlay.classList.contains("show")) return false;
+      return true;
+    }
+
+    traceArea.addEventListener("touchstart", (e) => {
+      if (!canSwipeNow()) return;
+      if (!e.touches || e.touches.length !== 1) return;
+
+      swipeStarted = true;
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    traceArea.addEventListener("touchend", (e) => {
+      if (!swipeStarted || !canSwipeNow()) return;
+
+      const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+      if (!t) return;
+
+      const dx = t.clientX - swipeStartX;
+      const dy = t.clientY - swipeStartY;
+
+      swipeStarted = false;
+      swipeStartX = null;
+      swipeStartY = null;
+
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      // 가로 스와이프만
+      if (absX < 40) return;
+      if (absX <= absY) return;
+
+      // dx < 0 : 왼쪽으로 밀기 => 다음
+      // dx > 0 : 오른쪽으로 밀기 => 이전
+      if (dx < 0) {
+        if (!nextWordBtn.disabled) goNextWord();
+      } else {
+        if (!prevWordBtn.disabled) goPrevWord();
+      }
+    }, { passive: true });
 
     /* ===== TTS ===== */
     let isPlaying = false;
@@ -866,14 +911,12 @@
       else playSequence();
     });
 
-    /* ===== SETTINGS POPUP(열기/닫기) ===== */
+    /* ===== SETTINGS POPUP ===== */
     function openSettings() {
       speedSelect.value = settings.speed;
       repeatCountInput.value = settings.repeatCount;
       intervalSecInput.value = settings.intervalSec;
-      groupSizeSelect.value = (settings.groupSize === "all")
-        ? "all"
-        : String(settings.groupSize);
+      groupSizeSelect.value = (settings.groupSize === "all") ? "all" : String(settings.groupSize);
       wordGapInput.value = settings.wordGap;
       settingsOverlay.classList.add("show");
     }
@@ -887,12 +930,10 @@
     settingsCancelBtn.addEventListener("click", closeSettings);
 
     settingsOverlay.addEventListener("click", (e) => {
-      if (e.target === settingsOverlay) {
-        closeSettings();
-      }
+      if (e.target === settingsOverlay) closeSettings();
     });
 
-    /* ===== 그리기 ON/OFF 상태 제어 함수 ===== */
+    /* ===== 그리기 ON/OFF ===== */
     let drawingEnabled = false;
     function setDrawingEnabled(enabled) {
       drawingEnabled = enabled;
@@ -901,10 +942,8 @@
       drawCanvas.style.pointerEvents = enabled ? "auto" : "none";
     }
 
-    /* ===== 그룹 모드에 따른 UI 동작 (전체/부분) ===== */
     function applyGroupModeUI() {
       if (settings.groupSize === "all") {
-        // 전체 모드: 그리기 완전 비활성 + 캔버스 숨김 + 스크롤
         setDrawingEnabled(false);
         drawOnBtn.disabled = true;
         clearCanvas();
@@ -912,7 +951,6 @@
         traceArea.style.overflowY = "auto";
         traceArea.style.alignItems = "flex-start";
       } else {
-        // 1/3/5 모드: 그리기 가능 + 캔버스 보이기 + 스크롤 제거
         drawOnBtn.disabled = false;
         drawCanvas.style.display = "block";
         traceArea.style.overflowY = "hidden";
@@ -930,14 +968,16 @@
 
       settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
 
-      currentWordIndex = 0;
+      // 선택된 절 기준으로 첫 그룹으로
+      currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
       applyGroupModeUI();
       closeSettings();
       updateWordDisplay();
+      clearCanvas();
     });
 
-    /* ===== DETAIL MODAL 공통 함수 ===== */
+    /* ===== DETAIL MODAL ===== */
     function openDetail(w) {
       if (!w) return;
       detailTitle.textContent = w.text;
@@ -949,9 +989,6 @@
          <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
       detailOverlay.classList.add("show");
     }
-
-
-
 
     detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
     detailOverlay.addEventListener("click", e => {
@@ -974,7 +1011,6 @@
     let lastY = 0;
 
     drawOnBtn.addEventListener("click", () => {
-      // 전체 모드에서는 눌러도 반응 안함
       if (settings.groupSize === "all") return;
       setDrawingEnabled(!drawingEnabled);
     });
@@ -1003,10 +1039,7 @@
     function getTouchPos(touchEvent) {
       const rect = drawCanvas.getBoundingClientRect();
       const t = touchEvent.touches[0] || touchEvent.changedTouches[0];
-      return {
-        x: t.clientX - rect.left,
-        y: t.clientY - rect.top
-      };
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
     }
 
     drawCanvas.addEventListener("touchstart", e => {
@@ -1051,17 +1084,29 @@
 
     clearCanvasBtn.addEventListener("click", clearCanvas);
 
-    /* ===== 장/절 확인 버튼: 해당 절 첫 단어로 복귀 ===== */
-    confirmBtn.addEventListener("click", () => {
+    /* ===== 장/절 변경: 즉시 출력 (확인 버튼 제거) ===== */
+    function jumpToSelectedVerseStart() {
       if (!currentWords.length) return;
-
-      const selectedVerse = verseSelect.value;
-      const range = getRangeForVerse(selectedVerse);
-
+      const range = getRangeForVerse(verseSelect.value);
       currentWordIndex = range.start;
       updateWordDisplay();
       clearCanvas();
       updateVerseNavButtons();
+    }
+
+    // 절 선택 즉시 반영
+    verseSelect.addEventListener("change", () => {
+      jumpToSelectedVerseStart();
+    });
+
+    // 장 변경 즉시 로드 + 출력
+    chapterSelect.addEventListener("change", async () => {
+      await loadChapter(bookSelect.value, chapterSelect.value);
+    });
+
+    // 성경 변경 즉시 로드 + 출력
+    bookSelect.addEventListener("change", async () => {
+      await loadChapter(bookSelect.value, chapterSelect.value);
     });
 
     /* ===== 이전절 / 다음절 버튼 ===== */
@@ -1074,7 +1119,7 @@
       if (idx > 0) {
         const newVerse = verseOrder[idx - 1];
         verseSelect.value = newVerse;
-        confirmBtn.click();
+        jumpToSelectedVerseStart();
       }
     });
 
@@ -1087,22 +1132,19 @@
       if (idx >= 0 && idx < verseOrder.length - 1) {
         const newVerse = verseOrder[idx + 1];
         verseSelect.value = newVerse;
-        confirmBtn.click();
+        jumpToSelectedVerseStart();
       }
     });
 
     /* ===== INIT ===== */
     function init() {
       resizeCanvas();
-      setDrawingEnabled(false);  // 기본은 끔
-      applyGroupModeUI();        // 기본 groupSize=1
+      setDrawingEnabled(false);
+      applyGroupModeUI();
       loadChapter("genesis", "1");
     }
     window.addEventListener("resize", resizeCanvas);
-
     init();
   </script>
-
-
 </body>
 </html>
