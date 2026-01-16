@@ -739,20 +739,27 @@
     }
 
     function speakOnce(text, rate) {
-      return new Promise(resolve => {
-        const synth = window.speechSynthesis;
-        if (!synth) return resolve();
+  return new Promise(resolve => {
+    const synth = window.speechSynthesis;
+    if (!synth) return resolve();
 
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "he-IL";
-        utter.rate = rate;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = rate;
+    utter.lang = "he-IL";
 
-        utter.onend = resolve;
-        utter.onerror = resolve;
-
-        synth.speak(utter);
-      });
+    // 크롬 he-IL 미지원 → 영어 엔진으로 변경
+    const voices = synth.getVoices();
+    if (!voices.some(v => v.lang === "he-IL")) {
+      utter.lang = "en-US";
     }
+
+    utter.onend = resolve;
+    utter.onerror = resolve;
+
+    synth.speak(utter);
+  });
+}
+
 
     async function speakGroupWordsOneByOne(group, rate) {
       for (let w of group) {
