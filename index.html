@@ -564,24 +564,34 @@
 
     /* ===== GROUP ===== */
     function getCurrentGroup() {
-      if (!currentWords.length) return [];
+  if (!currentWords.length) return [];
 
-      const range = getActiveRange();
-      if (range.end < range.start) return [];
+  const range = getActiveRange();
+  if (range.end < range.start) return [];
 
-      // 전체 모드면 "현재 선택된 절" 전체
-      if (settings.groupSize === "all") {
-        return currentWords.slice(range.start, range.end + 1);
-      }
+  // 전체 모드면 "현재 선택된 절" 전체
+  if (settings.groupSize === "all") {
+    return currentWords.slice(range.start, range.end + 1);
+  }
 
-      const g = settings.groupSize;
-      const start = Math.min(Math.max(currentWordIndex, range.start), range.end);
-      const result = [];
-      for (let i = start; i <= range.end && result.length < g; i++) {
-        result.push(currentWords[i]);
-      }
-      return result;
-    }
+  const g = settings.groupSize;
+
+  // 현재 인덱스를 절 범위 안으로 자르고,
+  // 그 안에서 "g개 단위로 딱딱 끊기는 시작점"으로 스냅
+  let start = Math.min(Math.max(currentWordIndex, range.start), range.end);
+  start = range.start + Math.floor((start - range.start) / g) * g;
+  if (start > range.end) start = range.end;
+
+  // 항상 그룹 시작 인덱스로 맞춰 둔다 (prev/next가 g단위로 잘 움직이도록)
+  currentWordIndex = start;
+
+  const result = [];
+  for (let i = start; i <= range.end && result.length < g; i++) {
+    result.push(currentWords[i]);
+  }
+  return result;
+}
+
 
     /* ===== AUTO FONT ADJUST ===== */
     function applyResponsiveFontForGroup(groupLength) {
@@ -672,41 +682,46 @@
 
       // 이전/다음 버튼 활성화 여부 (절 범위 기준)
       if (settings.groupSize === "all") {
-        prevWordBtn.disabled = true;
-        nextWordBtn.disabled = true;
-      } else {
-        const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
-        prevWordBtn.disabled = currentWordIndex <= range.start;
-        const maxStart = Math.max(range.start, range.end - step + 1);
-        nextWordBtn.disabled = currentWordIndex >= maxStart;
-      }
+  prevWordBtn.disabled = true;
+  nextWordBtn.disabled = true;
+} else {
+  const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+  // 마지막 그룹이 시작할 수 있는 인덱스 (0,3,6 이런 식)
+  const maxStart = range.start + Math.floor((range.end - range.start) / g) * g;
+
+  prevWordBtn.disabled = currentWordIndex <= range.start;
+  nextWordBtn.disabled = currentWordIndex >= maxStart;
+}
+
     }
 
     /* ===== WORD NAVIGATION ===== */
     prevWordBtn.addEventListener("click", () => {
-      if (settings.groupSize === "all") return;
+  if (settings.groupSize === "all") return;
 
-      const range = getActiveRange();
-      const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+  const range = getActiveRange();
+  const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
 
-      if (currentWordIndex > range.start) {
-        currentWordIndex = Math.max(range.start, currentWordIndex - step);
-        updateWordDisplay();
-      }
-    });
+  if (currentWordIndex > range.start) {
+    currentWordIndex = Math.max(range.start, currentWordIndex - g);
+    updateWordDisplay();
+  }
+});
+
 
     nextWordBtn.addEventListener("click", () => {
-      if (settings.groupSize === "all") return;
+  if (settings.groupSize === "all") return;
 
-      const range = getActiveRange();
-      const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+  const range = getActiveRange();
+  const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+  const maxStart = range.start + Math.floor((range.end - range.start) / g) * g;
 
-      if (currentWordIndex < range.end) {
-        const maxStart = Math.max(range.start, range.end - step + 1);
-        currentWordIndex = Math.min(maxStart, currentWordIndex + step);
-        updateWordDisplay();
-      }
-    });
+  if (currentWordIndex < maxStart) {
+    currentWordIndex = Math.min(maxStart, currentWordIndex + g);
+    updateWordDisplay();
+  }
+});
+
 
     /* ===== TTS ===== */
     let isPlaying = false;
