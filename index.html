@@ -130,24 +130,23 @@
       display: flex;
     }
     .detail-modal,
-.settings-modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 24px 20px;
-  max-width: 520px;
-  width: calc(100% - 40px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-  box-sizing: border-box;
-}
+    .settings-modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 24px 20px;
+      max-width: 520px;
+      width: calc(100% - 40px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+      box-sizing: border-box;
+    }
 
-/* 자세히 팝업만 높이 고정 + flex 레이아웃 */
-.detail-modal {
-  height: 260px;              /* 팝업 박스 높이 고정 */
-  display: flex;
-  flex-direction: column;
-  min-height: 0;              /* ✅ flex 안 자식이 제대로 줄어들도록 */
-}
-
+    /* 자세히 팝업만 높이 고정 + flex 레이아웃 */
+    .detail-modal {
+      height: 260px;              /* 팝업 박스 높이 고정 */
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
 
     .detail-header,
     .settings-header {
@@ -172,15 +171,14 @@
     }
 
     .detail-body {
-  font-size: 16px;
-  text-align: left;
-  flex: 1 1 auto;            /* ✅ flex 축소/확대 허용 */
-  overflow-y: auto;          /* 내용이 넘치면 안에서만 스크롤 */
-  overflow-x: hidden;        /* 가로 스크롤은 숨김 (선택) */
-  min-height: 0;             /* ✅ 이게 핵심! flex 안에서 스크롤 되도록 */
-  -webkit-overflow-scrolling: touch;  /* 모바일에서 부드러운 스크롤 */
-}
-
+      font-size: 16px;
+      text-align: left;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+    }
 
     .detail-body p {
       margin: 6px 0;
@@ -274,41 +272,38 @@
     /* ====== 모바일 화면 대응용 폰트/높이 조정 ====== */
     @media (max-width: 480px) {
       .trace-area {
-        height: 260px;      /* 기본 220px → 여유 공간 확보 */
+        height: 260px;
       }
       #wordDisplay {
-        font-size: 52px;    /* 기본 72px → 모바일에서 축소 */
+        font-size: 52px;
         line-height: 1.1;
       }
     }
 
-    /* 자세히 팝업 글자 크기 클래스 (제목 + 내용 같이 변경) */
+    /* 자세히 팝업 글자 크기 (제목 고정, 본문만 조절) */
+    #detailTitle {
+      font-size: 25px !important;
+      font-weight: 600;
+    }
+    #detailBody.size-small {
+      font-size: 13px;
+    }
+    #detailBody.size-medium {
+      font-size: 16px;
+    }
+    #detailBody.size-large {
+      font-size: 20px;
+    }
 
-#detailTitle {
-  font-size: 25px !important;
-}
-#detailBody.size-small {
-  font-size: 13px;
-}
-
-#detailBody.size-medium{
-  font-size: 16px;
-}
-
-#detailBody.size-large{
-  font-size: 20px;
-}
-
-#wordDisplay {
-  direction: rtl !important;
-  unicode-bidi: bidi-override !important;
-  text-align: right !important;
-}
-.heb-word {
-  display: inline-block;
-  margin-left: 10px; /* 단어 사이 간격 */
-}
-
+    #wordDisplay {
+      direction: rtl !important;
+      unicode-bidi: bidi-override !important;
+      text-align: right !important;
+    }
+    .heb-word {
+      display: inline-block;
+      margin-left: 10px; /* 단어 사이 간격 */
+    }
   </style>
 </head>
 <body>
@@ -319,7 +314,7 @@
     <select id="bookSelect">
       <option value="genesis">창세기</option>
     </select>
-    
+
     <select id="chapterSelect">
       <option value="1">1</option>
     </select>
@@ -429,12 +424,16 @@
     let currentWords = [];
     let currentWordIndex = 0;
 
+    // 절별 첫 단어 인덱스 기록용
+    let verseWordStartIndex = {};
+    let verseOrder = [];
+
     const settings = {
       speed: "normal",
       repeatCount: 3,
       intervalSec: 3,
       groupSize: 1,
-      wordGap: 1   // ← 단어 간 간격 추가
+      wordGap: 1   // 단어 간 간격(초)
     };
 
     /* ===== DOM ===== */
@@ -446,7 +445,10 @@
 
     const bookSelect = document.getElementById("bookSelect");
     const chapterSelect = document.getElementById("chapterSelect");
+    const verseSelect = document.getElementById("verseSelect");
     const confirmBtn = document.getElementById("confirmBtn");
+    const prevVerseBtn = document.getElementById("prevVerseBtn");
+    const nextVerseBtn = document.getElementById("nextVerseBtn");
 
     const traceArea = document.getElementById("traceArea");
     const drawCanvas = document.getElementById("drawCanvas");
@@ -494,13 +496,38 @@
 
       const verses = verseData.verses || {};
       const allWords = [];
-      Object.keys(verses).forEach(v => {
+
+      // 절 번호 정렬 + 시작 인덱스 계산
+      verseWordStartIndex = {};
+      verseOrder = [];
+
+      const verseKeys = Object.keys(verses).sort((a, b) => Number(a) - Number(b));
+      let idx = 0;
+
+      verseKeys.forEach(v => {
+        verseOrder.push(v);
+        verseWordStartIndex[v] = idx;   // 해당 절의 첫 단어 인덱스 기록
+
         const obj = verses[v];
-        if (obj.words) obj.words.forEach(w => allWords.push(w));
+        if (obj.words) {
+          obj.words.forEach(w => {
+            allWords.push(w);
+            idx++;
+          });
+        }
+      });
+
+      // 절 선택 셀렉트 박스 갱신
+      verseSelect.innerHTML = '<option value="all">전체</option>';
+      verseKeys.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        verseSelect.appendChild(opt);
       });
 
       currentWords = allWords;
-      currentWordIndex = 0;
+      currentWordIndex = 0;   // 기본은 1절 첫 단어
       updateWordDisplay();
     }
 
@@ -508,13 +535,13 @@
     function getCurrentGroup() {
       if (!currentWords.length) return [];
 
-      // 🔹 전체 모드면 모든 단어 반환
+      // 전체 모드면 전체 단어
       if (settings.groupSize === "all") {
         return currentWords.slice();
       }
 
       const g = settings.groupSize;
-      const start = Math.floor(currentWordIndex / g) * g;
+      const start = currentWordIndex;   // 항상 현재 인덱스부터
       return currentWords.slice(start, start + g);
     }
 
@@ -539,21 +566,17 @@
     document.getElementById("sizeMedium").addEventListener("click", () => changeDetailSize("medium"));
     document.getElementById("sizeLarge").addEventListener("click", () => changeDetailSize("large"));
 
-   function changeDetailSize(size) {
-  const body = detailBody;
-  const title = detailTitle;
+    function changeDetailSize(size) {
+      const body = detailBody;
 
-  [body, title].forEach(el => {
-    el.classList.remove("size-small", "size-medium", "size-large");
+      body.classList.remove("size-small", "size-medium", "size-large");
 
-    if (size === "small") el.classList.add("size-small");
-    if (size === "medium") el.classList.add("size-medium");
-    if (size === "large") el.classList.add("size-large");
-  });
+      if (size === "small") body.classList.add("size-small");
+      if (size === "medium") body.classList.add("size-medium");
+      if (size === "large") body.classList.add("size-large");
 
-  localStorage.setItem("detailSize", size);
-}
-
+      localStorage.setItem("detailSize", size);
+    }
 
     window.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem("detailSize") || "medium";
@@ -576,13 +599,12 @@
       applyResponsiveFontForGroup(group.length);
 
       const html = group
-  .map(w => `<span class="heb-word">${w.text}</span>`)
-  .join("");
+        .map(w => `<span class="heb-word">${w.text}</span>`)
+        .join("");
 
-wordDisplay.innerHTML = html;
+      wordDisplay.innerHTML = html;
 
-
-      // 🔹 전체 모드이거나 그룹이 여러 단어면 "자세히" 버튼 없이 뜻만 나열
+      // 전체 모드이거나 그룹이 여러 단어면 "자세히" 버튼 없이 뜻만 나열
       if (settings.groupSize === "all") {
         meaningDisplay.textContent =
           group.map(w => w.meaning || "").join(" / ");
@@ -597,40 +619,39 @@ wordDisplay.innerHTML = html;
           group.map(w => w.meaning || "").join(" / ");
       }
 
-      // 🔹 전체 모드에서는 이전/다음 버튼 비활성화
       if (settings.groupSize === "all") {
         prevWordBtn.disabled = true;
         nextWordBtn.disabled = true;
       } else {
+        const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
         prevWordBtn.disabled = currentWordIndex <= 0;
-        nextWordBtn.disabled = currentWords.length === 0
-          || currentWordIndex >= currentWords.length - 1;
+        nextWordBtn.disabled = currentWordIndex + step >= currentWords.length;
       }
     }
 
     /* ===== WORD NAVIGATION ===== */
     prevWordBtn.addEventListener("click", () => {
-  if (settings.groupSize === "all") return;
+      if (settings.groupSize === "all") return;
 
-  const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+      const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
 
-  if (currentWordIndex > 0) {
-    currentWordIndex = Math.max(0, currentWordIndex - step);
-    updateWordDisplay();
-  }
-});
+      if (currentWordIndex > 0) {
+        currentWordIndex = Math.max(0, currentWordIndex - step);
+        updateWordDisplay();
+      }
+    });
 
-nextWordBtn.addEventListener("click", () => {
-  if (settings.groupSize === "all") return;
+    nextWordBtn.addEventListener("click", () => {
+      if (settings.groupSize === "all") return;
 
-  const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+      const step = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
 
-  if (currentWordIndex < currentWords.length - 1) {
-    currentWordIndex = Math.min(currentWords.length - 1, currentWordIndex + step);
-    updateWordDisplay();
-  }
-});
-
+      if (currentWordIndex < currentWords.length - 1) {
+        const maxStart = Math.max(0, currentWords.length - step);
+        currentWordIndex = Math.min(maxStart, currentWordIndex + step);
+        updateWordDisplay();
+      }
+    });
 
     /* ===== TTS ===== */
     let isPlaying = false;
@@ -742,14 +763,10 @@ nextWordBtn.addEventListener("click", () => {
       settingsOverlay.classList.remove("show");
     }
 
-    // 옵션 버튼 클릭 → 팝업 열기
     optionsBtn.addEventListener("click", openSettings);
-
-    // X 버튼, 취소 버튼 → 팝업 닫기
     settingsCloseBtn.addEventListener("click", closeSettings);
     settingsCancelBtn.addEventListener("click", closeSettings);
 
-    // 오버레이(검은 배경) 클릭 시 닫기
     settingsOverlay.addEventListener("click", (e) => {
       if (e.target === settingsOverlay) {
         closeSettings();
@@ -790,7 +807,6 @@ nextWordBtn.addEventListener("click", () => {
          <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
          <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
 
-
       detailOverlay.classList.add("show");
     });
 
@@ -800,103 +816,115 @@ nextWordBtn.addEventListener("click", () => {
     });
 
     /* ===== CANVAS ===== */
-function resizeCanvas() {
-  const rect = traceArea.getBoundingClientRect();
-  drawCanvas.width = rect.width;
-  drawCanvas.height = rect.height;
-  clearCanvas();
-}
-function clearCanvas() {
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-}
+    function resizeCanvas() {
+      const rect = traceArea.getBoundingClientRect();
+      drawCanvas.width = rect.width;
+      drawCanvas.height = rect.height;
+      clearCanvas();
+    }
+    function clearCanvas() {
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    }
 
-let drawingEnabled = false;
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
+    let drawingEnabled = false;
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
 
-drawOnBtn.addEventListener("click", () => {
-  drawingEnabled = !drawingEnabled;
-  drawOnBtn.textContent = drawingEnabled ? "그리기: 켬" : "그리기: 끔";
-  // 그리기 ON일 때 글자 연하게, OFF일 때 원래대로
-  wordDisplay.style.opacity = drawingEnabled ? 0.25 : 1;
-});
+    drawOnBtn.addEventListener("click", () => {
+      drawingEnabled = !drawingEnabled;
+      drawOnBtn.textContent = drawingEnabled ? "그리기: 켬" : "그리기: 끔";
+      wordDisplay.style.opacity = drawingEnabled ? 0.25 : 1;
+    });
 
-/* --- 마우스 이벤트 그대로 유지 --- */
-drawCanvas.addEventListener("mousedown", e => {
-  if (!drawingEnabled) return;
-  isDrawing = true;
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-});
-drawCanvas.addEventListener("mousemove", e => {
-  if (!drawingEnabled || !isDrawing) return;
-  drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
-  drawCtx.lineCap = "round";
-  drawCtx.strokeStyle = "#000";
-  drawCtx.beginPath();
-  drawCtx.moveTo(lastX, lastY);
-  drawCtx.lineTo(e.offsetX, e.offsetY);
-  drawCtx.stroke();
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-});
-drawCanvas.addEventListener("mouseup", () => isDrawing = false);
-drawCanvas.addEventListener("mouseleave", () => isDrawing = false);
+    drawCanvas.addEventListener("mousedown", e => {
+      if (!drawingEnabled) return;
+      isDrawing = true;
+      lastX = e.offsetX;
+      lastY = e.offsetY;
+    });
+    drawCanvas.addEventListener("mousemove", e => {
+      if (!drawingEnabled || !isDrawing) return;
+      drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
+      drawCtx.lineCap = "round";
+      drawCtx.strokeStyle = "#000";
+      drawCtx.beginPath();
+      drawCtx.moveTo(lastX, lastY);
+      drawCtx.lineTo(e.offsetX, e.offsetY);
+      drawCtx.stroke();
+      lastX = e.offsetX;
+      lastY = e.offsetY;
+    });
+    drawCanvas.addEventListener("mouseup", () => isDrawing = false);
+    drawCanvas.addEventListener("mouseleave", () => isDrawing = false);
 
-/* --- 여기서부터 "터치 이벤트" 추가 --- */
-function getTouchPos(touchEvent) {
-  const rect = drawCanvas.getBoundingClientRect();
-  const t = touchEvent.touches[0] || touchEvent.changedTouches[0];
-  return {
-    x: t.clientX - rect.left,
-    y: t.clientY - rect.top
-  };
-}
+    function getTouchPos(touchEvent) {
+      const rect = drawCanvas.getBoundingClientRect();
+      const t = touchEvent.touches[0] || touchEvent.changedTouches[0];
+      return {
+        x: t.clientX - rect.left,
+        y: t.clientY - rect.top
+      };
+    }
 
-drawCanvas.addEventListener("touchstart", e => {
-  if (!drawingEnabled) return;
-  e.preventDefault(); // 스크롤 대신 그리기
-  isDrawing = true;
-  const pos = getTouchPos(e);
-  lastX = pos.x;
-  lastY = pos.y;
-}, { passive: false });
+    drawCanvas.addEventListener("touchstart", e => {
+      if (!drawingEnabled) return;
+      e.preventDefault();
+      isDrawing = true;
+      const pos = getTouchPos(e);
+      lastX = pos.x;
+      lastY = pos.y;
+    }, { passive: false });
 
-drawCanvas.addEventListener("touchmove", e => {
-  if (!drawingEnabled || !isDrawing) return;
-  e.preventDefault();
-  const pos = getTouchPos(e);
-  drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
-  drawCtx.lineCap = "round";
-  drawCtx.strokeStyle = "#000";
-  drawCtx.beginPath();
-  drawCtx.moveTo(lastX, lastY);
-  drawCtx.lineTo(pos.x, pos.y);
-  drawCtx.stroke();
-  lastX = pos.x;
-  lastY = pos.y;
-}, { passive: false });
+    drawCanvas.addEventListener("touchmove", e => {
+      if (!drawingEnabled || !isDrawing) return;
+      e.preventDefault();
+      const pos = getTouchPos(e);
+      drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
+      drawCtx.lineCap = "round";
+      drawCtx.strokeStyle = "#000";
+      drawCtx.beginPath();
+      drawCtx.moveTo(lastX, lastY);
+      drawCtx.lineTo(pos.x, pos.y);
+      drawCtx.stroke();
+      lastX = pos.x;
+      lastY = pos.y;
+    }, { passive: false });
 
-drawCanvas.addEventListener("touchend", e => {
-  if (!drawingEnabled) return;
-  e.preventDefault();
-  isDrawing = false;
-}, { passive: false });
+    drawCanvas.addEventListener("touchend", e => {
+      if (!drawingEnabled) return;
+      e.preventDefault();
+      isDrawing = false;
+    }, { passive: false });
 
-drawCanvas.addEventListener("touchcancel", e => {
-  if (!drawingEnabled) return;
-  e.preventDefault();
-  isDrawing = false;
-}, { passive: false });
+    drawCanvas.addEventListener("touchcancel", e => {
+      if (!drawingEnabled) return;
+      e.preventDefault();
+      isDrawing = false;
+    }, { passive: false });
 
-penWidthSlider.addEventListener("input", () => {
-  penWidthLabel.textContent = penWidthSlider.value + "px";
-});
+    penWidthSlider.addEventListener("input", () => {
+      penWidthLabel.textContent = penWidthSlider.value + "px";
+    });
 
-// 지우기 버튼
-clearCanvasBtn.addEventListener("click", clearCanvas);
+    clearCanvasBtn.addEventListener("click", clearCanvas);
 
+    /* ===== 장/절 확인 버튼: 해당 절 첫 단어로 복귀 ===== */
+    confirmBtn.addEventListener("click", () => {
+      if (!currentWords.length) return;
+
+      const selectedVerse = verseSelect.value;
+
+      if (selectedVerse === "all") {
+        currentWordIndex = 0;         // 장 전체 첫 단어
+      } else {
+        const idx = verseWordStartIndex[selectedVerse];
+        currentWordIndex = (typeof idx === "number") ? idx : 0;
+      }
+
+      updateWordDisplay();
+      clearCanvas();
+    });
 
     /* ===== INIT ===== */
     function init() {
