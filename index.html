@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>구약 히브리어 발음듣기</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 24px 0 40px;
+      text-align: center;
+      background: #fafafa;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: 600;
+    }
+    .top-controls {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .top-controls select,
+    .top-controls button {
+      font-size: 14px;
+      padding: 4px 8px;
+      margin: 0 2px;
+    }
+    .card {
+      width: 80%;
+      max-width: 720px;
+      margin: 0 auto 18px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      padding: 24px 16px 30px;
+      box-sizing: border-box;
+    }
+
+    /* ===== 트레이싱 영역 ===== */
+    .trace-area {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #wordDisplay {
+      position: relative;
+      z-index: 1;
+      font-size: 72px;
+      line-height: 1.3;
+      margin: 0;
+      direction: rtl;
+      color: #000000;   /* 기본: 진하게 */
+      user-select: none;
+      pointer-events: none;
+    }
+    #drawCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: transparent;
+      cursor: crosshair;
+      touch-action: none; /* 모바일에서 스크롤 대신 그리기 */
+    }
+
+    #meaningDisplay {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .nav-buttons {
+      margin-top: 16px;
+    }
+    .nav-buttons button {
+      margin: 0 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    .nav-buttons button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .play-row {
+      margin-top: 14px;
+    }
+    .play-row button {
+      margin: 0 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #999;
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+    .play-row button.primary {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1565c0;
+    }
+    .play-row button.secondary {
+      background: #ffffff;
+    }
+
+    /* ===== 팝업 공통 ===== */
+    .detail-overlay,
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .detail-overlay.show,
+    .settings-overlay.show {
+      display: flex;
+    }
+    .detail-modal,
+.settings-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  max-width: 520px;
+  width: calc(100% - 40px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+
+/* 자세히 팝업만 높이 고정 + flex 레이아웃 */
+.detail-modal {
+  height: 260px;              /* ← 팝업 박스 높이 고정 (필요하면 숫자 조절) */
+  display: flex;
+  flex-direction: column;
+}
+
+    .detail-header,
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .detail-title,
+    .settings-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .detail-close,
+    .settings-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .detail-body {
+  font-size: 16px;
+  text-align: left;
+  flex: 1;            /* 헤더+크기 버튼 아래 남은 공간 전부 차지 */
+  overflow-y: auto;   /* 내용이 넘치면 안에서만 스크롤 */
+}
+
+    .detail-body p {
+      margin: 6px 0;
+    }
+    .detail-size-row {
+      text-align: right;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .detail-size-row button {
+      margin-left: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+    .detail-button {
+      margin-left: 8px;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #888;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    .detail-button:hover {
+      background: #e2e2e2;
+    }
+
+    .settings-body {
+      text-align: left;
+      font-size: 14px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-top: 4px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .settings-row label {
+      width: 110px;
+      font-size: 13px;
+    }
+    .settings-row select,
+    .settings-row input {
+      flex: 1;
+      padding: 3px 6px;
+      font-size: 13px;
+    }
+    .settings-footer {
+      margin-top: 14px;
+      text-align: right;
+    }
+    .settings-footer button {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #999;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+    .settings-footer button.primary {
+      background: #1976d2;
+      color: white;
+      border-color: #1565c0;
+    }
+
+    /* 그리기 컨트롤 */
+    .canvas-row {
+      margin-top: 14px;
+      font-size: 13px;
+    }
+    .canvas-row button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    #penWidthSlider {
+      width: 160px;
+      vertical-align: middle;
+    }
+
+    /* ====== 모바일 화면 대응용 폰트/높이 조정 ====== */
+    @media (max-width: 480px) {
+      .trace-area {
+        height: 260px;      /* 기본 220px → 여유 공간 확보 */
+      }
+      #wordDisplay {
+        font-size: 52px;    /* 기본 72px → 모바일에서 축소 */
+        line-height: 1.1;
+      }
+    }
+
+    /* 자세히 팝업 글자 크기 클래스 */
+    #detailBody.size-small {
+      font-size: 13px;
+    }
+
+    #detailBody.size-medium {
+      font-size: 16px;
+    }
+
+    #detailBody.size-large {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>구약 히브리어 발음듣기</h1>
+
+  <div class="top-controls">
+    성경:
+    <select id="bookSelect">
+      <option value="genesis">창세기</option>
+    </select>
+    
+    <select id="chapterSelect">
+      <option value="1">1</option>
+    </select>
+    장
+    <select id="verseSelect">
+      <option value="all">전체</option>
+    </select>
+    절
+    <button id="confirmBtn">확인</button>
+    <button id="prevVerseBtn">이전절</button>
+    <button id="nextVerseBtn">다음절</button>
+  </div>
+
+  <div class="card">
+    <div class="trace-area" id="traceArea">
+      <div id="wordDisplay">단어를 불러오는 중…</div>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <div id="meaningDisplay">&nbsp;</div>
+
+    <div class="nav-buttons">
+      <button id="prevWordBtn">이전</button>
+      <button id="nextWordBtn">다음</button>
+    </div>
+
+    <div class="play-row">
+      <button id="playBtn" class="primary">재생</button>
+      <button id="optionsBtn" class="secondary">⚙ 옵션</button>
+    </div>
+
+    <div class="canvas-row">
+      <button id="drawOnBtn">그리기: 끔</button>
+      <button id="clearCanvasBtn">지우기</button>
+      펜 굵기:
+      <input type="range" id="penWidthSlider" min="1" max="12" value="4" />
+      <span id="penWidthLabel">4px</span>
+    </div>
+  </div>
+
+  <!-- 상세 팝업 -->
+  <div id="detailOverlay" class="detail-overlay">
+    <div class="detail-modal" id="detailModal">
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle"></div>
+        <button class="detail-close" id="detailCloseBtn" aria-label="닫기">&times;</button>
+      </div>
+      <div class="detail-size-row">
+        글자 크기:
+        <button id="sizeSmall" data-size="small">작게</button>
+        <button id="sizeMedium" data-size="medium">보통</button>
+        <button id="sizeLarge" data-size="large">크게</button>
+      </div>
+      <div class="detail-body" id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- 옵션 팝업 -->
+  <div id="settingsOverlay" class="settings-overlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <div class="settings-title">발음 옵션</div>
+        <button class="settings-close" id="settingsCloseBtn" aria-label="닫기">&times;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-row">
+          <label for="speedSelect">발음 속도</label>
+          <select id="speedSelect">
+            <option value="verySlow">아주 느리게</option>
+            <option value="slow">느림</option>
+            <option value="normal" selected>보통</option>
+            <option value="fast">빠름</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label for="repeatCountInput">재생 횟수</label>
+          <input id="repeatCountInput" type="number" min="1" max="10" value="3" />
+        </div>
+        <div class="settings-row">
+          <label for="intervalSecInput">재생 간격(초)</label>
+          <input id="intervalSecInput" type="number" min="0" max="10" value="3" />
+        </div>
+        <div class="settings-row">
+          <label for="wordGapInput">단어 간 간격(초)</label>
+          <input id="wordGapInput" type="number" min="0" max="10" value="1" />
+        </div>
+        <div class="settings-row">
+          <label for="groupSizeSelect">단어 묶음 크기</label>
+          <select id="groupSizeSelect">
+            <option value="1">1단어씩</option>
+            <option value="3">3단어씩</option>
+            <option value="5">5단어씩</option>
+            <option value="all">전체</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <button id="settingsCancelBtn">취소</button>
+        <button id="settingsSaveBtn" class="primary">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 전역 상태 ===== */
+    let verseData = null;
+    let currentWords = [];
+    let currentWordIndex = 0;
+
+    const settings = {
+      speed: "normal",
+      repeatCount: 3,
+      intervalSec: 3,
+      groupSize: 1,
+      wordGap: 1   // ← 단어 간 간격 추가
+    };
+
+    /* ===== DOM ===== */
+    const wordDisplay = document.getElementById("wordDisplay");
+    const meaningDisplay = document.getElementById("meaningDisplay");
+    const prevWordBtn = document.getElementById("prevWordBtn");
+    const nextWordBtn = document.getElementById("nextWordBtn");
+    const playBtn = document.getElementById("playBtn");
+
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const confirmBtn = document.getElementById("confirmBtn");
+
+    const traceArea = document.getElementById("traceArea");
+    const drawCanvas = document.getElementById("drawCanvas");
+    const drawCtx = drawCanvas.getContext("2d");
+
+    const drawOnBtn = document.getElementById("drawOnBtn");
+    const clearCanvasBtn = document.getElementById("clearCanvasBtn");
+    const penWidthSlider = document.getElementById("penWidthSlider");
+    const penWidthLabel = document.getElementById("penWidthLabel");
+
+    const optionsBtn = document.getElementById("optionsBtn");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+    const settingsCancelBtn = document.getElementById("settingsCancelBtn");
+    const settingsSaveBtn = document.getElementById("settingsSaveBtn");
+
+    const speedSelect = document.getElementById("speedSelect");
+    const repeatCountInput = document.getElementById("repeatCountInput");
+    const intervalSecInput = document.getElementById("intervalSecInput");
+    const groupSizeSelect = document.getElementById("groupSizeSelect");
+    const wordGapInput = document.getElementById("wordGapInput");
+
+    const detailOverlay = document.getElementById("detailOverlay");
+    const detailModal = document.getElementById("detailModal");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailBody = document.getElementById("detailBody");
+    const detailCloseBtn = document.getElementById("detailCloseBtn");
+
+    /* ===== JSON LOAD ===== */
+    async function loadChapter(book, chapter) {
+      const url = `data/${book}/${chapter}.json?cb=${Date.now()}`;
+      wordDisplay.textContent = "단어를 불러오는 중…";
+      currentWords = [];
+      currentWordIndex = 0;
+
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        verseData = JSON.parse(text);
+      } catch (err) {
+        wordDisplay.textContent = "❌ JSON 로드 실패";
+        meaningDisplay.textContent = err.message;
+        return;
+      }
+
+      const verses = verseData.verses || {};
+      const allWords = [];
+      Object.keys(verses).forEach(v => {
+        const obj = verses[v];
+        if (obj.words) obj.words.forEach(w => allWords.push(w));
+      });
+
+      currentWords = allWords;
+      currentWordIndex = 0;
+      updateWordDisplay();
+    }
+
+    /* ===== GROUP ===== */
+    function getCurrentGroup() {
+      if (!currentWords.length) return [];
+
+      // 🔹 전체 모드면 모든 단어 반환
+      if (settings.groupSize === "all") {
+        return currentWords.slice();
+      }
+
+      const g = settings.groupSize;
+      const start = Math.floor(currentWordIndex / g) * g;
+      return currentWords.slice(start, start + g);
+    }
+
+    /* ===== AUTO FONT ADJUST ===== */
+    function applyResponsiveFontForGroup(groupLength) {
+      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+      let baseSize = 72;
+      if (vw <= 480) baseSize = 52;
+      else if (vw <= 768) baseSize = 64;
+
+      if (groupLength >= 3) baseSize -= 8;
+      if (groupLength >= 5) baseSize -= 8;
+
+      if (baseSize < 32) baseSize = 32;
+
+      wordDisplay.style.fontSize = baseSize + "px";
+    }
+
+    /* ===== DETAIL SIZE (글자 크기) ===== */
+    document.getElementById("sizeSmall").addEventListener("click", () => changeDetailSize("small"));
+    document.getElementById("sizeMedium").addEventListener("click", () => changeDetailSize("medium"));
+    document.getElementById("sizeLarge").addEventListener("click", () => changeDetailSize("large"));
+
+    function changeDetailSize(size) {
+      const detail = detailBody;
+
+      detail.classList.remove("size-small", "size-medium", "size-large");
+
+      if (size === "small") detail.classList.add("size-small");
+      if (size === "medium") detail.classList.add("size-medium");
+      if (size === "large") detail.classList.add("size-large");
+
+      localStorage.setItem("detailSize", size);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("detailSize") || "medium";
+      changeDetailSize(saved);
+    });
+
+    /* ===== DISPLAY ===== */
+    function updateWordDisplay() {
+      if (isPlaying) stopPlaybackStateOnly();
+
+      if (!currentWords.length) {
+        wordDisplay.textContent = "단어 없음";
+        meaningDisplay.textContent = "";
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+        return;
+      }
+
+      const group = getCurrentGroup();
+      applyResponsiveFontForGroup(group.length);
+
+      wordDisplay.textContent = group.map(w => w.text).join(" ");
+
+      // 🔹 전체 모드이거나 그룹이 여러 단어면 "자세히" 버튼 없이 뜻만 나열
+      if (settings.groupSize === "all") {
+        meaningDisplay.textContent =
+          group.map(w => w.meaning || "").join(" / ");
+      } else if (group.length === 1) {
+        const idx = currentWordIndex;
+        const w = group[0];
+        meaningDisplay.innerHTML =
+          (w.meaning || "") +
+          ` <button class="detail-button" data-word-index="${idx}">자세히</button>`;
+      } else {
+        meaningDisplay.textContent =
+          group.map(w => w.meaning || "").join(" / ");
+      }
+
+      // 🔹 전체 모드에서는 이전/다음 버튼 비활성화
+      if (settings.groupSize === "all") {
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+      } else {
+        prevWordBtn.disabled = currentWordIndex <= 0;
+        nextWordBtn.disabled = currentWords.length === 0
+          || currentWordIndex >= currentWords.length - 1;
+      }
+    }
+
+    /* ===== WORD NAVIGATION ===== */
+    prevWordBtn.addEventListener("click", () => {
+      if (settings.groupSize === "all") return;
+      if (currentWordIndex > 0) {
+        currentWordIndex--;
+        updateWordDisplay();
+      }
+    });
+
+    nextWordBtn.addEventListener("click", () => {
+      if (settings.groupSize === "all") return;
+      if (currentWordIndex < currentWords.length - 1) {
+        currentWordIndex++;
+        updateWordDisplay();
+      }
+    });
+
+    /* ===== TTS ===== */
+    let isPlaying = false;
+    let playTimeoutId = null;
+
+    function getSpeedRate() {
+      switch (settings.speed) {
+        case "verySlow": return 0.25;
+        case "slow": return 0.6;
+        case "fast": return 1.4;
+        default: return 1.0;
+      }
+    }
+
+    function speakOnce(text, rate) {
+      return new Promise(resolve => {
+        const synth = window.speechSynthesis;
+        if (!synth) return resolve();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "he-IL";
+        utter.rate = rate;
+
+        utter.onend = resolve;
+        utter.onerror = resolve;
+
+        synth.speak(utter);
+      });
+    }
+
+    /* 단어 단위 순차 재생 */
+    async function speakGroupWordsOneByOne(group, rate) {
+      for (let w of group) {
+        if (!isPlaying) break;
+
+        await speakOnce(w.text, rate);
+
+        if (!isPlaying) break;
+
+        if (settings.wordGap > 0) {
+          await new Promise(res => {
+            playTimeoutId = setTimeout(res, settings.wordGap * 1000);
+          });
+        }
+      }
+    }
+
+    function stopPlaybackStateOnly() {
+      isPlaying = false;
+      playBtn.textContent = "재생";
+      playBtn.classList.add("primary");
+      playBtn.classList.remove("secondary");
+
+      const synth = window.speechSynthesis;
+      if (synth && synth.speaking) synth.cancel();
+
+      if (playTimeoutId) clearTimeout(playTimeoutId);
+      playTimeoutId = null;
+    }
+
+    /* 전체 TTS 실행 */
+    async function playSequence() {
+      if (!currentWords.length) return;
+
+      isPlaying = true;
+      playBtn.textContent = "정지";
+      playBtn.classList.remove("primary");
+      playBtn.classList.add("secondary");
+
+      const rate = getSpeedRate();
+      const repeats = settings.repeatCount;
+      const intervalMs = settings.intervalSec * 1000;
+      const group = getCurrentGroup();
+
+      try {
+        for (let i = 0; i < repeats && isPlaying; i++) {
+          await speakGroupWordsOneByOne(group, rate);
+          if (!isPlaying) break;
+
+          if (i < repeats - 1 && intervalMs > 0) {
+            await new Promise(res => {
+              playTimeoutId = setTimeout(res, intervalMs);
+            });
+          }
+        }
+      } finally {
+        stopPlaybackStateOnly();
+      }
+    }
+
+    playBtn.addEventListener("click", () => {
+      if (isPlaying) stopPlaybackStateOnly();
+      else playSequence();
+    });
+
+    /* ===== SETTINGS POPUP(열기/닫기) ===== */
+    function openSettings() {
+      speedSelect.value = settings.speed;
+      repeatCountInput.value = settings.repeatCount;
+      intervalSecInput.value = settings.intervalSec;
+      groupSizeSelect.value = (settings.groupSize === "all")
+        ? "all"
+        : String(settings.groupSize);
+      wordGapInput.value = settings.wordGap;
+      settingsOverlay.classList.add("show");
+    }
+
+    function closeSettings() {
+      settingsOverlay.classList.remove("show");
+    }
+
+    // 옵션 버튼 클릭 → 팝업 열기
+    optionsBtn.addEventListener("click", openSettings);
+
+    // X 버튼, 취소 버튼 → 팝업 닫기
+    settingsCloseBtn.addEventListener("click", closeSettings);
+    settingsCancelBtn.addEventListener("click", closeSettings);
+
+    // 오버레이(검은 배경) 클릭 시 닫기
+    settingsOverlay.addEventListener("click", (e) => {
+      if (e.target === settingsOverlay) {
+        closeSettings();
+      }
+    });
+
+    settingsSaveBtn.addEventListener("click", () => {
+      settings.speed = speedSelect.value;
+      settings.repeatCount = parseInt(repeatCountInput.value, 10) || 3;
+      settings.intervalSec = parseInt(intervalSecInput.value, 10) || 3;
+
+      const gVal = groupSizeSelect.value;
+      settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
+
+      settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
+
+      // 전체 모드로 바꿀 때도 처음 단어부터 다시 보이게
+      currentWordIndex = 0;
+
+      closeSettings();
+      updateWordDisplay();
+    });
+
+    /* ===== DETAIL MODAL ===== */
+    meaningDisplay.addEventListener("click", e => {
+      const target = e.target;
+      if (!target.classList.contains("detail-button")) return;
+
+      const idx = parseInt(target.dataset.wordIndex, 10);
+      const w = currentWords[idx];
+      if (!w) return;
+
+      detailTitle.textContent = w.text;
+      detailBody.innerHTML =
+        `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
+         <p><strong>발음:</strong> ${w.pron || "등록된 발음 없음"}</p>
+         <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
+         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>
+         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>`;
+
+
+      detailOverlay.classList.add("show");
+    });
+
+    detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
+    detailOverlay.addEventListener("click", e => {
+      if (e.target === detailOverlay) detailOverlay.classList.remove("show");
+    });
+
+    /* ===== CANVAS ===== */
+function resizeCanvas() {
+  const rect = traceArea.getBoundingClientRect();
+  drawCanvas.width = rect.width;
+  drawCanvas.height = rect.height;
+  clearCanvas();
+}
+function clearCanvas() {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+}
+
+let drawingEnabled = false;
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+
+drawOnBtn.addEventListener("click", () => {
+  drawingEnabled = !drawingEnabled;
+  drawOnBtn.textContent = drawingEnabled ? "그리기: 켬" : "그리기: 끔";
+  // 그리기 ON일 때 글자 연하게, OFF일 때 원래대로
+  wordDisplay.style.opacity = drawingEnabled ? 0.25 : 1;
+});
+
+/* --- 마우스 이벤트 그대로 유지 --- */
+drawCanvas.addEventListener("mousedown", e => {
+  if (!drawingEnabled) return;
+  isDrawing = true;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+});
+drawCanvas.addEventListener("mousemove", e => {
+  if (!drawingEnabled || !isDrawing) return;
+  drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
+  drawCtx.lineCap = "round";
+  drawCtx.strokeStyle = "#000";
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastX, lastY);
+  drawCtx.lineTo(e.offsetX, e.offsetY);
+  drawCtx.stroke();
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+});
+drawCanvas.addEventListener("mouseup", () => isDrawing = false);
+drawCanvas.addEventListener("mouseleave", () => isDrawing = false);
+
+/* --- 여기서부터 "터치 이벤트" 추가 --- */
+function getTouchPos(touchEvent) {
+  const rect = drawCanvas.getBoundingClientRect();
+  const t = touchEvent.touches[0] || touchEvent.changedTouches[0];
+  return {
+    x: t.clientX - rect.left,
+    y: t.clientY - rect.top
+  };
+}
+
+drawCanvas.addEventListener("touchstart", e => {
+  if (!drawingEnabled) return;
+  e.preventDefault(); // 스크롤 대신 그리기
+  isDrawing = true;
+  const pos = getTouchPos(e);
+  lastX = pos.x;
+  lastY = pos.y;
+}, { passive: false });
+
+drawCanvas.addEventListener("touchmove", e => {
+  if (!drawingEnabled || !isDrawing) return;
+  e.preventDefault();
+  const pos = getTouchPos(e);
+  drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
+  drawCtx.lineCap = "round";
+  drawCtx.strokeStyle = "#000";
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastX, lastY);
+  drawCtx.lineTo(pos.x, pos.y);
+  drawCtx.stroke();
+  lastX = pos.x;
+  lastY = pos.y;
+}, { passive: false });
+
+drawCanvas.addEventListener("touchend", e => {
+  if (!drawingEnabled) return;
+  e.preventDefault();
+  isDrawing = false;
+}, { passive: false });
+
+drawCanvas.addEventListener("touchcancel", e => {
+  if (!drawingEnabled) return;
+  e.preventDefault();
+  isDrawing = false;
+}, { passive: false });
+
+penWidthSlider.addEventListener("input", () => {
+  penWidthLabel.textContent = penWidthSlider.value + "px";
+});
+
+// 지우기 버튼
+clearCanvasBtn.addEventListener("click", clearCanvas);
+
+
+    /* ===== INIT ===== */
+    function init() {
+      resizeCanvas();
+      loadChapter("genesis", "1");
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    init();
+  </script>
+</body>
+</html>
