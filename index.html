@@ -785,10 +785,10 @@ nextWordBtn.addEventListener("click", () => {
       detailTitle.textContent = w.text;
       detailBody.innerHTML =
         `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
+         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>
          <p><strong>발음:</strong> ${w.pron || "등록된 발음 없음"}</p>
          <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
-         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>
-         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>`;
+         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
 
 
       detailOverlay.classList.add("show");
