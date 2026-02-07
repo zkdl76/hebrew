@@ -179,6 +179,13 @@
     }
     .detail-title,
     .settings-title { font-size: 20px; font-weight: 600; }
+
+
+    /* detail title + 스피커 */
+    .detail-title-wrap{display:flex;align-items:center;gap:10px}
+    .detail-heb{direction:rtl;unicode-bidi:bidi-override}
+    .detail-speak-btn{border:none;background:transparent;cursor:pointer;font-size:20px;line-height:1;padding:2px 4px;opacity:.85}
+    .detail-speak-btn:active{transform:scale(.95)}
     .detail-close,
     .settings-close {
       border: none;
@@ -952,9 +959,23 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     });
 
     /* ===== DETAIL ===== */
+    
+    async function speakDetailWord(text) {
+      const synth = window.speechSynthesis;
+      if (synth) synth.cancel();
+      await speakOnce(text, getSpeedRate());
+    }
+
     function openDetail(w) {
       if (!w) return;
-      detailTitle.textContent = w.text;
+
+      detailTitle.innerHTML = `
+        <div class="detail-title-wrap">
+          <span class="detail-heb">${w.text}</span>
+          <button class="detail-speak-btn" id="detailSpeakBtn" aria-label="발음 듣기">🔊</button>
+        </div>
+      `;
+
       detailBody.innerHTML =
         `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
          <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>
@@ -962,6 +983,15 @@ async function buildChaptersForBook(book, maxChapters = 200) {
          <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
          <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
       detailOverlay.classList.add("show");
+
+      const btn = document.getElementById("detailSpeakBtn");
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          speakDetailWord(w.text);
+        };
+      }
     }
     detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
     detailOverlay.addEventListener("click", e => { if (e.target === detailOverlay) detailOverlay.classList.remove("show"); });
