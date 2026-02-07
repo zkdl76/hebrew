@@ -1,44 +1,438 @@
 {
-  "book": "genesis",
-  "chapter": "2",
-  "verses": {
-    "1": {
-      "reference": "창세기 2:1",
-      "verseText": "וַיְכֻלּוּ הַשָּׁמַיִם וְהָאָרֶץ וְכָל־צְבָאָם",
-      "words": [
-        {
-          "text": "וַיְכֻלּוּ",
-          "meaning": "",
-          "pron": "",
-          "morph": "",
-          "root": "",
-          "kor": ""
-        },
-        {
-          "text": "הַשָּׁמַיִם",
-          "meaning": "",
-          "pron": "",
-          "morph": "",
-          "root": "",
-          "kor": ""
-        },
-        {
-          "text": "וְהָאָרֶץ",
-          "meaning": "",
-          "pron": "",
-          "morph": "",
-          "root": "",
-          "kor": ""
-        },
-        {
-          "text": "וְכָל־צְבָאָם",
-          "meaning": "",
-          "pron": "",
-          "morph": "",
-          "root": "",
-          "kor": ""
-        }
-      ]
-    }
-  }
+"book": "genesis",
+"chapter": "2",
+"verses": {
+"1": {
+"reference": "창세기 2:1",
+"verseText": "וַיְכֻלּוּ הַשָּׁמַיִם וְהָאָרֶץ וְכָל־צְבָאָם",
+"words": [
+{ "text": "וַיְכֻלּוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׁמַיִם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְכָל־צְבָאָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"2": {
+"reference": "창세기 2:2",
+"verseText": "וַיְכַל אֱלֹהִים בַּיּוֹם הַשְּׁבִיעִי מְלַאכְתּוֹ אֲשֶׁר עָשָׂה וַיִּשְׁבֹּת בַּיּוֹם הַשְּׁבִיעִי מִכָּל־מְלַאכְתּוֹ אֲשֶׁר עָשָׂה",
+"words": [
+{ "text": "וַיְכַל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בַּיּוֹם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשְּׁבִיעִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מְלַאכְתּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עָשָׂה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיִּשְׁבֹּת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בַּיּוֹם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשְּׁבִיעִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִכָּל־מְלַאכְתּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עָשָׂה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"3": {
+"reference": "창세기 2:3",
+"verseText": "וַיְבָרֶךְ אֱלֹהִים אֶת־יוֹם הַשְּׁבִיעִי וַיְקַדֵּשׁ אֹתוֹ כִּי בוֹ שָׁבַת מִכָּל־מְלַאכְתּוֹ אֲשֶׁר־בָּרָא אֱלֹהִים לַעֲשׂוֹת",
+"words": [
+{ "text": "וַיְבָרֶךְ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־יוֹם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשְּׁבִיעִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיְקַדֵּשׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֹתוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כִּי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שָׁבַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִכָּל־מְלַאכְתּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר־בָּרָא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לַעֲשׂוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"4": {
+"reference": "창세기 2:4",
+"verseText": "אֵלֶּה תוֹלְדוֹת הַשָּׁמַיִם וְהָאָרֶץ בְּהִבָּרְאָם בְּיוֹם עֲשׂוֹת יְהוָה אֱלֹהִים אֶרֶץ וְשָׁמָיִם",
+"words": [
+{ "text": "אֵלֶּה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תוֹלְדוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׁמַיִם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּהִבָּרְאָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּיוֹם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֲשׂוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְשָׁמָיִם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"5": {
+"reference": "창세기 2:5",
+"verseText": "וְכֹל שִׂיחַ הַשָּׂדֶה טֶרֶם יִהְיֶה בָאָרֶץ וְכָל־עֵשֶׂב הַשָּׂדֶה טֶרֶם יִצְמָח כִּי לֹא הִמְטִיר יְהוָה אֱלֹהִים עַל־הָאָרֶץ וְאָדָם אַיִן לַעֲבֹד אֶת־הָאֲדָמָה",
+"words": [
+{ "text": "וְכֹל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שִׂיחַ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׂדֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "טֶרֶם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִהְיֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְכָל־עֵשֶׂב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׂדֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "טֶרֶם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִצְמָח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כִּי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֹא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הִמְטִיר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עַל־הָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אַיִן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לַעֲבֹד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הָאֲדָמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"6": {
+"reference": "창세기 2:6",
+"verseText": "וְאֵד יַעֲלֶה מִן־הָאָרֶץ וְהִשְׁקָה אֶת־כָּל־פְּנֵי הָאֲדָמָה",
+"words": [
+{ "text": "וְאֵד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יַעֲלֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִן־הָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהִשְׁקָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־כָּל־פְּנֵי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאֲדָמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"7": {
+"reference": "창세기 2:7",
+"verseText": "וַיִּיצֶר יְהוָה אֱלֹהִים אֶת־הָאָדָם עָפָר מִן־הָאֲדָמָה וַיִּפַּח בְּאַפָּיו נִשְׁמַת חַיִּים וַיְהִי הָאָדָם לְנֶפֶשׁ חַיָּה",
+"words": [
+{ "text": "וַיִּיצֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עָפָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִן־הָאֲדָמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיִּפַּח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּאַפָּיו", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "נִשְׁמַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "חַיִּים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיְהִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְנֶפֶשׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "חַיָּה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"8": {
+"reference": "창세기 2:8",
+"verseText": "וַיִּטַּע יְהוָה אֱלֹהִים גַּן־בְּעֵדֶן מִקֶּדֶם וַיָּשֶׂם שָׁם אֶת־הָאָדָם אֲשֶׁר יָצָר",
+"words": [
+{ "text": "וַיִּטַּע", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "גַּן־בְּעֵדֶן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִקֶּדֶם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיָּשֶׂם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שָׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יָצָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"9": {
+"reference": "창세기 2:9",
+"verseText": "וַיַּצְמַח יְהוָה אֱלֹהִים מִן־הָאֲדָמָה כָּל־עֵץ נֶחְמָד לְמַרְאֶה וְטוֹב לְמַאֲכָל וְעֵץ הַחַיִּים בְּתוֹךְ הַגָּן וְעֵץ הַדַּעַת טוֹב וָרָע",
+"words": [
+{ "text": "וַיַּצְמַח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִן־הָאֲדָמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כָּל־עֵץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "נֶחְמָד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְמַרְאֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְטוֹב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְמַאֲכָל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְעֵץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַחַיִּים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּתוֹךְ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַגָּן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְעֵץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַדַּעַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "טוֹב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וָרָע", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"10": {
+"reference": "창세기 2:10",
+"verseText": "וְנָהָר יֹצֵא מֵעֵדֶן לְהַשְׁקוֹת אֶת־הַגָּן וּמִשָּׁם יִפָּרֵד וְהָיָה לְאַרְבָּעָה רָאשִׁים",
+"words": [
+{ "text": "וְנָהָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יֹצֵא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מֵעֵדֶן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְהַשְׁקוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הַגָּן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּמִשָּׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִפָּרֵד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהָיָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְאַרְבָּעָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "רָאשִׁים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"11": {
+"reference": "창세기 2:11",
+"verseText": "שֵׁם הָאֶחָד פִּישׁוֹן הוּא הַסֹּבֵב אֵת כָּל־אֶרֶץ הַחֲוִילָה אֲשֶׁר־שָׁם הַזָּהָב",
+"words": [
+{ "text": "שֵׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאֶחָד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "פִּישׁוֹן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הוּא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַסֹּבֵב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֵת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כָּל־אֶרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַחֲוִילָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר־שָׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַזָּהָב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"12": {
+"reference": "창세기 2:12",
+"verseText": "וּזְהַב הָאָרֶץ הַהִוא טוֹב שָׁם הַבְּדֹלַח וְאֶבֶן הַשֹּׁהַם",
+"words": [
+{ "text": "וּזְהַב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַהִוא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "טוֹב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שָׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַבְּדֹלַח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְאֶבֶן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשֹּׁהַם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"13": {
+"reference": "창세기 2:13",
+"verseText": "וְשֵׁם הַנָּהָר הַשֵּׁנִי גִּיחוֹן הוּא הַסּוֹבֵב אֵת כָּל־אֶרֶץ כּוּשׁ",
+"words": [
+{ "text": "וְשֵׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַנָּהָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשֵּׁנִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "גִּיחוֹן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הוּא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַסּוֹבֵב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֵת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כָּל־אֶרֶץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כּוּשׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"14": {
+"reference": "창세기 2:14",
+"verseText": "וְשֵׁם הַנָּהָר הַשְּׁלִישִׁי חִדֶּקֶל הוּא הַהֹלֵךְ קִדְמַת אַשּׁוּר וְהַנָּהָר הָרְבִיעִי הוּא פְרָת",
+"words": [
+{ "text": "וְשֵׁם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַנָּהָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשְּׁלִישִׁי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "חִדֶּקֶל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הוּא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַהֹלֵךְ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "קִדְמַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אַשּׁוּר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהַנָּהָר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָרְבִיעִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הוּא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "פְרָת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"15": {
+"reference": "창세기 2:15",
+"verseText": "וַיִּקַּח יְהוָה אֱלֹהִים אֶת־הָאָדָם וַיַּנִּחֵהוּ בְגַן־עֵדֶן לְעָבְדָהּ וּלְשָׁמְרָהּ",
+"words": [
+{ "text": "וַיִּקַּח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיַּנִּחֵהוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְגַן־עֵדֶן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְעָבְדָהּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּלְשָׁמְרָהּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"16": {
+"reference": "창세기 2:16",
+"verseText": "וַיְצַו יְהוָה אֱלֹהִים עַל־הָאָדָם לֵאמֹר מִכֹּל עֵץ־הַגָּן אָכֹל תֹּאכֵל",
+"words": [
+{ "text": "וַיְצַו", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עַל־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֵאמֹר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִכֹּל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֵץ־הַגָּן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אָכֹל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תֹּאכֵל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"17": {
+"reference": "창세기 2:17",
+"verseText": "וּמֵעֵץ הַדַּעַת טוֹב וָרָע לֹא תֹאכַל מִמֶּנּוּ כִּי בְּיוֹם אֲכָלְךָ מִמֶּנּוּ מוֹת תָּמוּת",
+"words": [
+{ "text": "וּמֵעֵץ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַדַּעַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "טוֹב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וָרָע", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֹא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תֹאכַל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִמֶּנּוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כִּי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּיוֹם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲכָלְךָ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִמֶּנּוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תָּמוּת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"18": {
+"reference": "창세기 2:18",
+"verseText": "וַיֹּאמֶר יְהוָה אֱלֹהִים לֹא־טוֹב הֱיוֹת הָאָדָם לְבַדּוֹ אֶעֱשֶׂה־לּוֹ עֵזֶר כְּנֶגְדּוֹ",
+"words": [
+{ "text": "וַיֹּאמֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֹא־טוֹב", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הֱיוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְבַדּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶעֱשֶׂה־לּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֵזֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כְּנֶגְדּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"19": {
+"reference": "창세기 2:19",
+"verseText": "וַיִּצֶר יְהוָה אֱלֹהִים מִן־הָאֲדָמָה כָּל־חַיַּת הַשָּׂדֶה וְאֵת כָּל־עוֹף הַשָּׁמַיִם וַיָּבֵא אֶל־הָאָדָם לִרְאוֹת מַה־יִּקְרָא־לוֹ וְכֹל אֲשֶׁר יִקְרָא־לוֹ הָאָדָם נֶפֶשׁ חַיָּה הוּא שְׁמוֹ",
+"words": [
+{ "text": "וַיִּצֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִן־הָאֲדָמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כָּל־חַיַּת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׂדֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְאֵת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כָּל־עוֹף", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׁמַיִם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיָּבֵא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶל־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לִרְאוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מַה־יִּקְרָא־לוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְכֹל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִקְרָא־לוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "נֶפֶשׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "חַיָּה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הוּא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שְׁמוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"20": {
+"reference": "창세기 2:20",
+"verseText": "וַיִּקְרָא הָאָדָם שֵׁמוֹת לְכָל־הַבְּהֵמָה וּלְעוֹף הַשָּׁמַיִם וּלְכֹל חַיַּת הַשָּׂדֶה וּלְאָדָם לֹא־מָצָא עֵזֶר כְּנֶגְדּוֹ",
+"words": [
+{ "text": "וַיִּקְרָא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שֵׁמוֹת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְכָל־הַבְּהֵמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּלְעוֹף", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׁמַיִם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּלְכֹל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "חַיַּת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַשָּׂדֶה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּלְאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֹא־מָצָא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֵזֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כְּנֶגְדּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"21": {
+"reference": "창세기 2:21",
+"verseText": "וַיַּפֵּל יְהוָה אֱלֹהִים תַּרְדֵּמָה עַל־הָאָדָם וַיִּישָׁן וַיִּקַּח אַחַת מִצַּלְעֹתָיו וַיִּסְגֹּר בָּשָׂר תַּחְתֶּנָּה",
+"words": [
+{ "text": "וַיַּפֵּל", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תַּרְדֵּמָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עַל־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיִּישָׁן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיִּקַּח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אַחַת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִצַּלְעֹתָיו", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיִּסְגֹּר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בָּשָׂר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "תַּחְתֶּנָּה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"22": {
+"reference": "창세기 2:22",
+"verseText": "וַיִּבֶן יְהוָה אֱלֹהִים אֶת־הַצֵּלָע אֲשֶׁר־לָקַח מִן־הָאָדָם לְאִשָּׁה וַיְבִאֶהָ אֶל־הָאָדָם",
+"words": [
+{ "text": "וַיִּבֶן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יְהוָה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֱלֹהִים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־הַצֵּלָע", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֲשֶׁר־לָקַח", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִן־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְאִשָּׁה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וַיְבִאֶהָ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶל־הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"23": {
+"reference": "창세기 2:23",
+"verseText": "וַיֹּאמֶר הָאָדָם זֹאת הַפַּעַם עֶצֶם מֵעֲצָמַי וּבָשָׂר מִבְּשָׂרִי לְזֹאת יִקָּרֵא אִשָּׁה כִּי מֵאִישׁ לֻקְחָה־זֹּאת",
+"words": [
+{ "text": "וַיֹּאמֶר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "זֹאת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הַפַּעַם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֶצֶם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מֵעֲצָמַי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וּבָשָׂר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מִבְּשָׂרִי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְזֹאת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִקָּרֵא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אִשָּׁה", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "כִּי", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "מֵאִישׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לֻקְחָה־זֹּאת", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"24": {
+"reference": "창세기 2:24",
+"verseText": "עַל־כֵּן יַעֲזָב־אִישׁ אֶת־אָבִיו וְאֶת־אִמּוֹ וְדָבַק בְּאִשְׁתּוֹ וְהָיוּ לְבָשָׂר אֶחָד",
+"words": [
+{ "text": "עַל־כֵּן", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יַעֲזָב־אִישׁ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶת־אָבִיו", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְאֶת־אִמּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְדָבַק", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "בְּאִשְׁתּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְהָיוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "לְבָשָׂר", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "אֶחָד", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+},
+"25": {
+"reference": "창세기 2:25",
+"verseText": "וַיִּהְיוּ שְׁנֵיהֶם עֲרוּמִּים הָאָדָם וְאִשְׁתּוֹ וְלֹא יִתְבֹּשָׁשׁוּ",
+"words": [
+{ "text": "וַיִּהְיוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "שְׁנֵיהֶם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "עֲרוּמִּים", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "הָאָדָם", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְאִשְׁתּוֹ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "וְלֹא", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" },
+{ "text": "יִתְבֹּשָׁשׁוּ", "meaning": "", "pron": "", "morph": "", "root": "", "kor": "" }
+]
+}
+}
 }
