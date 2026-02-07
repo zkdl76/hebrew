@@ -389,6 +389,15 @@
         <button class="settings-close" id="settingsCloseBtn" aria-label="닫기">&times;</button>
       </div>
       <div class="settings-body">
+        
+        <div class="settings-row">
+          <label for="voiceGenderSelect">음성</label>
+          <select id="voiceGenderSelect">
+            <option value="male" selected>남자</option>
+            <option value="female">여자</option>
+          </select>
+        </div>
+
         <div class="settings-row">
           <label for="speedSelect">발음 속도</label>
           <select id="speedSelect">
@@ -439,6 +448,7 @@
     let verseOrder = [];
 
     const settings = {
+      voiceGender: "male",
       speed: "normal",
       repeatCount: 3,
       intervalSec: 3,
@@ -847,7 +857,20 @@ async function buildChaptersForBook(book, maxChapters = 200) {
         const utter = new SpeechSynthesisUtterance(text);
         utter.rate = rate;
         utter.lang = "he-IL";
+        
         const voices = speechSynthesis.getVoices();
+        const heVoices = voices.filter(v => (v.lang || "").toLowerCase().startsWith("he"));
+        let selectedVoice = null;
+
+        if (settings.voiceGender === "female") {
+          selectedVoice = heVoices.find(v => v.name.toLowerCase().includes("female"));
+        } else {
+          selectedVoice = heVoices.find(v => v.name.toLowerCase().includes("male"));
+        }
+
+        if (!selectedVoice && heVoices.length) selectedVoice = heVoices[0];
+        if (selectedVoice) utter.voice = selectedVoice;
+
         if (!voices.some(v => v.lang === "he-IL")) utter.lang = "en-US";
         utter.onend = resolve;
         utter.onerror = resolve;
@@ -963,6 +986,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
 
       settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
+      settings.voiceGender = document.getElementById("voiceGenderSelect").value;
 
       currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
