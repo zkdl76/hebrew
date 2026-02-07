@@ -1,0 +1,44 @@
+{
+  "book": "genesis",
+  "chapter": "2",
+  "verses": {
+    "1": {
+      "reference": "창세기 2:1",
+      "verseText": "וַיְכֻלּוּ הַשָּׁמַיִם וְהָאָרֶץ וְכָל־צְבָאָם",
+      "words": [
+        {
+          "text": "וַיְכֻלּוּ",
+          "meaning": "",
+          "pron": "",
+          "morph": "",
+          "root": "",
+          "kor": ""
+        },
+        {
+          "text": "הַשָּׁמַיִם",
+          "meaning": "",
+          "pron": "",
+          "morph": "",
+          "root": "",
+          "kor": ""
+        },
+        {
+          "text": "וְהָאָרֶץ",
+          "meaning": "",
+          "pron": "",
+          "morph": "",
+          "root": "",
+          "kor": ""
+        },
+        {
+          "text": "וְכָל־צְבָאָם",
+          "meaning": "",
+          "pron": "",
+          "morph": "",
+          "root": "",
+          "kor": ""
+        }
+      ]
+    }
+  }
+}
