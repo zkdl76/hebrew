@@ -186,6 +186,14 @@
     .detail-heb{direction:rtl;unicode-bidi:bidi-override}
     .detail-speak-btn{border:none;background:transparent;cursor:pointer;font-size:20px;line-height:1;padding:2px 4px;opacity:.85}
     .detail-speak-btn:active{transform:scale(.95)}
+
+.detail-speed-wrap{display:flex;align-items:center;gap:6px;margin-left:6px}
+.detail-speed-btn{
+  border:none;background:transparent;cursor:pointer;
+  font-size:16px;padding:2px 6px;opacity:.85
+}
+.detail-speed-label{font-size:13px;opacity:.8;min-width:48px;text-align:center}
+
     .detail-close,
     .settings-close {
       border: none;
@@ -960,10 +968,15 @@ async function buildChaptersForBook(book, maxChapters = 200) {
 
     /* ===== DETAIL ===== */
     
-    async function speakDetailWord(text) {
+    
+let detailSpeedIndex = 2; // 0=아주느리게,1=느리게,2=보통,3=빠르게
+const detailSpeedRates = [0.4,0.7,1.0,1.3];
+const detailSpeedLabels = ["아주 느리게","느리게","보통","빠르게"];
+
+async function speakDetailWord(text) {
       const synth = window.speechSynthesis;
       if (synth) synth.cancel();
-      await speakOnce(text, getSpeedRate());
+      await speakOnce(text, detailSpeedRates[detailSpeedIndex]);
     }
 
     function openDetail(w) {
@@ -972,7 +985,14 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       detailTitle.innerHTML = `
         <div class="detail-title-wrap">
           <span class="detail-heb">${w.text}</span>
-          <button class="detail-speak-btn" id="detailSpeakBtn" aria-label="발음 듣기">🔊</button>
+          
+<button class="detail-speak-btn" id="detailSpeakBtn" aria-label="발음 듣기">🔊</button>
+<div class="detail-speed-wrap">
+  <button class="detail-speed-btn" id="speedDown">◁</button>
+  <span class="detail-speed-label" id="speedLabel">보통</span>
+  <button class="detail-speed-btn" id="speedUp">▷</button>
+</div>
+
         </div>
       `;
 
@@ -986,7 +1006,26 @@ async function buildChaptersForBook(book, maxChapters = 200) {
 
       const btn = document.getElementById("detailSpeakBtn");
       if (btn) {
-        btn.onclick = (e) => {
+        
+  const speedLabel = document.getElementById("speedLabel");
+  const speedDown = document.getElementById("speedDown");
+  const speedUp = document.getElementById("speedUp");
+
+  if (speedLabel) speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+
+  if (speedDown) speedDown.onclick = (e)=>{
+    e.stopPropagation();
+    if(detailSpeedIndex>0) detailSpeedIndex--;
+    speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  };
+
+  if (speedUp) speedUp.onclick = (e)=>{
+    e.stopPropagation();
+    if(detailSpeedIndex<detailSpeedRates.length-1) detailSpeedIndex++;
+    speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  };
+
+  btn.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
           speakDetailWord(w.text);
