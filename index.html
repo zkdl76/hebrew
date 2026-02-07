@@ -194,6 +194,12 @@
 }
 .detail-speed-label{font-size:13px;opacity:.8;min-width:48px;text-align:center}
 
+.detail-speed-btn:disabled{
+  opacity:.3;
+  cursor:default;
+}
+
+
     .detail-close,
     .settings-close {
       border: none;
@@ -970,6 +976,16 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     
     
 let detailSpeedIndex = 2; // 0=아주느리게,1=느리게,2=보통,3=빠르게
+
+function updateSpeedButtons(){
+  const speedDown = document.getElementById("speedDown");
+  const speedUp = document.getElementById("speedUp");
+  const speedLabel = document.getElementById("speedLabel");
+  if(speedLabel) speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  if(speedDown) speedDown.disabled = (detailSpeedIndex === 0);
+  if(speedUp) speedUp.disabled = (detailSpeedIndex === detailSpeedRates.length-1);
+}
+
 const detailSpeedRates = [0.4,0.7,1.0,1.3];
 const detailSpeedLabels = ["아주 느리게","느리게","보통","빠르게"];
 
@@ -1011,17 +1027,17 @@ async function speakDetailWord(text) {
   const speedDown = document.getElementById("speedDown");
   const speedUp = document.getElementById("speedUp");
 
-  if (speedLabel) speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  updateSpeedButtons();
 
   if (speedDown) speedDown.onclick = (e)=>{
     e.stopPropagation();
-    if(detailSpeedIndex>0) detailSpeedIndex--;
+    if(detailSpeedIndex>0){ detailSpeedIndex--; updateSpeedButtons(); }
     speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
   };
 
   if (speedUp) speedUp.onclick = (e)=>{
     e.stopPropagation();
-    if(detailSpeedIndex<detailSpeedRates.length-1) detailSpeedIndex++;
+    if(detailSpeedIndex<detailSpeedRates.length-1){ detailSpeedIndex++; updateSpeedButtons(); }
     speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
   };
 
