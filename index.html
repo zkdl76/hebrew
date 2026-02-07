@@ -490,6 +490,47 @@
       applyMeaningVisibility();
     });
 
+async function fileExists(url) {
+  try {
+    // HEAD가 막히는 경우가 있어서 GET으로 체크(가볍게)
+    const res = await fetch(url, { cache: "no-store" });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function buildChaptersForBook(book, maxChapters = 200) {
+  chapterSelect.innerHTML = "";
+  chapterSelect.disabled = true;
+  verseSelect.disabled = true;
+
+  // 1장부터 연속으로 존재하는지 확인하고, 끊기면 종료
+  for (let ch = 1; ch <= maxChapters; ch++) {
+    const url = `data/${book}/${ch}.json?cb=${Date.now()}`;
+    const ok = await fileExists(url);
+    if (!ok) break;
+
+    const opt = document.createElement("option");
+    opt.value = String(ch);
+    opt.textContent = String(ch);
+    chapterSelect.appendChild(opt);
+  }
+
+  chapterSelect.disabled = false;
+  verseSelect.disabled = false;
+
+  // 장이 하나도 없으면 안내
+  if (!chapterSelect.options.length) {
+    wordDisplay.textContent = "❌ 장 데이터 없음";
+    meaningDisplay.textContent = `data/${book}/1.json 부터 파일이 있어야 합니다.`;
+    return null;
+  }
+
+  return chapterSelect.options[0].value; // 첫 장 번호
+}
+
+
     /* ===== JSON LOAD ===== */
     async function loadChapter(book, chapter) {
       const url = `data/${book}/${chapter}.json?cb=${Date.now()}`;
@@ -975,7 +1016,13 @@
 
     verseSelect.addEventListener("change", jumpToSelectedVerseStart);
     chapterSelect.addEventListener("change", async () => { await loadChapter(bookSelect.value, chapterSelect.value); });
-    bookSelect.addEventListener("change", async () => { await loadChapter(bookSelect.value, chapterSelect.value); });
+    bookSelect.addEventListener("change", async () => {
+  const firstChapter = await buildChaptersForBook(bookSelect.value);
+  if (!firstChapter) return;
+  chapterSelect.value = firstChapter;
+  await loadChapter(bookSelect.value, chapterSelect.value);
+});
+
 
     prevVerseBtn.addEventListener("click", () => {
       if (!verseOrder.length) return;
@@ -1003,7 +1050,22 @@
       meaningVisible = (localStorage.getItem("meaningVisible") !== "0");
       applyMeaningVisibility();
 
-      loadChapter("genesis", "1");
+      (async function init() {
+  resizeCanvas();
+  setDrawingEnabled(false);
+  applyGroupModeUI();
+
+  meaningVisible = (localStorage.getItem("meaningVisible") !== "0");
+  applyMeaningVisibility();
+
+  // ✅ 책에 있는 장 json을 자동 스캔해서 chapterSelect 생성
+  const firstChapter = await buildChaptersForBook(bookSelect.value);
+  if (!firstChapter) return;
+
+  chapterSelect.value = firstChapter;
+  await loadChapter(bookSelect.value, chapterSelect.value);
+})();
+
     }
 
     window.addEventListener("resize", resizeCanvas);
