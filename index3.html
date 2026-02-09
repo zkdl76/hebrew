@@ -454,11 +454,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    	const now = new Date();
-	const BUILD_TIME =
-  	String(now.getHours()).padStart(2,"0") + ":" +
-  	String(now.getMinutes()).padStart(2,"0");
-
+    const BUILD_TIME = "2026-02-09 14:50:19";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -657,7 +653,25 @@ let verseData = null;
         });
 
         label.appendChild(cb);
-        label.appendChild(document.createTextNode(" " + word));
+
+        const wspan = document.createElement("span");
+        wspan.textContent = " " + word;
+        wspan.style.userSelect = "none";
+        wspan.style.cursor = "pointer";
+        // 더블클릭: 단어만 즉시 복사
+        wspan.addEventListener("dblclick", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const ok = await copyTextSafe(word);
+          if (ok) {
+            missingStatus.textContent = "✅ 복사됨: " + word;
+            setTimeout(() => {
+              missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
+            }, 900);
+          }
+        });
+
+        label.appendChild(wspan);
         missingList.appendChild(label);
       });
 
@@ -681,6 +695,28 @@ let verseData = null;
           unchecked.push(word);
         }
       });
+
+
+    async function copyTextSafe(text){
+      if (!text) return false;
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          return true;
+        } catch (e2) {
+          return false;
+        }
+      }
+    }
+
       const text = unchecked.join("\n").trim();
       if (!text) return;
       try {
