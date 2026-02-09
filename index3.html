@@ -571,8 +571,9 @@
       }
 
       missingStatus.textContent = `미생성 단어: 검사중… (0/${uniq.length})`;
-      missingList.value = "";
-      missingList.placeholder = "검사중…";
+      missingList.innerHTML = "";
+      // div이므로 placeholder 대신 안내 문구를 넣음
+      missingList.innerHTML = "<div style='font-size:13px;color:#666;padding:6px 2px;text-align:center;'>검사중…</div>";
 
       const missing = [];
       for (let i = 0; i < uniq.length; i++) {
@@ -643,11 +644,14 @@
           missingStatus.textContent = "미생성 단어: (복사됨)";
 }, 900);
       } catch (e) {
-        // fallback
-        missingList.focus();
-        missingList.select();
+        // fallback: 임시 textarea로 복사
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
         document.execCommand("copy");
-      }
+        document.body.removeChild(ta);
+}
     });
 
 
