@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>구약 히브리어 19:12</title>
+  <title>구약 히브리어</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body {
@@ -452,7 +452,51 @@
   </div>
 
   <script>
-    let verseData = null;
+
+    // ===== BUILD STAMP (자동 확인용) =====
+    const BUILD_TIME = "2026-02-09 10:32:23";
+    document.title = "구약 히브리어 " + BUILD_TIME;
+
+    function ensureBuildBadge() {
+      let badge = document.getElementById("buildBadge");
+      if (!badge) {
+        badge = document.createElement("div");
+        badge.id = "buildBadge";
+        badge.style.cssText = "font-size:12px;opacity:.65;margin:-10px 0 14px;";
+        const h1 = document.querySelector("h1");
+        if (h1 && h1.parentNode) h1.parentNode.insertBefore(badge, h1.nextSibling);
+        else document.body.insertBefore(badge, document.body.firstChild);
+      }
+      badge.textContent = "빌드: " + BUILD_TIME;
+      return badge;
+    }
+
+    function showFatal(msg) {
+      const b = ensureBuildBadge();
+      b.style.opacity = "1";
+      b.style.color = "#b00020";
+      b.textContent = "❌ JS 에러: " + msg + "  (빌드: " + BUILD_TIME + ")";
+    }
+
+    window.addEventListener("error", (e) => {
+      try {
+        const m = (e && e.message) ? e.message : String(e);
+        showFatal(m);
+      } catch(_) {}
+    });
+
+    window.addEventListener("unhandledrejection", (e) => {
+      try {
+        const m = (e && e.reason) ? (e.reason.message || String(e.reason)) : "unhandledrejection";
+        showFatal(m);
+      } catch(_) {}
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      try { ensureBuildBadge(); } catch(_) {}
+    });
+
+let verseData = null;
     let currentWords = [];
     let currentWordIndex = 0;
     let voicesLoaded = false;
@@ -1330,7 +1374,7 @@ async function speakDetailWord(text) {
       meaningVisible = (localStorage.getItem("meaningVisible") !== "0");
       applyMeaningVisibility();
 
-      (async function init() {
+      try { (async function init() {
   resizeCanvas();
   setDrawingEnabled(false);
   applyGroupModeUI();
@@ -1344,7 +1388,7 @@ async function speakDetailWord(text) {
 
   chapterSelect.value = firstChapter;
   await loadChapter(bookSelect.value, chapterSelect.value);
-})();
+})(); } catch(e){ showFatal(e && e.message ? e.message : String(e)); }
 
     }
 
