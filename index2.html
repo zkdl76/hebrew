@@ -138,25 +138,6 @@
     }
     .play-row button.secondary { background: #ffffff; }
 
-
-    /* ===== 미생성 단어 ===== */
-    .missing-panel{margin-top:14px;text-align:left;padding:0 10px;}
-    .missing-status{font-size:12px;color:#555;margin:6px 0 8px;text-align:center;}
-    .missing-list{
-      width:100%;
-      height:160px;
-      resize:vertical;
-      font-size:14px;
-      line-height:1.5;
-      padding:10px;
-      box-sizing:border-box;
-      border-radius:12px;
-      border:1px solid #ddd;
-      background:#fafafa;
-      direction:rtl;
-      unicode-bidi:bidi-override;
-    }
-
     /* ===== 팝업 공통 ===== */
     .detail-overlay,
     .settings-overlay {
@@ -372,8 +353,6 @@
       <button id="nextVerseBtn" class="secondary">다음 절</button>
       <button id="optionsBtn" class="secondary">⚙ 옵션</button>
       <button id="toggleMeaningBtn" class="secondary">뜻 숨기기</button>
-      <button id="missingBtn" class="secondary">🧩 미생성 단어</button>
-      <button id="copyMissingBtn" class="secondary">복사</button>
     </div>
 
     <div class="canvas-row">
@@ -382,9 +361,6 @@
       펜 굵기:
       <input type="range" id="penWidthSlider" min="1" max="12" value="4" />
       <span id="penWidthLabel">4px</span>
-    <div class="missing-panel">
-      <div id="missingStatus" class="missing-status">미생성 단어: -</div>
-      <textarea id="missingList" class="missing-list" readonly placeholder="🧩 미생성 단어를 찾으려면 ‘미생성 단어’ 버튼을 누르세요."></textarea>
     </div>
   </div>
 
@@ -427,14 +403,10 @@
           <input id="repeatCountInput" type="number" min="1" max="10" value="3" />
         </div>
         <div class="settings-row">
-          <label for="intervalSecInput">재생 간격(초)</label>
+          <label for="intervalSecInput">문장 반복 간격(초)</label>
           <input id="intervalSecInput" type="number" min="0" max="10" value="3" />
         </div>
-        <div class="settings-row">
-          <label for="wordGapInput">단어 간 간격(초)</label>
-          <input id="wordGapInput" type="number" min="0" max="10" value="1" />
-        </div>
-        <div class="settings-row">
+<div class="settings-row">
           <label for="groupSizeSelect">단어 묶음 크기</label>
           <select id="groupSizeSelect">
             <option value="1">1단어씩</option>
@@ -467,7 +439,7 @@
       repeatCount: 3,
       intervalSec: 3,
       groupSize: 1,
-      wordGap: 1
+      wordGap: 0
     };
 
     // 뜻 표시 상태 (true = 보임)
@@ -500,12 +472,6 @@
     const optionsBtn = document.getElementById("optionsBtn");
     const toggleMeaningBtn = document.getElementById("toggleMeaningBtn");
 
-    const missingBtn = document.getElementById("missingBtn");
-    const copyMissingBtn = document.getElementById("copyMissingBtn");
-    const missingStatus = document.getElementById("missingStatus");
-    const missingList = document.getElementById("missingList");
-
-
     const settingsOverlay = document.getElementById("settingsOverlay");
     const settingsCloseBtn = document.getElementById("settingsCloseBtn");
     const settingsCancelBtn = document.getElementById("settingsCancelBtn");
@@ -515,8 +481,6 @@
     const repeatCountInput = document.getElementById("repeatCountInput");
     const intervalSecInput = document.getElementById("intervalSecInput");
     const groupSizeSelect = document.getElementById("groupSizeSelect");
-    const wordGapInput = document.getElementById("wordGapInput");
-
     const detailOverlay = document.getElementById("detailOverlay");
     const detailTitle = document.getElementById("detailTitle");
     const detailBody = document.getElementById("detailBody");
@@ -540,80 +504,6 @@
       meaningVisible = !meaningVisible;
       applyMeaningVisibility();
     });
-
-    // ===== 미생성 단어 스캔 =====
-    const existsCache = new Map(); // url -> boolean
-    let scanSeq = 0;
-
-    async function audioExistsCached(url) {
-      if (existsCache.has(url)) return existsCache.get(url);
-      const ok = await fileExists(url);
-      existsCache.set(url, ok);
-      return ok;
-    }
-
-    async function scanMissingWords() {
-      if (!currentWords.length) return;
-
-      const mySeq = ++scanSeq;
-      const range = getActiveRange();
-
-      // 현재 선택(절/전체) 범위에서 유니크 토큰 추출
-      const uniq = [];
-      const seen = new Set();
-      for (let i = range.start; i <= range.end; i++) {
-        const w = currentWords[i];
-        if (!w || !w.text) continue;
-        const t = w.text;
-        if (seen.has(t)) continue;
-        seen.add(t);
-        uniq.push(t);
-      }
-
-      missingStatus.textContent = `미생성 단어: 검사중… (0/${uniq.length})`;
-      missingList.value = "";
-      missingList.placeholder = "검사중…";
-
-      const missing = [];
-      for (let i = 0; i < uniq.length; i++) {
-        if (mySeq !== scanSeq) return; // 취소
-        const text = uniq[i];
-        const url = getWordAudioUrl({ text });
-        const ok = await audioExistsCached(url);
-        if (!ok) missing.push(text);
-        if (i % 10 === 0 || i === uniq.length - 1) {
-          missingStatus.textContent = `미생성 단어: 검사중… (${i + 1}/${uniq.length})  /  없음: ${missing.length}`;
-        }
-      }
-
-      if (mySeq !== scanSeq) return;
-      missingList.value = missing.join("\n");
-      missingStatus.textContent = `미생성 단어: ${missing.length}개 (현재 ${bookSelect.value} ${chapterSelect.value}장, ${verseSelect.value === "all" ? "전체" : verseSelect.value + "절"})`;
-      if (!missing.length) missingList.placeholder = "✅ 모두 생성됨";
-    }
-
-    missingBtn.addEventListener("click", () => {
-      scanMissingWords();
-    });
-
-    copyMissingBtn.addEventListener("click", async () => {
-      const text = (missingList.value || "").trim();
-      if (!text) return;
-      try {
-        await navigator.clipboard.writeText(text);
-        missingStatus.textContent = "✅ 복사됨 (클립보드)";
-        setTimeout(() => {
-          // 상태 복원
-          missingStatus.textContent = `미생성 단어: ${missingList.value ? missingList.value.split("\n").filter(Boolean).length : 0}개`;
-        }, 900);
-      } catch (e) {
-        // fallback
-        missingList.focus();
-        missingList.select();
-        document.execCommand("copy");
-      }
-    });
-
 
 async function fileExists(url) {
   try {
@@ -929,9 +819,10 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     let currentAudio = null;
 
     function getWordAudioUrl(w) {
-  	return `audio/words/${encodeURIComponent(w.text)}.mp3`;
-				}
-
+      const book = bookSelect.value;
+      const ch = chapterSelect.value;
+      return `${AUDIO_BASE}/${book}/${ch}/${encodeURIComponent(w.text)}.mp3`;
+    }
 
     async function playAudioUrl(url, playbackRate = 1.0) {
       let a = audioCache.get(url);
@@ -1014,10 +905,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
         if (!isPlaying) break;
         await playWord(w, rate);
         if (!isPlaying) break;
-        if (settings.wordGap > 0) {
-          await new Promise(res => { playTimeoutId = setTimeout(res, settings.wordGap * 1000); });
-        }
-      }
+}
     }
 
     function stopPlaybackStateOnly() {
@@ -1069,8 +957,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       repeatCountInput.value = settings.repeatCount;
       intervalSecInput.value = settings.intervalSec;
       groupSizeSelect.value = (settings.groupSize === "all") ? "all" : String(settings.groupSize);
-      wordGapInput.value = settings.wordGap;
-      settingsOverlay.classList.add("show");
+settingsOverlay.classList.add("show");
     }
     function closeSettings() { settingsOverlay.classList.remove("show"); }
 
@@ -1117,7 +1004,6 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       const gVal = groupSizeSelect.value;
       settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
 
-      settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
 
       currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
