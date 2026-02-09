@@ -352,6 +352,7 @@
       <button id="prevVerseBtn" class="secondary">이전 절</button>
       <button id="nextVerseBtn" class="secondary">다음 절</button>
       <button id="optionsBtn" class="secondary">⚙ 옵션</button>
+      <button id="missingPanelBtn" class="secondary">🧩 미생성</button>
       <button id="toggleMeaningBtn" class="secondary">뜻 숨기기</button>
     </div>
 
@@ -363,20 +364,6 @@
       <span id="penWidthLabel">4px</span>
     </div>
   </div>
-  <div class="card" style="margin-top:14px;">
-    <div style="font-weight:600;margin-bottom:8px;">미생성 단어</div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-      <button id="missingWordsBtn" class="secondary">미생성 단어 찾기</button>
-      <button id="copyUncheckedBtn" class="secondary">미체크만 복사</button>
-      <button id="clearChecksBtn" class="secondary">체크 초기화</button>
-    </div>
-    <div style="margin-top:10px;font-size:13px;opacity:.75;">
-      현재 선택 범위(절 선택/전체)에 대해 MP3가 없는 단어만 중복 제거해서 표시합니다.
-    </div>
-    <div id="missingStatus" style="margin-top:10px;font-size:13px;"></div>
-    <div id="missingList" style="text-align:left;max-width:560px;margin:10px auto 0;max-height:260px;overflow:auto;padding:10px;border:1px solid #e5e5e5;border-radius:10px;background:#fff;"></div>
-  </div>
-
 
   <!-- 상세 팝업 -->
   <div id="detailOverlay" class="detail-overlay">
@@ -417,10 +404,14 @@
           <input id="repeatCountInput" type="number" min="1" max="10" value="3" />
         </div>
         <div class="settings-row">
-          <label for="intervalSecInput">문장 반복 간격(초)</label>
+          <label for="intervalSecInput">재생 간격(초)</label>
           <input id="intervalSecInput" type="number" min="0" max="10" value="3" />
         </div>
-<div class="settings-row">
+        <div class="settings-row">
+          <label for="wordGapInput">단어 간 간격(초)</label>
+          <input id="wordGapInput" type="number" min="0" max="10" value="1" />
+        </div>
+        <div class="settings-row">
           <label for="groupSizeSelect">단어 묶음 크기</label>
           <select id="groupSizeSelect">
             <option value="1">1단어씩</option>
@@ -453,7 +444,7 @@
       repeatCount: 3,
       intervalSec: 3,
       groupSize: 1,
-      wordGap: 0
+      wordGap: 1
     };
 
     // 뜻 표시 상태 (true = 보임)
@@ -495,6 +486,8 @@
     const repeatCountInput = document.getElementById("repeatCountInput");
     const intervalSecInput = document.getElementById("intervalSecInput");
     const groupSizeSelect = document.getElementById("groupSizeSelect");
+    const wordGapInput = document.getElementById("wordGapInput");
+
     const detailOverlay = document.getElementById("detailOverlay");
     const detailTitle = document.getElementById("detailTitle");
     const detailBody = document.getElementById("detailBody");
@@ -827,13 +820,15 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     /* ===== TTS ===== */
     let playTimeoutId = null;
     // ===== MP3(단어 파일) 재생 =====
-    const AUDIO_BASE = "audio/words"; // 예: /audio/genesis/1/<히브리어원문>.mp3
+    const AUDIO_BASE = "audio"; // 예: /audio/genesis/1/<히브리어원문>.mp3
     const USE_TTS_FALLBACK = true; // mp3 없으면 TTS로 읽기(원치 않으면 false)
     const audioCache = new Map();
     let currentAudio = null;
 
     function getWordAudioUrl(w) {
-      return `${AUDIO_BASE}/${encodeURIComponent(w.text)}.mp3`;
+      const book = bookSelect.value;
+      const ch = chapterSelect.value;
+      return `${AUDIO_BASE}/${book}/${ch}/${encodeURIComponent(w.text)}.mp3`;
     }
 
     async function playAudioUrl(url, playbackRate = 1.0) {
@@ -917,7 +912,10 @@ async function buildChaptersForBook(book, maxChapters = 200) {
         if (!isPlaying) break;
         await playWord(w, rate);
         if (!isPlaying) break;
-}
+        if (settings.wordGap > 0) {
+          await new Promise(res => { playTimeoutId = setTimeout(res, settings.wordGap * 1000); });
+        }
+      }
     }
 
     function stopPlaybackStateOnly() {
@@ -969,11 +967,25 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       repeatCountInput.value = settings.repeatCount;
       intervalSecInput.value = settings.intervalSec;
       groupSizeSelect.value = (settings.groupSize === "all") ? "all" : String(settings.groupSize);
-settingsOverlay.classList.add("show");
+      wordGapInput.value = settings.wordGap;
+      settingsOverlay.classList.add("show");
     }
     function closeSettings() { settingsOverlay.classList.remove("show"); }
 
     optionsBtn.addEventListener("click", openSettings);
+
+    // 미생성 단어 패널 바로 열기(옵션 팝업 열고 해당 섹션으로 스크롤)
+    const missingPanelBtn = document.getElementById("missingPanelBtn");
+    if (missingPanelBtn) {
+      missingPanelBtn.addEventListener("click", () => {
+        openSettings();
+        setTimeout(() => {
+          const target = document.getElementById("missingWordsBtn");
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+      });
+    }
+
     settingsCloseBtn.addEventListener("click", closeSettings);
     settingsCancelBtn.addEventListener("click", closeSettings);
     settingsOverlay.addEventListener("click", (e) => { if (e.target === settingsOverlay) closeSettings(); });
@@ -1016,6 +1028,7 @@ settingsOverlay.classList.add("show");
       const gVal = groupSizeSelect.value;
       settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
 
+      settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
 
       currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
@@ -1224,106 +1237,5 @@ async function speakDetailWord(text) {
       changeDetailSize(localStorage.getItem("detailSize") || "medium");
     });
   </script>
-
-<script>
-// ===== Enhanced Missing Word Checklist =====
-function renderMissingWordsList(words){
-  const container = document.getElementById("missingList");
-  if(!container) return;
-
-  container.innerHTML = "";
-  const saved = JSON.parse(localStorage.getItem("createdWords")||"{}");
-
-  words.forEach(w=>{
-    const label = document.createElement("label");
-    label.style.display="block";
-    label.style.cursor="pointer";
-
-    const cb = document.createElement("input");
-    cb.type="checkbox";
-    cb.checked = !!saved[w];
-    cb.onchange = ()=>{
-      const data = JSON.parse(localStorage.getItem("createdWords")||"{}");
-      if(cb.checked){ data[w]=true; }
-      else{ delete data[w]; }
-      localStorage.setItem("createdWords", JSON.stringify(data));
-    };
-
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(" "+w));
-    container.appendChild(label);
-  });
-}
-
-function copyUnchecked(){
-  const saved = JSON.parse(localStorage.getItem("createdWords")||"{}");
-  const unchecked = [];
-  document.querySelectorAll("#missingList input[type=checkbox]").forEach(cb=>{
-    const word = cb.parentElement.textContent.trim();
-    if(!cb.checked) unchecked.push(word);
-  });
-  navigator.clipboard.writeText(unchecked.join("\n"));
-}
-</script>
-
-
-<script>
-// ===== Missing Words Finder (MP3 없는 단어만) =====
-async function listMissingWords() {
-  const btn = document.getElementById("missingWordsBtn");
-  const status = document.getElementById("missingStatus");
-  if (!btn || !status) return;
-
-  btn.disabled = true;
-  status.textContent = "체크 중…";
-
-  const range = getRangeForVerse(verseSelect.value);
-  const set = new Set();
-  for (let i = range.start; i <= range.end; i++) {
-    const w = currentWords[i];
-    if (w && w.text) set.add(w.text);
-  }
-  const tokens = Array.from(set);
-
-  // 동시성 제한
-  const missing = [];
-  let done = 0;
-  const limit = 10;
-  async function worker(queue) {
-    while (queue.length) {
-      const t = queue.shift();
-      const url = `${AUDIO_BASE}/${encodeURIComponent(t)}.mp3`;
-      const ok = await fileExists(url);
-      if (!ok) missing.push(t);
-      done++;
-      status.textContent = `체크 중… ${done}/${tokens.length}`;
-    }
-  }
-  const queue = tokens.slice();
-  await Promise.all(Array.from({length: Math.min(limit, tokens.length)}, () => worker(queue)));
-
-  // 정렬(히브리어 그대로)
-  missing.sort((a,b)=>a.localeCompare(b));
-
-  renderMissingWordsList(missing);
-  status.textContent = `미생성: ${missing.length}개 (중복 제거 기준)`;
-  btn.disabled = false;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("missingWordsBtn");
-  const copyBtn = document.getElementById("copyUncheckedBtn");
-  const clearBtn = document.getElementById("clearChecksBtn");
-
-  if (btn) btn.addEventListener("click", listMissingWords);
-  if (copyBtn) copyBtn.addEventListener("click", copyUnchecked);
-  if (clearBtn) clearBtn.addEventListener("click", () => {
-    localStorage.removeItem("createdWords");
-    // UI 체크도 즉시 반영
-    document.querySelectorAll("#missingList input[type=checkbox]").forEach(cb => cb.checked = false);
-  });
-});
-</script>
-
 </body>
 </html>
