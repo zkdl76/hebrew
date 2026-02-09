@@ -454,7 +454,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "2026-02-09 14:50:19";
+    const BUILD_TIME = "2026-02-09 19:18:02";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -636,10 +636,13 @@ let verseData = null;
       const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
       missingList.innerHTML = "";
 
-      missing.forEach(word => {
-        const label = document.createElement("label");
-        label.style.display = "block";
-        label.style.cursor = "pointer";
+      
+      missing.forEach((word, idx) => {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.gap = "8px";
+        row.style.padding = "2px 0";
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
@@ -652,21 +655,29 @@ let verseData = null;
           localStorage.setItem("createdWords", JSON.stringify(data));
         });
 
-        label.appendChild(cb);
-
         const wspan = document.createElement("span");
-        wspan.textContent = " " + word;
-        wspan.style.userSelect = "none";
-        wspan.style.cursor = "pointer";
-        // 더블클릭: 단어만 즉시 복사
-        wspan.addEventListener("dblclick", async (e) => {
+        wspan.textContent = word;
+        wspan.style.cursor = "text";
+        wspan.style.userSelect = "text";
+
+        // 더블클릭: 단어를 선택(블럭잡기)해서 Ctrl+C로 복사
+        wspan.addEventListener("dblclick", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const ok = await copyTextSafe(word);
-          if (ok) {
-            missingStatus.textContent = "✅ 복사됨: " + word;
-            setTimeout(() => {
-              missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
+          const sel = window.getSelection();
+          if (!sel) return;
+          sel.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(wspan);
+          sel.addRange(range);
+        });
+
+        row.appendChild(cb);
+        row.appendChild(wspan);
+        missingList.appendChild(row);
+      });
+
+missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
             }, 900);
           }
         });
