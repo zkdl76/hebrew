@@ -432,7 +432,7 @@
         </div>
         <div class="settings-row">
           <label for="wordGapInput">단어 간 간격(초)</label>
-          <input id="wordGapInput" type="number" min="0" max="10" value="1" />
+          <input id="wordGapInput" type="number" min="0" max="10" step="0.5" value="0" />
         </div>
         <div class="settings-row">
           <label for="groupSizeSelect">단어 묶음 크기</label>
@@ -454,7 +454,11 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "2026-02-09 11:17:44";
+    	const now = new Date();
+	const BUILD_TIME =
+  	String(now.getHours()).padStart(2,"0") + ":" +
+  	String(now.getMinutes()).padStart(2,"0");
+
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -933,6 +937,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       }
 
       syncOverlayArrows();
+      try { syncWordGapUI(); } catch(e) {}
     }
 
     function goPrevWord() {
@@ -1097,7 +1102,8 @@ async function buildChaptersForBook(book, maxChapters = 200) {
         if (!isPlaying) break;
         await playWord(w, rate);
         if (!isPlaying) break;
-        if (settings.wordGap > 0) {
+        const applyGap = (settings.groupSize !== "all");
+        if (applyGap && settings.wordGap > 0) {
           await new Promise(res => { playTimeoutId = setTimeout(res, settings.wordGap * 1000); });
         }
       }
@@ -1153,9 +1159,22 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       intervalSecInput.value = settings.intervalSec;
       groupSizeSelect.value = (settings.groupSize === "all") ? "all" : String(settings.groupSize);
       wordGapInput.value = settings.wordGap;
+      syncWordGapUI();
       settingsOverlay.classList.add("show");
     }
     function closeSettings() { settingsOverlay.classList.remove("show"); }
+
+
+    function syncWordGapUI(){
+      const isAll = (settings.groupSize === "all");
+      wordGapInput.disabled = isAll;
+      if (isAll){
+        wordGapInput.title = "전체(문장) 재생에서는 단어 간 간격이 적용되지 않습니다.";
+      } else {
+        wordGapInput.title = "";
+      }
+    }
+
 
     optionsBtn.addEventListener("click", openSettings);
     settingsCloseBtn.addEventListener("click", closeSettings);
@@ -1190,6 +1209,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
         traceArea.style.alignItems = "center";
       }
       syncOverlayArrows();
+      try { syncWordGapUI(); } catch(e) {}
     }
 
     settingsSaveBtn.addEventListener("click", () => {
@@ -1200,11 +1220,13 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       const gVal = groupSizeSelect.value;
       settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
 
-      settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
+      settings.wordGap = Number(wordGapInput.value);
+      if (!Number.isFinite(settings.wordGap) || settings.wordGap < 0) settings.wordGap = 0;
 
       currentWordIndex = getRangeForVerse(verseSelect.value).start;
 
       applyGroupModeUI();
+      syncWordGapUI();
       closeSettings();
       updateWordDisplay();
       clearCanvas();
