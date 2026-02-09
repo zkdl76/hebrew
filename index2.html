@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>구약 히브리어</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 24px 0 40px;
+      text-align: center;
+      background: #fafafa;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: 600;
+    }
+    .top-controls {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .top-controls select,
+    .top-controls button {
+      font-size: 14px;
+      padding: 4px 8px;
+      margin: 0 2px;
+    }
+    .card {
+      width: 80%;
+      max-width: 720px;
+      margin: 0 auto 18px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      padding: 24px 16px 30px;
+      box-sizing: border-box;
+    }
+
+    /* ===== 트레이싱 영역 ===== */
+    .trace-area {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: pan-y;
+    }
+    #wordDisplay {
+      position: relative;
+      z-index: 1;
+      font-size: 72px;
+      line-height: 1.3;
+      margin: 0;
+      direction: rtl;
+      color: #000000;
+      user-select: none;
+    }
+    #drawCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: transparent;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* ===== 오버레이 좌/우 화살표 ===== */
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 3;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-arrow.left { left: 14px; }
+    .nav-arrow.right { right: 14px; }
+    .nav-arrow svg { width: 34px; height: 34px; opacity: 0.9; }
+    .nav-arrow.disabled { opacity: 0.18; cursor: default; pointer-events: none; }
+
+    @media (max-width: 480px) {
+      .nav-arrow { width: 48px; height: 48px; }
+      .nav-arrow svg { width: 30px; height: 30px; }
+    }
+
+    #meaningDisplay {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #444;
+    }
+
+    /* 뜻 숨김 */
+    #meaningDisplay.hidden {
+      display: none;
+    }
+
+    .nav-buttons { margin-top: 16px; }
+    .nav-buttons button {
+      margin: 0 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    .nav-buttons button:disabled { opacity: 0.4; cursor: default; }
+
+    .play-row { margin-top: 14px; }
+    .play-row button {
+      margin: 0 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #999;
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+    .play-row button.primary {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1565c0;
+    }
+    .play-row button.secondary { background: #ffffff; }
+
+
+    /* ===== 미생성 단어 ===== */
+    .missing-panel{margin-top:14px;text-align:left;padding:0 10px;}
+    .missing-status{font-size:12px;color:#555;margin:6px 0 8px;text-align:center;}
+    .missing-list{
+      width:100%;
+      height:160px;
+      resize:vertical;
+      font-size:14px;
+      line-height:1.5;
+      padding:10px;
+      box-sizing:border-box;
+      border-radius:12px;
+      border:1px solid #ddd;
+      background:#fafafa;
+      direction:rtl;
+      unicode-bidi:bidi-override;
+    }
+
+    /* ===== 팝업 공통 ===== */
+    .detail-overlay,
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .detail-overlay.show,
+    .settings-overlay.show { display: flex; }
+
+    .detail-modal,
+    .settings-modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 24px 20px;
+      max-width: 520px;
+      width: calc(100% - 40px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+      box-sizing: border-box;
+    }
+
+    .detail-modal {
+      height: 260px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .detail-header,
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .detail-title,
+    .settings-title { font-size: 20px; font-weight: 600; }
+
+
+    /* detail title + 스피커 */
+    .detail-title-wrap{display:flex;align-items:center;gap:10px}
+    .detail-heb{direction:rtl;unicode-bidi:bidi-override}
+    .detail-speak-btn{border:none;background:transparent;cursor:pointer;font-size:20px;line-height:1;padding:2px 4px;opacity:.85}
+    .detail-speak-btn:active{transform:scale(.95)}
+
+.detail-speed-wrap{display:flex;align-items:center;gap:6px;margin-left:6px}
+.detail-speed-btn{
+  border:none;background:transparent;cursor:pointer;
+  font-size:16px;padding:2px 6px;opacity:.85
+}
+.detail-speed-label{font-size:13px;opacity:.8;min-width:48px;text-align:center}
+
+.detail-speed-btn:disabled{
+  opacity:.3;
+  cursor:default;
+}
+
+
+    .detail-close,
+    .settings-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .detail-body {
+      font-size: 16px;
+      text-align: left;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .detail-body p { margin: 6px 0; }
+
+    .detail-size-row {
+      text-align: right;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .detail-size-row button {
+      margin-left: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+
+    .settings-body {
+      text-align: left;
+      font-size: 14px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-top: 4px;
+    }
+    .settings-row { display: flex; align-items: center; margin-bottom: 8px; }
+    .settings-row label { width: 110px; font-size: 13px; }
+    .settings-row select,
+    .settings-row input { flex: 1; padding: 3px 6px; font-size: 13px; }
+
+    .settings-footer { margin-top: 14px; text-align: right; }
+    .settings-footer button {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: 1px solid #999;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+    .settings-footer button.primary {
+      background: #1976d2;
+      color: white;
+      border-color: #1565c0;
+    }
+
+    .canvas-row { margin-top: 14px; font-size: 13px; }
+    .canvas-row button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    #penWidthSlider { width: 160px; vertical-align: middle; }
+
+    @media (max-width: 480px) {
+      .trace-area { height: 260px; }
+      #wordDisplay { font-size: 52px; line-height: 1.1; }
+    }
+
+    #detailTitle { font-size: 25px !important; font-weight: 600; }
+    #detailBody.size-small { font-size: 13px; }
+    #detailBody.size-medium { font-size: 16px; }
+    #detailBody.size-large { font-size: 20px; }
+
+    #wordDisplay {
+      direction: rtl !important;
+      unicode-bidi: bidi-override !important;
+      text-align: right !important;
+    }
+    .heb-word { display: inline-block; margin-left: 10px; }
+
+    /* 뜻 버튼(옵션 옆) */
+    #toggleMeaningBtn.active {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1565c0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>구약 히브리어</h1>
+
+  <div class="top-controls">
+    성경:
+    <select id="bookSelect">
+      <option value="genesis">창세기</option>
+    </select>
+
+    <select id="chapterSelect">
+      <option value="1">1</option>
+    </select>
+    장
+    <select id="verseSelect">
+      <option value="all">전체</option>
+    </select>
+    절
+  </div>
+
+  <div class="card">
+    <div class="trace-area" id="traceArea">
+      <button id="overlayPrevBtn" class="nav-arrow left" aria-label="이전">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+
+      <button id="overlayNextBtn" class="nav-arrow right" aria-label="다음">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 18l6-6-6-6"></path>
+        </svg>
+      </button>
+
+      <div id="wordDisplay">단어를 불러오는 중…</div>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <div id="meaningDisplay">&nbsp;</div>
+
+    <div class="nav-buttons">
+      <button id="prevWordBtn">이전</button>
+      <button id="nextWordBtn">다음</button>
+    </div>
+
+    <div class="play-row">
+      <button id="playBtn" class="primary">재생</button>
+      <button id="prevVerseBtn" class="secondary">이전 절</button>
+      <button id="nextVerseBtn" class="secondary">다음 절</button>
+      <button id="optionsBtn" class="secondary">⚙ 옵션</button>
+      <button id="toggleMeaningBtn" class="secondary">뜻 숨기기</button>
+      <button id="missingBtn" class="secondary">🧩 미생성 단어</button>
+      <button id="copyMissingBtn" class="secondary">복사</button>
+    </div>
+
+    <div class="canvas-row">
+      <button id="drawOnBtn">그리기: 끔</button>
+      <button id="clearCanvasBtn">지우기</button>
+      펜 굵기:
+      <input type="range" id="penWidthSlider" min="1" max="12" value="4" />
+      <span id="penWidthLabel">4px</span>
+    <div class="missing-panel">
+      <div id="missingStatus" class="missing-status">미생성 단어: -</div>
+      <textarea id="missingList" class="missing-list" readonly placeholder="🧩 미생성 단어를 찾으려면 ‘미생성 단어’ 버튼을 누르세요."></textarea>
+    </div>
+  </div>
+
+  <!-- 상세 팝업 -->
+  <div id="detailOverlay" class="detail-overlay">
+    <div class="detail-modal" id="detailModal">
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle"></div>
+        <button class="detail-close" id="detailCloseBtn" aria-label="닫기">&times;</button>
+      </div>
+      <div class="detail-size-row">
+        글자 크기:
+        <button id="sizeSmall" data-size="small">작게</button>
+        <button id="sizeMedium" data-size="medium">보통</button>
+        <button id="sizeLarge" data-size="large">크게</button>
+      </div>
+      <div class="detail-body" id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- 옵션 팝업 -->
+  <div id="settingsOverlay" class="settings-overlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <div class="settings-title">발음 옵션</div>
+        <button class="settings-close" id="settingsCloseBtn" aria-label="닫기">&times;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-row">
+          <label for="speedSelect">발음 속도</label>
+          <select id="speedSelect">
+            <option value="verySlow">아주 느리게</option>
+            <option value="slow" selected>느림</option>
+            <option value="normal">보통</option>
+            <option value="fast">빠름</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label for="repeatCountInput">재생 횟수</label>
+          <input id="repeatCountInput" type="number" min="1" max="10" value="3" />
+        </div>
+        <div class="settings-row">
+          <label for="intervalSecInput">재생 간격(초)</label>
+          <input id="intervalSecInput" type="number" min="0" max="10" value="3" />
+        </div>
+        <div class="settings-row">
+          <label for="wordGapInput">단어 간 간격(초)</label>
+          <input id="wordGapInput" type="number" min="0" max="10" value="1" />
+        </div>
+        <div class="settings-row">
+          <label for="groupSizeSelect">단어 묶음 크기</label>
+          <select id="groupSizeSelect">
+            <option value="1">1단어씩</option>
+            <option value="3">3단어씩</option>
+            <option value="5">5단어씩</option>
+            <option value="all">전체</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <button id="settingsCancelBtn">취소</button>
+        <button id="settingsSaveBtn" class="primary">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let verseData = null;
+    let currentWords = [];
+    let currentWordIndex = 0;
+    let voicesLoaded = false;
+
+    window.speechSynthesis.onvoiceschanged = () => { voicesLoaded = true; };
+
+    let verseWordStartIndex = {};
+    let verseOrder = [];
+
+    const settings = {
+      speed: "normal",
+      repeatCount: 3,
+      intervalSec: 3,
+      groupSize: 1,
+      wordGap: 1
+    };
+
+    // 뜻 표시 상태 (true = 보임)
+    let meaningVisible = true;
+
+    const wordDisplay = document.getElementById("wordDisplay");
+    const meaningDisplay = document.getElementById("meaningDisplay");
+    const prevWordBtn = document.getElementById("prevWordBtn");
+    const nextWordBtn = document.getElementById("nextWordBtn");
+    const playBtn = document.getElementById("playBtn");
+
+    const overlayPrevBtn = document.getElementById("overlayPrevBtn");
+    const overlayNextBtn = document.getElementById("overlayNextBtn");
+
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const verseSelect = document.getElementById("verseSelect");
+    const prevVerseBtn = document.getElementById("prevVerseBtn");
+    const nextVerseBtn = document.getElementById("nextVerseBtn");
+
+    const traceArea = document.getElementById("traceArea");
+    const drawCanvas = document.getElementById("drawCanvas");
+    const drawCtx = drawCanvas.getContext("2d");
+
+    const drawOnBtn = document.getElementById("drawOnBtn");
+    const clearCanvasBtn = document.getElementById("clearCanvasBtn");
+    const penWidthSlider = document.getElementById("penWidthSlider");
+    const penWidthLabel = document.getElementById("penWidthLabel");
+
+    const optionsBtn = document.getElementById("optionsBtn");
+    const toggleMeaningBtn = document.getElementById("toggleMeaningBtn");
+
+    const missingBtn = document.getElementById("missingBtn");
+    const copyMissingBtn = document.getElementById("copyMissingBtn");
+    const missingStatus = document.getElementById("missingStatus");
+    const missingList = document.getElementById("missingList");
+
+
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+    const settingsCancelBtn = document.getElementById("settingsCancelBtn");
+    const settingsSaveBtn = document.getElementById("settingsSaveBtn");
+
+    const speedSelect = document.getElementById("speedSelect");
+    const repeatCountInput = document.getElementById("repeatCountInput");
+    const intervalSecInput = document.getElementById("intervalSecInput");
+    const groupSizeSelect = document.getElementById("groupSizeSelect");
+    const wordGapInput = document.getElementById("wordGapInput");
+
+    const detailOverlay = document.getElementById("detailOverlay");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailBody = document.getElementById("detailBody");
+    const detailCloseBtn = document.getElementById("detailCloseBtn");
+
+    /* ===== 뜻 토글 UI ===== */
+    function applyMeaningVisibility() {
+      if (meaningVisible) {
+        meaningDisplay.classList.remove("hidden");
+        toggleMeaningBtn.textContent = "뜻 숨기기";
+        toggleMeaningBtn.classList.remove("active");
+      } else {
+        meaningDisplay.classList.add("hidden");
+        toggleMeaningBtn.textContent = "뜻 보이기";
+        toggleMeaningBtn.classList.add("active");
+      }
+      localStorage.setItem("meaningVisible", meaningVisible ? "1" : "0");
+    }
+
+    toggleMeaningBtn.addEventListener("click", () => {
+      meaningVisible = !meaningVisible;
+      applyMeaningVisibility();
+    });
+
+    // ===== 미생성 단어 스캔 =====
+    const existsCache = new Map(); // url -> boolean
+    let scanSeq = 0;
+
+    async function audioExistsCached(url) {
+      if (existsCache.has(url)) return existsCache.get(url);
+      const ok = await fileExists(url);
+      existsCache.set(url, ok);
+      return ok;
+    }
+
+    async function scanMissingWords() {
+      if (!currentWords.length) return;
+
+      const mySeq = ++scanSeq;
+      const range = getActiveRange();
+
+      // 현재 선택(절/전체) 범위에서 유니크 토큰 추출
+      const uniq = [];
+      const seen = new Set();
+      for (let i = range.start; i <= range.end; i++) {
+        const w = currentWords[i];
+        if (!w || !w.text) continue;
+        const t = w.text;
+        if (seen.has(t)) continue;
+        seen.add(t);
+        uniq.push(t);
+      }
+
+      missingStatus.textContent = `미생성 단어: 검사중… (0/${uniq.length})`;
+      missingList.value = "";
+      missingList.placeholder = "검사중…";
+
+      const missing = [];
+      for (let i = 0; i < uniq.length; i++) {
+        if (mySeq !== scanSeq) return; // 취소
+        const text = uniq[i];
+        const url = getWordAudioUrl({ text });
+        const ok = await audioExistsCached(url);
+        if (!ok) missing.push(text);
+        if (i % 10 === 0 || i === uniq.length - 1) {
+          missingStatus.textContent = `미생성 단어: 검사중… (${i + 1}/${uniq.length})  /  없음: ${missing.length}`;
+        }
+      }
+
+      if (mySeq !== scanSeq) return;
+      missingList.value = missing.join("\n");
+      missingStatus.textContent = `미생성 단어: ${missing.length}개 (현재 ${bookSelect.value} ${chapterSelect.value}장, ${verseSelect.value === "all" ? "전체" : verseSelect.value + "절"})`;
+      if (!missing.length) missingList.placeholder = "✅ 모두 생성됨";
+    }
+
+    missingBtn.addEventListener("click", () => {
+      scanMissingWords();
+    });
+
+    copyMissingBtn.addEventListener("click", async () => {
+      const text = (missingList.value || "").trim();
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        missingStatus.textContent = "✅ 복사됨 (클립보드)";
+        setTimeout(() => {
+          // 상태 복원
+          missingStatus.textContent = `미생성 단어: ${missingList.value ? missingList.value.split("\n").filter(Boolean).length : 0}개`;
+        }, 900);
+      } catch (e) {
+        // fallback
+        missingList.focus();
+        missingList.select();
+        document.execCommand("copy");
+      }
+    });
+
+
+async function fileExists(url) {
+  try {
+    // HEAD가 막히는 경우가 있어서 GET으로 체크(가볍게)
+    const res = await fetch(url, { cache: "no-store" });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function buildChaptersForBook(book, maxChapters = 200) {
+  chapterSelect.innerHTML = "";
+  chapterSelect.disabled = true;
+  verseSelect.disabled = true;
+
+  // 1장부터 연속으로 존재하는지 확인하고, 끊기면 종료
+  for (let ch = 1; ch <= maxChapters; ch++) {
+    const url = `data/${book}/${ch}.json?cb=${Date.now()}`;
+    const ok = await fileExists(url);
+    if (!ok) break;
+
+    const opt = document.createElement("option");
+    opt.value = String(ch);
+    opt.textContent = String(ch);
+    chapterSelect.appendChild(opt);
+  }
+
+  chapterSelect.disabled = false;
+  verseSelect.disabled = false;
+
+  // 장이 하나도 없으면 안내
+  if (!chapterSelect.options.length) {
+    wordDisplay.textContent = "❌ 장 데이터 없음";
+    meaningDisplay.textContent = `data/${book}/1.json 부터 파일이 있어야 합니다.`;
+    return null;
+  }
+
+  return chapterSelect.options[0].value; // 첫 장 번호
+}
+
+
+    /* ===== JSON LOAD ===== */
+    async function loadChapter(book, chapter) {
+      const url = `data/${book}/${chapter}.json?cb=${Date.now()}`;
+      wordDisplay.textContent = "단어를 불러오는 중…";
+      currentWords = [];
+      currentWordIndex = 0;
+
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        verseData = JSON.parse(text);
+      } catch (err) {
+        wordDisplay.textContent = "❌ JSON 로드 실패";
+        meaningDisplay.textContent = err.message;
+        syncOverlayArrows();
+        return;
+      }
+
+      const verses = verseData.verses || {};
+      const allWords = [];
+
+      verseWordStartIndex = {};
+      verseOrder = [];
+
+      const verseKeys = Object.keys(verses).sort((a, b) => Number(a) - Number(b));
+      let idx = 0;
+
+      verseKeys.forEach(v => {
+        verseOrder.push(v);
+        verseWordStartIndex[v] = idx;
+        const obj = verses[v];
+        if (obj.words) {
+          obj.words.forEach(w => { allWords.push(w); idx++; });
+        }
+      });
+
+      verseSelect.innerHTML = '<option value="all">전체</option>';
+      verseKeys.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        verseSelect.appendChild(opt);
+      });
+
+      currentWords = allWords;
+
+      if (verseKeys.length) verseSelect.value = verseKeys[0];
+      currentWordIndex = getRangeForVerse(verseSelect.value).start;
+
+      updateWordDisplay();
+      updateVerseNavButtons();
+      clearCanvas();
+    }
+
+    function getRangeForVerse(verseValue) {
+      if (!currentWords.length) return { start: 0, end: -1 };
+      if (verseValue === "all") return { start: 0, end: currentWords.length - 1 };
+
+      const start = verseWordStartIndex[verseValue];
+      if (typeof start !== "number") return { start: 0, end: currentWords.length - 1 };
+
+      const idx = verseOrder.indexOf(verseValue);
+      let end;
+      if (idx >= 0 && idx < verseOrder.length - 1) {
+        const nextVerse = verseOrder[idx + 1];
+        const nextStart = verseWordStartIndex[nextVerse];
+        end = (typeof nextStart === "number" ? nextStart : currentWords.length) - 1;
+      } else end = currentWords.length - 1;
+
+      return { start, end };
+    }
+
+    function getActiveRange() { return getRangeForVerse(verseSelect.value); }
+
+    function updateVerseNavButtons() {
+      if (!verseOrder.length) { prevVerseBtn.disabled = true; nextVerseBtn.disabled = true; return; }
+      let sel = verseSelect.value;
+      if (sel === "all") sel = verseOrder[0];
+      const idx = verseOrder.indexOf(sel);
+      prevVerseBtn.disabled = (idx <= 0);
+      nextVerseBtn.disabled = (idx >= verseOrder.length - 1);
+    }
+
+    function getCurrentGroup() {
+      if (!currentWords.length) return [];
+      const range = getActiveRange();
+      if (range.end < range.start) return [];
+
+      if (settings.groupSize === "all") return currentWords.slice(range.start, range.end + 1);
+
+      const g = settings.groupSize;
+      let start = Math.min(Math.max(currentWordIndex, range.start), range.end);
+      start = range.start + Math.floor((start - range.start) / g) * g;
+      if (start > range.end) start = range.end;
+      currentWordIndex = start;
+
+      const result = [];
+      for (let i = start; i <= range.end && result.length < g; i++) result.push(currentWords[i]);
+      return result;
+    }
+
+    function applyResponsiveFontForGroup(groupLength) {
+      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      let baseSize = 72;
+      if (vw <= 480) baseSize = 52;
+      else if (vw <= 768) baseSize = 64;
+      if (groupLength >= 3) baseSize -= 8;
+      if (groupLength >= 5) baseSize -= 8;
+      if (groupLength >= 10) baseSize -= 8;
+      if (baseSize < 32) baseSize = 32;
+      wordDisplay.style.fontSize = baseSize + "px";
+    }
+
+    function syncOverlayArrows() {
+      const prevDisabled = prevWordBtn.disabled || (settings.groupSize === "all");
+      const nextDisabled = nextWordBtn.disabled || (settings.groupSize === "all");
+
+      overlayPrevBtn.classList.toggle("disabled", !!prevDisabled);
+      overlayNextBtn.classList.toggle("disabled", !!nextDisabled);
+
+      if (settings.groupSize === "all") {
+        overlayPrevBtn.style.display = "none";
+        overlayNextBtn.style.display = "none";
+      } else {
+        overlayPrevBtn.style.display = "flex";
+        overlayNextBtn.style.display = "flex";
+      }
+    }
+
+    /* ===== DISPLAY ===== */
+    let isPlaying = false;
+    function updateWordDisplay() {
+      if (isPlaying) stopPlaybackStateOnly();
+
+      if (!currentWords.length) {
+        wordDisplay.textContent = "단어 없음";
+        meaningDisplay.textContent = "";
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+        syncOverlayArrows();
+        return;
+      }
+
+      const range = getActiveRange();
+      if (currentWordIndex < range.start) currentWordIndex = range.start;
+      if (currentWordIndex > range.end) currentWordIndex = range.end;
+
+      const group = getCurrentGroup();
+      if (!group.length) {
+        wordDisplay.textContent = "단어 없음";
+        meaningDisplay.textContent = "";
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+        syncOverlayArrows();
+        return;
+      }
+
+      applyResponsiveFontForGroup(group.length);
+
+      wordDisplay.innerHTML = "";
+      for (let i = 0; i < group.length; i++) {
+        const wordIndex = (settings.groupSize === "all") ? (range.start + i) : (currentWordIndex + i);
+        const w = currentWords[wordIndex];
+        if (!w) continue;
+
+        const span = document.createElement("span");
+        span.textContent = w.text;
+        span.className = "heb-word";
+        span.addEventListener("click", () => {
+          if (drawingEnabled) return;
+          openDetail(w);
+        });
+        wordDisplay.appendChild(span);
+      }
+
+      if (settings.groupSize === "all") {
+        meaningDisplay.textContent = group.map(w => w.meaning || "").join(" / ");
+      } else if (group.length === 1) {
+        meaningDisplay.textContent = group[0].meaning || "";
+      } else {
+        meaningDisplay.textContent = group.map(w => w.meaning || "").join(" / ");
+      }
+
+      if (settings.groupSize === "all") {
+        prevWordBtn.disabled = true;
+        nextWordBtn.disabled = true;
+      } else {
+        const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+        const maxStart = range.start + Math.floor((range.end - range.start) / g) * g;
+        prevWordBtn.disabled = currentWordIndex <= range.start;
+        nextWordBtn.disabled = currentWordIndex >= maxStart;
+      }
+
+      syncOverlayArrows();
+    }
+
+    function goPrevWord() {
+      if (settings.groupSize === "all") return;
+      if (prevWordBtn.disabled) return;
+      const range = getActiveRange();
+      const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+      if (currentWordIndex > range.start) {
+        currentWordIndex = Math.max(range.start, currentWordIndex - g);
+        updateWordDisplay();
+        clearCanvas();
+      }
+    }
+    function goNextWord() {
+      if (settings.groupSize === "all") return;
+      if (nextWordBtn.disabled) return;
+      const range = getActiveRange();
+      const g = (typeof settings.groupSize === "number" ? settings.groupSize : 1);
+      const maxStart = range.start + Math.floor((range.end - range.start) / g) * g;
+      if (currentWordIndex < maxStart) {
+        currentWordIndex = Math.min(maxStart, currentWordIndex + g);
+        updateWordDisplay();
+        clearCanvas();
+      }
+    }
+
+    prevWordBtn.addEventListener("click", goPrevWord);
+    nextWordBtn.addEventListener("click", goNextWord);
+    overlayPrevBtn.addEventListener("click", goPrevWord);
+    overlayNextBtn.addEventListener("click", goNextWord);
+
+    /* ===== 모바일 스와이프 ===== */
+    let swipeStartX = null, swipeStartY = null, swipeStarted = false;
+    function canSwipeNow() {
+      if (settings.groupSize === "all") return false;
+      if (drawingEnabled) return false;
+      if (!currentWords.length) return false;
+      if (settingsOverlay.classList.contains("show")) return false;
+      if (detailOverlay.classList.contains("show")) return false;
+      return true;
+    }
+
+    traceArea.addEventListener("touchstart", (e) => {
+      if (!canSwipeNow()) return;
+      if (!e.touches || e.touches.length !== 1) return;
+      swipeStarted = true;
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    traceArea.addEventListener("touchend", (e) => {
+      if (!swipeStarted || !canSwipeNow()) return;
+      const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+      if (!t) return;
+
+      const dx = t.clientX - swipeStartX;
+      const dy = t.clientY - swipeStartY;
+
+      swipeStarted = false;
+      swipeStartX = null;
+      swipeStartY = null;
+
+      const absX = Math.abs(dx), absY = Math.abs(dy);
+      if (absX < 40) return;
+      if (absX <= absY) return;
+
+      if (dx < 0) { if (!nextWordBtn.disabled) goNextWord(); }
+      else { if (!prevWordBtn.disabled) goPrevWord(); }
+    }, { passive: true });
+
+    /* ===== TTS ===== */
+    let playTimeoutId = null;
+    // ===== MP3(단어 파일) 재생 =====
+    const AUDIO_BASE = "audio"; // 예: /audio/genesis/1/<히브리어원문>.mp3
+    const USE_TTS_FALLBACK = true; // mp3 없으면 TTS로 읽기(원치 않으면 false)
+    const audioCache = new Map();
+    let currentAudio = null;
+
+    function getWordAudioUrl(w) {
+  	return `audio/words/${encodeURIComponent(w.text)}.mp3`;
+				}
+
+
+    async function playAudioUrl(url, playbackRate = 1.0) {
+      let a = audioCache.get(url);
+      if (!a) {
+        a = new Audio(url);
+        a.preload = "auto";
+        audioCache.set(url, a);
+      }
+      // 이전 재생 중이면 정지
+      if (currentAudio && currentAudio !== a) {
+        try { currentAudio.pause(); currentAudio.currentTime = 0; } catch(e) {}
+      }
+      currentAudio = a;
+
+      a.pause();
+      a.currentTime = 0;
+      a.playbackRate = playbackRate;
+
+      return new Promise(resolve => {
+        a.onended = resolve;
+        a.onerror = resolve;
+        a.play().catch(() => resolve());
+      });
+    }
+
+    async function playWord(w, ttsRate) {
+      const url = getWordAudioUrl(w);
+
+      if (await fileExists(url)) {
+        // mp3 playbackRate는 너무 극단적이면 깨질 수 있어서 살짝 클램프
+        const pr = Math.min(1.25, Math.max(0.75, ttsRate));
+        await playAudioUrl(url, pr);
+        return;
+      }
+
+      if (USE_TTS_FALLBACK) {
+        await speakOnce(w.text, ttsRate);
+      }
+    }
+
+    function getSpeedRate() {
+      switch (settings.speed) {
+        case "verySlow": return 0.25;
+        case "slow": return 0.6;
+        case "fast": return 1.4;
+        default: return 1.0;
+      }
+    }
+
+    async function speakOnce(text, rate) {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+
+      if (!voicesLoaded) {
+        await new Promise(res => {
+          const id = setInterval(() => {
+            if (speechSynthesis.getVoices().length > 0) {
+              clearInterval(id);
+              voicesLoaded = true;
+              res();
+            }
+          }, 100);
+        });
+      }
+
+      return new Promise(resolve => {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = rate;
+        utter.lang = "he-IL";
+        const voices = speechSynthesis.getVoices();
+        if (!voices.some(v => v.lang === "he-IL")) utter.lang = "en-US";
+        utter.onend = resolve;
+        utter.onerror = resolve;
+        synth.speak(utter);
+      });
+    }
+
+    async function speakGroupWordsOneByOne(group, rate) {
+      for (let w of group) {
+        if (!isPlaying) break;
+        await playWord(w, rate);
+        if (!isPlaying) break;
+        if (settings.wordGap > 0) {
+          await new Promise(res => { playTimeoutId = setTimeout(res, settings.wordGap * 1000); });
+        }
+      }
+    }
+
+    function stopPlaybackStateOnly() {
+      isPlaying = false;
+      playBtn.textContent = "재생";
+      playBtn.classList.add("primary");
+      playBtn.classList.remove("secondary");
+      const synth = window.speechSynthesis;
+      if (synth && synth.speaking) synth.cancel();
+      if (currentAudio) { try { currentAudio.pause(); currentAudio.currentTime = 0; } catch(e) {} }
+      if (playTimeoutId) clearTimeout(playTimeoutId);
+      playTimeoutId = null;
+    }
+
+    async function playSequence() {
+      if (!currentWords.length) return;
+
+      isPlaying = true;
+      playBtn.textContent = "정지";
+      playBtn.classList.remove("primary");
+      playBtn.classList.add("secondary");
+
+      const rate = getSpeedRate();
+      const repeats = settings.repeatCount;
+      const intervalMs = settings.intervalSec * 1000;
+      const group = getCurrentGroup();
+
+      try {
+        for (let i = 0; i < repeats && isPlaying; i++) {
+          await speakGroupWordsOneByOne(group, rate);
+          if (!isPlaying) break;
+          if (i < repeats - 1 && intervalMs > 0) {
+            await new Promise(res => { playTimeoutId = setTimeout(res, intervalMs); });
+          }
+        }
+      } finally {
+        stopPlaybackStateOnly();
+      }
+    }
+
+    playBtn.addEventListener("click", () => {
+      if (isPlaying) stopPlaybackStateOnly();
+      else playSequence();
+    });
+
+    /* ===== SETTINGS POPUP ===== */
+    function openSettings() {
+      speedSelect.value = settings.speed;
+      repeatCountInput.value = settings.repeatCount;
+      intervalSecInput.value = settings.intervalSec;
+      groupSizeSelect.value = (settings.groupSize === "all") ? "all" : String(settings.groupSize);
+      wordGapInput.value = settings.wordGap;
+      settingsOverlay.classList.add("show");
+    }
+    function closeSettings() { settingsOverlay.classList.remove("show"); }
+
+    optionsBtn.addEventListener("click", openSettings);
+    settingsCloseBtn.addEventListener("click", closeSettings);
+    settingsCancelBtn.addEventListener("click", closeSettings);
+    settingsOverlay.addEventListener("click", (e) => { if (e.target === settingsOverlay) closeSettings(); });
+
+    /* ===== 그리기 ===== */
+    let drawingEnabled = false;
+    function setDrawingEnabled(enabled) {
+      drawingEnabled = enabled;
+      drawOnBtn.textContent = enabled ? "그리기: 켬" : "그리기: 끔";
+      wordDisplay.style.opacity = enabled ? 0.25 : 1;
+      drawCanvas.style.pointerEvents = enabled ? "auto" : "none";
+
+      overlayPrevBtn.style.pointerEvents = enabled ? "none" : "auto";
+      overlayNextBtn.style.pointerEvents = enabled ? "none" : "auto";
+      if (!enabled) syncOverlayArrows();
+    }
+
+    function applyGroupModeUI() {
+      if (settings.groupSize === "all") {
+        setDrawingEnabled(false);
+        drawOnBtn.disabled = true;
+        clearCanvas();
+        drawCanvas.style.display = "none";
+        traceArea.style.overflowY = "auto";
+        traceArea.style.alignItems = "flex-start";
+      } else {
+        drawOnBtn.disabled = false;
+        drawCanvas.style.display = "block";
+        traceArea.style.overflowY = "hidden";
+        traceArea.style.alignItems = "center";
+      }
+      syncOverlayArrows();
+    }
+
+    settingsSaveBtn.addEventListener("click", () => {
+      settings.speed = speedSelect.value;
+      settings.repeatCount = parseInt(repeatCountInput.value, 10) || 3;
+      settings.intervalSec = parseInt(intervalSecInput.value, 10) || 3;
+
+      const gVal = groupSizeSelect.value;
+      settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
+
+      settings.wordGap = parseInt(wordGapInput.value, 10) || 1;
+
+      currentWordIndex = getRangeForVerse(verseSelect.value).start;
+
+      applyGroupModeUI();
+      closeSettings();
+      updateWordDisplay();
+      clearCanvas();
+    });
+
+    /* ===== DETAIL ===== */
+    
+    
+let detailSpeedIndex = 2; // 0=아주느리게,1=느리게,2=보통,3=빠르게
+
+function updateSpeedButtons(){
+  const speedDown = document.getElementById("speedDown");
+  const speedUp = document.getElementById("speedUp");
+  const speedLabel = document.getElementById("speedLabel");
+  if(speedLabel) speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  if(speedDown) speedDown.disabled = (detailSpeedIndex === 0);
+  if(speedUp) speedUp.disabled = (detailSpeedIndex === detailSpeedRates.length-1);
+}
+
+const detailSpeedRates = [0.4,0.7,1.0,1.3];
+const detailSpeedLabels = ["아주 느리게","느리게","보통","빠르게"];
+
+async function speakDetailWord(text) {
+      const synth = window.speechSynthesis;
+      if (synth) synth.cancel();
+      await playWord({ text }, detailSpeedRates[detailSpeedIndex]);
+    }
+
+    function openDetail(w) {
+      if (!w) return;
+
+      detailTitle.innerHTML = `
+        <div class="detail-title-wrap">
+          <span class="detail-heb">${w.text}</span>
+          
+<button class="detail-speak-btn" id="detailSpeakBtn" aria-label="발음 듣기">🔊</button>
+<div class="detail-speed-wrap">
+  <button class="detail-speed-btn" id="speedDown">◁</button>
+  <span class="detail-speed-label" id="speedLabel">보통</span>
+  <button class="detail-speed-btn" id="speedUp">▷</button>
+</div>
+
+        </div>
+      `;
+
+      detailBody.innerHTML =
+        `<p><strong>뜻:</strong> ${w.meaning || ""}</p>
+         <p><strong>개정:</strong> ${w.kor || "표시할 국문 없음"}</p>
+         <p><strong>발음:</strong> ${w.pron || "등록된 발음 없음"}</p>
+         <p><strong>형태소/품사:</strong> ${w.morph || "등록된 정보 없음"}</p>
+         <p><strong>어근:</strong> ${w.root || "등록된 정보 없음"}</p>`;
+      detailOverlay.classList.add("show");
+
+      const btn = document.getElementById("detailSpeakBtn");
+      if (btn) {
+        
+  const speedLabel = document.getElementById("speedLabel");
+  const speedDown = document.getElementById("speedDown");
+  const speedUp = document.getElementById("speedUp");
+
+  updateSpeedButtons();
+
+  if (speedDown) speedDown.onclick = (e)=>{
+    e.stopPropagation();
+    if(detailSpeedIndex>0){ detailSpeedIndex--; updateSpeedButtons(); }
+    speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  };
+
+  if (speedUp) speedUp.onclick = (e)=>{
+    e.stopPropagation();
+    if(detailSpeedIndex<detailSpeedRates.length-1){ detailSpeedIndex++; updateSpeedButtons(); }
+    speedLabel.textContent = detailSpeedLabels[detailSpeedIndex];
+  };
+
+  btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          speakDetailWord(w.text);
+        };
+      }
+    }
+    detailCloseBtn.addEventListener("click", () => detailOverlay.classList.remove("show"));
+    detailOverlay.addEventListener("click", e => { if (e.target === detailOverlay) detailOverlay.classList.remove("show"); });
+
+    /* ===== CANVAS ===== */
+    function resizeCanvas() {
+      const rect = traceArea.getBoundingClientRect();
+      drawCanvas.width = rect.width;
+      drawCanvas.height = rect.height;
+      clearCanvas();
+    }
+    function clearCanvas() { drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); }
+
+    let isDrawing = false, lastX = 0, lastY = 0;
+
+    drawOnBtn.addEventListener("click", () => {
+      if (settings.groupSize === "all") return;
+      setDrawingEnabled(!drawingEnabled);
+    });
+
+    drawCanvas.addEventListener("mousedown", e => {
+      if (!drawingEnabled) return;
+      isDrawing = true;
+      lastX = e.offsetX; lastY = e.offsetY;
+    });
+    drawCanvas.addEventListener("mousemove", e => {
+      if (!drawingEnabled || !isDrawing) return;
+      drawCtx.lineWidth = parseInt(penWidthSlider.value, 10);
+      drawCtx.lineCap = "round";
+      drawCtx.strokeStyle = "#000";
+      drawCtx.beginPath();
+      drawCtx.moveTo(lastX, lastY);
+      drawCtx.lineTo(e.offsetX, e.offsetY);
+      drawCtx.stroke();
+      lastX = e.offsetX; lastY = e.offsetY;
+    });
+    drawCanvas.addEventListener("mouseup", () => isDrawing = false);
+    drawCanvas.addEventListener("mouseleave", () => isDrawing = false);
+
+    penWidthSlider.addEventListener("input", () => { penWidthLabel.textContent = penWidthSlider.value + "px"; });
+    clearCanvasBtn.addEventListener("click", clearCanvas);
+
+    /* ===== 장/절 즉시 출력 ===== */
+    function jumpToSelectedVerseStart() {
+      if (!currentWords.length) return;
+      const range = getRangeForVerse(verseSelect.value);
+      currentWordIndex = range.start;
+      updateWordDisplay();
+      clearCanvas();
+      updateVerseNavButtons();
+    }
+
+    verseSelect.addEventListener("change", jumpToSelectedVerseStart);
+    chapterSelect.addEventListener("change", async () => { await loadChapter(bookSelect.value, chapterSelect.value); });
+    bookSelect.addEventListener("change", async () => {
+  const firstChapter = await buildChaptersForBook(bookSelect.value);
+  if (!firstChapter) return;
+  chapterSelect.value = firstChapter;
+  await loadChapter(bookSelect.value, chapterSelect.value);
+});
+
+
+    prevVerseBtn.addEventListener("click", () => {
+      if (!verseOrder.length) return;
+      let sel = verseSelect.value;
+      if (sel === "all") sel = verseOrder[0];
+      const idx = verseOrder.indexOf(sel);
+      if (idx > 0) { verseSelect.value = verseOrder[idx - 1]; jumpToSelectedVerseStart(); }
+    });
+
+    nextVerseBtn.addEventListener("click", () => {
+      if (!verseOrder.length) return;
+      let sel = verseSelect.value;
+      if (sel === "all") sel = verseOrder[0];
+      const idx = verseOrder.indexOf(sel);
+      if (idx >= 0 && idx < verseOrder.length - 1) { verseSelect.value = verseOrder[idx + 1]; jumpToSelectedVerseStart(); }
+    });
+
+    /* ===== INIT ===== */
+    function init() {
+      resizeCanvas();
+      setDrawingEnabled(false);
+      applyGroupModeUI();
+
+      // 뜻 표시 상태 복원
+      meaningVisible = (localStorage.getItem("meaningVisible") !== "0");
+      applyMeaningVisibility();
+
+      (async function init() {
+  resizeCanvas();
+  setDrawingEnabled(false);
+  applyGroupModeUI();
+
+  meaningVisible = (localStorage.getItem("meaningVisible") !== "0");
+  applyMeaningVisibility();
+
+  // ✅ 책에 있는 장 json을 자동 스캔해서 chapterSelect 생성
+  const firstChapter = await buildChaptersForBook(bookSelect.value);
+  if (!firstChapter) return;
+
+  chapterSelect.value = firstChapter;
+  await loadChapter(bookSelect.value, chapterSelect.value);
+})();
+
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    init();
+
+    /* ===== detail size 복원 ===== */
+    document.getElementById("sizeSmall").addEventListener("click", () => changeDetailSize("small"));
+    document.getElementById("sizeMedium").addEventListener("click", () => changeDetailSize("medium"));
+    document.getElementById("sizeLarge").addEventListener("click", () => changeDetailSize("large"));
+    function changeDetailSize(size) {
+      detailBody.classList.remove("size-small", "size-medium", "size-large");
+      if (size === "small") detailBody.classList.add("size-small");
+      if (size === "medium") detailBody.classList.add("size-medium");
+      if (size === "large") detailBody.classList.add("size-large");
+      localStorage.setItem("detailSize", size);
+    }
+    window.addEventListener("DOMContentLoaded", () => {
+      changeDetailSize(localStorage.getItem("detailSize") || "medium");
+    });
+  </script>
+</body>
+</html>
