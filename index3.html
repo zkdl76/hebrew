@@ -384,7 +384,7 @@
       <span id="penWidthLabel">4px</span>
     <div class="missing-panel">
       <div id="missingStatus" class="missing-status">미생성 단어: -</div>
-      <textarea id="missingList" class="missing-list" readonly placeholder="🧩 미생성 단어를 찾으려면 ‘미생성 단어’ 버튼을 누르세요."></textarea>
+      <div id="missingList" class="missing-list" style="overflow-y:auto; background:#fafafa;"></div>
     </div>
   </div>
 
@@ -585,11 +585,39 @@
           missingStatus.textContent = `미생성 단어: 검사중… (${i + 1}/${uniq.length})  /  없음: ${missing.length}`;
         }
       }
-
       if (mySeq !== scanSeq) return;
-      missingList.value = missing.join("\n");
-      missingStatus.textContent = `미생성 단어: ${missing.length}개 (현재 ${bookSelect.value} ${chapterSelect.value}장, ${verseSelect.value === "all" ? "전체" : verseSelect.value + "절"})`;
-      if (!missing.length) missingList.placeholder = "✅ 모두 생성됨";
+
+      // ✅ 체크박스 리스트로 표시 (체크 상태는 localStorage에 저장)
+      const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
+      missingList.innerHTML = "";
+
+      missing.forEach(word => {
+        const label = document.createElement("label");
+        label.style.display = "block";
+        label.style.cursor = "pointer";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!saved[word];
+
+        cb.addEventListener("change", () => {
+          const data = JSON.parse(localStorage.getItem("createdWords") || "{}");
+          if (cb.checked) data[word] = true;
+          else delete data[word];
+          localStorage.setItem("createdWords", JSON.stringify(data));
+        });
+
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(" " + word));
+        missingList.appendChild(label);
+      });
+
+      missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
+
+      if (!missing.length) {
+        missingList.innerHTML = "<div style='font-size:13px;color:#666;padding:6px 2px;text-align:center;'>✅ 모두 생성됨</div>";
+      }
+
     }
 
     missingBtn.addEventListener("click", () => {
@@ -597,15 +625,23 @@
     });
 
     copyMissingBtn.addEventListener("click", async () => {
-      const text = (missingList.value || "").trim();
+      const unchecked = [];
+      document.querySelectorAll("#missingList input[type=checkbox]").forEach(cb => {
+        if (!cb.checked) {
+          const word = cb.parentElement.textContent.trim();
+          unchecked.push(word);
+        }
+      });
+      const text = unchecked.join("
+").trim();
       if (!text) return;
       try {
         await navigator.clipboard.writeText(text);
         missingStatus.textContent = "✅ 복사됨 (클립보드)";
         setTimeout(() => {
           // 상태 복원
-          missingStatus.textContent = `미생성 단어: ${missingList.value ? missingList.value.split("\n").filter(Boolean).length : 0}개`;
-        }, 900);
+          missingStatus.textContent = "미생성 단어: (복사됨)";
+}, 900);
       } catch (e) {
         // fallback
         missingList.focus();
