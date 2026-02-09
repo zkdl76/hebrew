@@ -1212,5 +1212,47 @@ async function speakDetailWord(text) {
       changeDetailSize(localStorage.getItem("detailSize") || "medium");
     });
   </script>
+
+<script>
+// ===== Enhanced Missing Word Checklist =====
+function renderMissingWordsList(words){
+  const container = document.getElementById("missingList");
+  if(!container) return;
+
+  container.innerHTML = "";
+  const saved = JSON.parse(localStorage.getItem("createdWords")||"{}");
+
+  words.forEach(w=>{
+    const label = document.createElement("label");
+    label.style.display="block";
+    label.style.cursor="pointer";
+
+    const cb = document.createElement("input");
+    cb.type="checkbox";
+    cb.checked = !!saved[w];
+    cb.onchange = ()=>{
+      const data = JSON.parse(localStorage.getItem("createdWords")||"{}");
+      if(cb.checked){ data[w]=true; }
+      else{ delete data[w]; }
+      localStorage.setItem("createdWords", JSON.stringify(data));
+    };
+
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" "+w));
+    container.appendChild(label);
+  });
+}
+
+function copyUnchecked(){
+  const saved = JSON.parse(localStorage.getItem("createdWords")||"{}");
+  const unchecked = [];
+  document.querySelectorAll("#missingList input[type=checkbox]").forEach(cb=>{
+    const word = cb.parentElement.textContent.trim();
+    if(!cb.checked) unchecked.push(word);
+  });
+  navigator.clipboard.writeText(unchecked.join("\n"));
+}
+</script>
+
 </body>
 </html>
