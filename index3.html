@@ -384,6 +384,7 @@
       <button id="toggleMeaningBtn" class="secondary">뜻 숨기기</button>
       <button id="missingBtn" class="secondary">🧩 미생성 단어</button>
       <button id="copyMissingBtn" class="secondary">복사</button>
+      <button id="downloadMissingBtn" class="secondary">다운</button>
     </div>
 
     <div class="canvas-row">
@@ -464,7 +465,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "1";
+    const BUILD_TIME = "2";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -556,6 +557,7 @@ let verseData = null;
 
     const missingBtn = document.getElementById("missingBtn");
     const copyMissingBtn = document.getElementById("copyMissingBtn");
+    const downloadMissingBtn = document.getElementById("downloadMissingBtn");
     const missingStatus = document.getElementById("missingStatus");
     const missingList = document.getElementById("missingList");
 
@@ -638,12 +640,28 @@ let verseData = null;
       missingList.innerHTML = "<div style='font-size:13px;color:#666;padding:6px 2px;text-align:center;'>검사중…</div>";
 
       const missing = [];
+      const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
       for (let i = 0; i < uniq.length; i++) {
         if (mySeq !== scanSeq) return; // 취소
         const text = uniq[i];
+
+        // ✅ 사용자가 체크한 단어는 '이미 확보(다운/생성됨)'로 간주 → 목록에서 제외
+        if (saved[text]) {
+          if (i % 10 === 0 || i === uniq.length - 1) {
+            missingStatus.textContent = `미생성 단어: 검사중… (${i + 1}/${uniq.length})  /  없음: ${missing.length}`;
+          }
+          continue;
+        }
+
         const url = getWordAudioUrl({ text });
         const ok = await audioExistsCached(url);
-        if (!ok) missing.push(text);
+
+        // ✅ mp3가 있으면 자동으로 생성됨 처리(저장)해서 이후 장에서도 안 뜨게
+        if (ok) {
+          saved[text] = true;
+        } else {
+          missing.push(text);
+        }
         if (i % 10 === 0 || i === uniq.length - 1) {
           missingStatus.textContent = `미생성 단어: 검사중… (${i + 1}/${uniq.length})  /  없음: ${missing.length}`;
         }
@@ -651,7 +669,8 @@ let verseData = null;
       if (mySeq !== scanSeq) return;
 
       // ✅ 체크박스 리스트로 표시 (체크 상태는 localStorage에 저장)
-      const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
+      localStorage.setItem("createdWords", JSON.stringify(saved));
+
       missingList.innerHTML = "";
 
       missing.forEach(word => {
@@ -709,7 +728,7 @@ let verseData = null;
 async function copyTextToClipboard(text){
   if(!text) return false;
   try{
-    await copyTextToClipboard(text);
+    await navigator.clipboard.writeText(text);
     return true;
   } catch(e){
     try{
@@ -725,6 +744,38 @@ async function copyTextToClipboard(text){
     }
   }
 }
+
+
+downloadMissingBtn.addEventListener("click", () => {
+      // 현재 화면에 보이는 미생성 목록 + 체크 상태를 함께 파일로 저장
+      const items = [];
+      document.querySelectorAll("#missingList label").forEach(label => {
+        const cb = label.querySelector('input[type="checkbox"]');
+        const span = label.querySelector("span");
+        const word = (span ? span.textContent : label.textContent).trim();
+        items.push({ text: word, checked: !!(cb && cb.checked) });
+      });
+
+      const payload = {
+        createdAt: new Date().toISOString(),
+        book: bookSelect.value,
+        chapter: chapterSelect.value,
+        verse: verseSelect.value,
+        items
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+      const a = document.createElement("a");
+      const safe = `missing_${bookSelect.value}_${chapterSelect.value}_${verseSelect.value}`.replace(/[^a-zA-Z0-9_\-]/g, "_");
+      a.href = URL.createObjectURL(blob);
+      a.download = safe + ".json";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 0);
+    });
 
 copyMissingBtn.addEventListener("click", async () => {
       const unchecked = [];
@@ -1092,9 +1143,14 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       a.playbackRate = playbackRate;
 
       return new Promise(resolve => {
-        a.onended = resolve;
-        a.onerror = resolve;
-        a.play().catch(() => resolve());
+        let done = false;
+        const finish = (ok) => { if (done) return; done = true; resolve(!!ok); };
+        a.onended = () => finish(true);
+        a.onerror = () => finish(false);
+        a.play().then(() => {
+          // 매우 짧게라도 재생이 시작되면 성공으로 간주 (ended/error는 이후에 올 수 있음)
+          setTimeout(() => { if (!done) finish(true); }, 200);
+        }).catch(() => finish(false));
       });
     }
 
@@ -1106,16 +1162,32 @@ function joinGroupText(group){
     .join(" ");
 }
 
+
+function isWordChecked(text){
+  try{
+    const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
+    return !!saved[String(text).trim()];
+  }catch(e){
+    return false;
+  }
+}
+
 async function playWord(w, ttsRate) {
       const url = getWordAudioUrl(w);
 
+      // ✅ 체크된 단어는 '이미 다운로드/보유'로 간주 → mp3를 먼저 무조건 시도 (HEAD 오판 방지)
+      if (isWordChecked(w.text)) {
+        const pr = Math.min(1.25, Math.max(0.75, ttsRate));
+        const ok = await playAudioUrl(url, pr);
+        if (ok) return;
+      }
+
+      // 일반 케이스: 존재 확인 후 mp3 재생
       if (await fileExists(url)) {
-        // mp3 playbackRate는 너무 극단적이면 깨질 수 있어서 살짝 클램프
         const pr = Math.min(1.25, Math.max(0.75, ttsRate));
         await playAudioUrl(url, pr);
         return;
       }
-
       if (USE_TTS_FALLBACK) {
         await speakOnce(w.text, ttsRate);
       }
