@@ -464,7 +464,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "5";
+    const BUILD_TIME = "1";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -625,14 +625,17 @@ let verseData = null;
           ? (raw.includes("־") ? [raw] : raw.split(/\s+/).filter(Boolean))
           : [raw];
 
-        for (const t of parts) {
+        for (const tRaw of parts) {
+          const t = normalizeWordKey(tRaw);
+          if (!t) continue;
           if (seen.has(t)) continue;
           seen.add(t);
           uniq.push(t);
         }
+
       }
 
-      missingStatus.textContent = `미생성 단어: 검사중… (0/${uniq.length})`;
+            missingStatus.textContent = `미생성 단어: 검사중… (0/${uniq.length})`;
       missingList.innerHTML = "";
       // div이므로 placeholder 대신 안내 문구를 넣음
       missingList.innerHTML = "<div style='font-size:13px;color:#666;padding:6px 2px;text-align:center;'>검사중…</div>";
@@ -663,12 +666,13 @@ let verseData = null;
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
-        cb.checked = !!saved[word];
+        cb.checked = !!saved[normalizeWordKey(word)];
 
         cb.addEventListener("change", () => {
           const data = JSON.parse(localStorage.getItem("createdWords") || "{}");
-          if (cb.checked) data[word] = true;
-          else delete data[word];
+          const k = normalizeWordKey(word);
+          if (cb.checked) data[k] = true;
+          else { const k = normalizeWordKey(word); delete data[k]; }
           localStorage.setItem("createdWords", JSON.stringify(data));
         });
 
@@ -679,7 +683,7 @@ let verseData = null;
         wordSpan.addEventListener("click", async (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const ok = await copyTextToClipboard(word);
+          const ok = await copyTextToClipboard(normalizeWordKey(word));
           if (ok) {
             missingStatus.textContent = "✅ 단어 복사: " + word;
             setTimeout(() => {
@@ -709,7 +713,7 @@ let verseData = null;
 async function copyTextToClipboard(text){
   if(!text) return false;
   try{
-    await copyTextToClipboard(text);
+    await navigator.clipboard.writeText(text);
     return true;
   } catch(e){
     try{
@@ -725,6 +729,18 @@ async function copyTextToClipboard(text){
     }
   }
 }
+
+
+function normalizeWordKey(t){
+  // 키/파일명/미생성 체크용: cantillation(טעמים) 제거 + 유니코드 정규화
+  // 니쿳(모음기호)과 마카프(־)는 유지
+  return String(t || "")
+    .normalize("NFC")
+    .replace(/[\u0591-\u05AF]/g, "") // Hebrew accents/cantillation
+    .replace(/\u200f|\u200e/g, "")   // RLM/LRM 제거(혹시 섞였을 때)
+    .trim();
+}
+
 
 copyMissingBtn.addEventListener("click", async () => {
       const unchecked = [];
@@ -1070,7 +1086,7 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     let currentAudio = null;
 
     function getWordAudioUrl(w) {
-  	return `audio/words/${encodeURIComponent(w.text)}.mp3`;
+  	return `audio/words/${encodeURIComponent(normalizeWordKey(w.text))}.mp3`;
 				}
 
 
