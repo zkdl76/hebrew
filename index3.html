@@ -636,13 +636,10 @@ let verseData = null;
       const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
       missingList.innerHTML = "";
 
-      
-      missing.forEach((word, idx) => {
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.alignItems = "center";
-        row.style.gap = "8px";
-        row.style.padding = "2px 0";
+      missing.forEach(word => {
+        const label = document.createElement("label");
+        label.style.display = "block";
+        label.style.cursor = "pointer";
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
@@ -655,34 +652,8 @@ let verseData = null;
           localStorage.setItem("createdWords", JSON.stringify(data));
         });
 
-        const wspan = document.createElement("span");
-        wspan.textContent = word;
-        wspan.style.cursor = "text";
-        wspan.style.userSelect = "text";
-
-        // 더블클릭: 단어를 선택(블럭잡기)해서 Ctrl+C로 복사
-        wspan.addEventListener("dblclick", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const sel = window.getSelection();
-          if (!sel) return;
-          sel.removeAllRanges();
-          const range = document.createRange();
-          range.selectNodeContents(wspan);
-          sel.addRange(range);
-        });
-
-        row.appendChild(cb);
-        row.appendChild(wspan);
-        missingList.appendChild(row);
-      });
-
-missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
-            }, 900);
-          }
-        });
-
-        label.appendChild(wspan);
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(" " + word));
         missingList.appendChild(label);
       });
 
@@ -706,28 +677,6 @@ missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상�
           unchecked.push(word);
         }
       });
-
-
-    async function copyTextSafe(text){
-      if (!text) return false;
-      try {
-        await navigator.clipboard.writeText(text);
-        return true;
-      } catch (e) {
-        try {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          return true;
-        } catch (e2) {
-          return false;
-        }
-      }
-    }
-
       const text = unchecked.join("\n").trim();
       if (!text) return;
       try {
