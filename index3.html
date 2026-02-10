@@ -157,6 +157,15 @@
       unicode-bidi:bidi-override;
     }
 
+
+    .missing-word{
+      cursor:pointer;
+      user-select:text;
+    }
+    .missing-word:hover{
+      text-decoration: underline;
+    }
+
     /* ===== 팝업 공통 ===== */
     .detail-overlay,
     .settings-overlay {
@@ -454,7 +463,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "v1";
+    const BUILD_TIME = "v2";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -638,8 +647,10 @@ let verseData = null;
 
       missing.forEach(word => {
         const label = document.createElement("label");
-        label.style.display = "block";
-        label.style.cursor = "pointer";
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "6px";
+        label.style.cursor = "default";
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
@@ -652,8 +663,24 @@ let verseData = null;
           localStorage.setItem("createdWords", JSON.stringify(data));
         });
 
+        const wordSpan = document.createElement("span");
+        wordSpan.className = "missing-word";
+        wordSpan.textContent = word;
+        wordSpan.title = "클릭하면 복사";
+        wordSpan.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const ok = await copyTextToClipboard(word);
+          if (ok) {
+            missingStatus.textContent = "✅ 단어 복사: " + word;
+            setTimeout(() => {
+              missingStatus.textContent = `미생성 단어: ${missing.length}개 (체크 상태 저장됨)`;
+            }, 900);
+          }
+        });
+
         label.appendChild(cb);
-        label.appendChild(document.createTextNode(" " + word));
+        label.appendChild(wordSpan);
         missingList.appendChild(label);
       });
 
@@ -669,7 +696,28 @@ let verseData = null;
       scanMissingWords();
     });
 
-    copyMissingBtn.addEventListener("click", async () => {
+    
+async function copyTextToClipboard(text){
+  if(!text) return false;
+  try{
+    await copyTextToClipboard(text);
+    return true;
+  } catch(e){
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      return true;
+    }catch(_){
+      return false;
+    }
+  }
+}
+
+copyMissingBtn.addEventListener("click", async () => {
       const unchecked = [];
       document.querySelectorAll("#missingList input[type=checkbox]").forEach(cb => {
         if (!cb.checked) {
@@ -680,7 +728,7 @@ let verseData = null;
       const text = unchecked.join("\n").trim();
       if (!text) return;
       try {
-        await navigator.clipboard.writeText(text);
+        await copyTextToClipboard(text);
         missingStatus.textContent = "✅ 복사됨 (클립보드)";
         setTimeout(() => {
           // 상태 복원
