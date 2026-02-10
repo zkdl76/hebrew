@@ -711,7 +711,7 @@ let verseData = null;
 async function copyTextToClipboard(text){
   if(!text) return false;
   try{
-    await copyTextToClipboard(text);
+    await navigator.clipboard.writeText(text);
     return true;
   } catch(e){
     try{
