@@ -464,7 +464,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "1";
+    const BUILD_TIME = "2";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -655,6 +655,18 @@ let verseData = null;
 
       // ✅ 체크박스 리스트로 표시 (체크 상태는 localStorage에 저장)
       const saved = JSON.parse(localStorage.getItem("createdWords") || "{}");
+      // 마이그레이션: 예전(원문키) → 새(정규화키)
+      let migrated = false;
+      for (const k in saved){
+        const nk = normalizeWordKey(k);
+        if (nk && nk !== k && saved[k] && !saved[nk]){
+          saved[nk] = true;
+          migrated = true;
+        }
+      }
+      if (migrated){
+        localStorage.setItem("createdWords", JSON.stringify(saved));
+      }
       missingList.innerHTML = "";
 
       missing.forEach(word => {
@@ -666,13 +678,14 @@ let verseData = null;
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
-        cb.checked = !!saved[normalizeWordKey(word)];
+        const _k = normalizeWordKey(word);
+        cb.checked = !!saved[_k] || !(!saved[normalizeWordKey(word)] && !saved[word]);
 
         cb.addEventListener("change", () => {
           const data = JSON.parse(localStorage.getItem("createdWords") || "{}");
           const k = normalizeWordKey(word);
-          if (cb.checked) data[k] = true;
-          else { const k = normalizeWordKey(word); delete data[k]; }
+          if (cb.checked) { data[k] = true; data[word] = true; }
+          else { const k = normalizeWordKey(word); delete data[k]; delete data[word]; }
           localStorage.setItem("createdWords", JSON.stringify(data));
         });
 
