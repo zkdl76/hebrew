@@ -464,7 +464,7 @@
   <script>
 
     // ===== BUILD STAMP (자동 확인용) =====
-    const BUILD_TIME = "v3";
+    const BUILD_TIME = "v4";
     document.title = "구약 히브리어 " + BUILD_TIME;
 
     function ensureBuildBadge() {
@@ -1098,7 +1098,15 @@ async function buildChaptersForBook(book, maxChapters = 200) {
       });
     }
 
-    async function playWord(w, ttsRate) {
+    
+function joinGroupText(group){
+  return (group || [])
+    .map(w => (w && w.text ? String(w.text).trim() : ""))
+    .filter(Boolean)
+    .join(" ");
+}
+
+async function playWord(w, ttsRate) {
       const url = getWordAudioUrl(w);
 
       if (await fileExists(url)) {
@@ -1189,7 +1197,12 @@ async function buildChaptersForBook(book, maxChapters = 200) {
 
       try {
         for (let i = 0; i < repeats && isPlaying; i++) {
+          if (settings.groupSize === "all") {
+          // 전체(문장): 단어 mp3를 이어붙이면 단어 사이가 끊겨서, TTS로 문장 한 번에 읽기
+          await speakOnce(joinGroupText(group), rate);
+        } else {
           await speakGroupWordsOneByOne(group, rate);
+        }
           if (!isPlaying) break;
           if (i < repeats - 1 && intervalMs > 0) {
             await new Promise(res => { playTimeoutId = setTimeout(res, intervalMs); });
@@ -1268,7 +1281,8 @@ async function buildChaptersForBook(book, maxChapters = 200) {
     settingsSaveBtn.addEventListener("click", () => {
       settings.speed = speedSelect.value;
       settings.repeatCount = parseInt(repeatCountInput.value, 10) || 3;
-      settings.intervalSec = parseInt(intervalSecInput.value, 10) || 3;
+      const _iv = parseFloat(intervalSecInput.value);
+      settings.intervalSec = (Number.isFinite(_iv) ? Math.max(0, _iv) : 3);
 
       const gVal = groupSizeSelect.value;
       settings.groupSize = (gVal === "all") ? "all" : (parseInt(gVal, 10) || 1);
