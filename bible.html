@@ -351,16 +351,29 @@
       }
     }
 
-    function buildChapterOptions(bookId, current){
-      const b = BOOKS.find(x => x.id === bookId) || BOOKS[0];
+    async function buildChapterOptions(bookId, current){
       chapterSelect.innerHTML = "";
-      for(let i=1;i<=b.maxCh;i++){
+
+      let existingChapters = [];
+
+      for (let i = 1; i <= 50; i++){
+        try{
+          const res = await fetch(`./data/${bookId}/${i}.json`, { method:"HEAD", cache:"no-cache" });
+          if (res.ok) existingChapters.push(i);
+        }catch(e){}
+      }
+
+      if (!existingChapters.length) existingChapters = [1];
+
+      for (const ch of existingChapters){
         const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `${i}장`;
+        opt.value = ch;
+        opt.textContent = `${ch}장`;
         chapterSelect.appendChild(opt);
       }
-      chapterSelect.value = String(current);
+
+      chapterSelect.value = existingChapters.includes(current) ? String(current) : String(existingChapters[0]);
+      return Number(chapterSelect.value);
     }
 
     function buildVerseOptions(versesObj, bookId, ch, currentV){
@@ -457,19 +470,19 @@
     }
 
     // ========= Wire up =========
-    function init(){
+    async function init(){
       const { b, c, v } = qs();
 
       buildBookOptions();
       bookSelect.value = b;
 
-      buildChapterOptions(b, c);
+      const realC = await buildChapterOptions(b, c);
 
       // handlers
-      bookSelect.addEventListener("change", () => {
+      bookSelect.addEventListener("change", async () => {
         const nb = bookSelect.value;
-        buildChapterOptions(nb, 1);
-        loadChapter(nb, 1, 1);
+        const realC = await buildChapterOptions(nb, 1);
+        loadChapter(nb, realC, 1);
       });
 
       chapterSelect.addEventListener("change", () => {
@@ -495,7 +508,7 @@
         jumpToVerse(vv);
       });
 
-      loadChapter(b, c, v);
+      loadChapter(b, realC, v);
     }
 
     init();
