@@ -429,7 +429,9 @@
         const ref = item.reference || `${bookId} ${ch}:${v}`;
         const verseText = item.verseText || "";
         const words = Array.isArray(item.words) ? item.words : [];
-        const korLine = words.map(w => (w && w.kor) ? String(w.kor) : "").filter(Boolean).join(" ");
+        const korLine = v.kor2 ?? v.kor ?? "";
+        korEl.textContent = korLine;
+
 
         // prefer words tokens for display (so popup works cleanly)
         const heHTML = words.length ? makeHebrewLineFromWords(words) : escapeHTML(verseText);
