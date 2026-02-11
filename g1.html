@@ -44,6 +44,29 @@
 .jump{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
 #jumpSelect{padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; font-weight:700;}
 
+  
+    /* word clickable */
+    .w{cursor:pointer; padding:0 2px; border-radius:6px;}
+    .w:hover{background:#f3f6ff;}
+
+    /* modal */
+    .modalBg{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center;
+      padding:18px; z-index:2000;
+    }
+    .modalBg.on{display:flex;}
+    .modal{
+      width:min(720px, 96vw);
+      background:#fff; border:1px solid var(--border); border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+      padding:14px;
+    }
+    .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
+    .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
+    .wordHead{margin:0; font-size:46px; line-height:1.1; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
+
   </style>
 </head>
 <body>
@@ -370,6 +393,22 @@
 
   </div>
 
+  <!-- Word Modal -->
+  <div class="modalBg" id="modalBg" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modalTop">
+        <div style="font-weight:700; color:var(--muted); font-size:13px;">단어</div>
+        <button class="closeBtn" id="closeModal">닫기</button>
+      </div>
+      <h1 class="wordHead" id="modalWord"></h1>
+      <div class="modalBtns">
+        <button class="playBtn" id="wordPlay">🔊</button>
+        <button class="loopBtn" id="wordLoop">∞</button>
+      </div>
+    </div>
+  </div>
+
+
   <script>
     const VERSES = Object.fromEntries([
       [1, 'בְּרֵאשִׁית, בָּרָא אֱלֹהִים, אֵת הַשָּׁמַיִם, וְאֵת הָאָרֶץ.'],
@@ -546,6 +585,105 @@ window.addEventListener("hashchange", () => {
   if (m) jumpSelect.value = Number(m[1]);
 });
 
-  </script>
+  
+// === Word popup (single word) ===
+document.addEventListener("DOMContentLoaded", () => {
+  // wrap each token into clickable span
+  function wrapWords(){
+    document.querySelectorAll("h1.he").forEach(h => {
+      const txt = h.textContent || "";
+      const tokens = txt.split(/\s+/).filter(Boolean);
+      const parts = tokens.map(t => {
+        if (t === "/") return '<span>/</span>';
+        const clean = t.replace(/[.,;:!?״׳'"]/g, "");
+        return `<span class="w" data-w="${clean}">${t}</span>`;
+      });
+      h.innerHTML = parts.join(" ");
+    });
+  }
+  wrapWords();
+
+  const modalBg = document.getElementById("modalBg");
+  const modalWord = document.getElementById("modalWord");
+  const closeModalBtn = document.getElementById("closeModal");
+  const wordPlay = document.getElementById("wordPlay");
+  const wordLoop = document.getElementById("wordLoop");
+
+  let currentWord = "";
+  let wordRepeat = false;
+
+  function openWordModal(word){
+    currentWord = word || "";
+    if (!currentWord) return;
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    // 단어 재생은 절 반복을 끈다
+    repeatV = null;
+    setBtnState(playingV);
+    modalWord.textContent = currentWord;
+    modalBg.classList.add("on");
+  }
+
+  function closeWordModal(){
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    wordRepeat = false;
+    wordPlay.classList.remove("playing");
+    wordLoop.classList.remove("repeatOn");
+    modalBg.classList.remove("on");
+  }
+
+  function speakWord(){
+    if (!currentWord) return;
+    const u = new SpeechSynthesisUtterance(cleanForTTS(currentWord));
+    if (!voicesReady) pickHebrewVoice();
+    if (heVoice) u.voice = heVoice;
+    u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
+    u.rate = 1.0;
+
+    wordPlay.classList.add("playing");
+
+    u.onend = () => {
+      wordPlay.classList.remove("playing");
+      if (wordRepeat){
+        setTimeout(() => speakWord(), 300);
+      }
+    };
+    u.onerror = () => {
+      wordPlay.classList.remove("playing");
+    };
+
+    window.speechSynthesis.speak(u);
+  }
+
+  document.addEventListener("click", (e) => {
+    const w = e.target.closest(".w");
+    if (w && w.dataset.w){
+      openWordModal(w.dataset.w);
+    }
+  });
+
+  closeModalBtn.addEventListener("click", closeWordModal);
+  modalBg.addEventListener("click", (e) => {
+    if (e.target === modalBg) closeWordModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalBg.classList.contains("on")) closeWordModal();
+  });
+
+  wordPlay.addEventListener("click", () => {
+    wordRepeat = false;
+    wordLoop.classList.remove("repeatOn");
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    speakWord();
+  });
+
+  wordLoop.addEventListener("click", () => {
+    wordRepeat = !wordRepeat;
+    wordLoop.classList.toggle("repeatOn", wordRepeat);
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    if (wordRepeat) speakWord();
+  });
+});
+
+</script>
 </body>
 </html>
