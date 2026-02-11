@@ -22,25 +22,34 @@
     button:hover{background:#f0f0f0;}
     button.playing{border-color:var(--playing); color:var(--playing); background:#eef6ff;}
     button.repeatOn{border-color:var(--on); color:var(--on); background:#eafff3;}
-    .note{margin:0 0 14px 0; color:var(--muted); font-size:13px;}
 
-.topbar{
-  position: sticky;
-  top: 8px;
-  z-index: 999;
-  background: #fff;
-  padding: 10px 0;
-  margin: 0 0 14px 0;
+    .topbar{
+      position: sticky;
+      top: 8px;
+      z-index: 999;
+      background: #fff;
+      padding: 10px 0;
+      margin: 0 0 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-bottom: 1px solid var(--border);
-}
-
-.jumpGroup{display:flex; align-items:center; gap:14px;}
-.jump{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
-.jump select{padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; font-weight:700;}
+    /* centered selector cluster */
+    .navcenter{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .navcenter select{
+      padding:8px 10px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      font-weight:700;
+    }
 
     /* word clickable */
     .w{cursor:pointer; padding:0 2px; border-radius:6px;}
@@ -64,381 +73,434 @@
     .wordHead{margin:0; font-size:46px; line-height:1.1; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
     .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
 
+    .error{color:#c00; font-weight:700; margin:10px 0;}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
-  <div class="jumpGroup">
-<label class="jump">
-    <span>성경</span>
-    <select id="bookSelect" aria-label="성경 선택">
-      <option value="genesis">창세기</option>
-    </select>
-  </label>
+      <div class="navcenter">
+        <span>성경</span>
+        <select id="bookSelect" aria-label="성경 선택"></select>
 
-  <label class="jump">
-    <span>장</span>
-    <select id="chapterSelect" aria-label="장 선택"></select>
-  </label>
+        <span>장</span>
+        <select id="chapterSelect" aria-label="장 선택"></select>
 
-  <label class="jump">
-    <span>절</span>
-    <select id="verseSelect" aria-label="절 선택"></select>
-  </label>
-  </div>
-</div>
+        <span>절</span>
+        <select id="verseSelect" aria-label="절 이동"></select>
+      </div>
+    </div>
 
+    <div id="error" class="error" style="display:none;"></div>
     <div id="verses"></div>
-
   </div>
 
-<script>
-  // ===== state =====
-  let CURRENT = { book: 'genesis', chapter: '1', verse: null };
-  let DATA = null; // loaded chapter json
-  let isPlaying = false;
-  let isLooping = false;
-  let loopVerse = null;
-  let loopTimer = null;
-  let currentUtterance = null;
+  <!-- Word Modal -->
+  <div class="modalBg" id="modalBg" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modalTop">
+        <div style="font-weight:700; color:var(--muted); font-size:13px;">단어</div>
+        <button class="closeBtn" id="closeModal">닫기</button>
+      </div>
+      <h1 class="wordHead" id="modalWord"></h1>
+      <div class="modalBtns">
+        <button class="playBtn" id="wordPlay">🔊</button>
+        <button class="loopBtn" id="wordLoop">∞</button>
+      </div>
+    </div>
+  </div>
 
-  // ===== utils =====
-  function cleanForTTS(t){
-    return (t||'')
-      .replace(/[\/]/g,' ')          // meaning chunk separators
-      .replace(/[־]/g,' ')            // maqaf to space for TTS
-      .replace(/[.,;:!?()\[\]{}"“”‘’]/g,' ')
-      .replace(/\s+/g,' ')
-      .trim();
-  }
+  <script>
+    // ========= Data + routing =========
+    const BOOKS = [
+      { id:"genesis", label:"창세기", maxCh:50, refPrefix:"창세기" }
+    ];
 
-  function setBtnState(v, playing, looping){
-    const playBtn = document.querySelector(`.playBtn[data-v="${v}"]`);
-    const loopBtn = document.querySelector(`.loopBtn[data-v="${v}"]`);
-    if(playBtn){
-      playBtn.classList.toggle('on', !!playing);
-      playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const verseSelect = document.getElementById("verseSelect");
+    const versesEl = document.getElementById("verses");
+    const errorEl = document.getElementById("error");
+
+    function qs(){
+      const p = new URLSearchParams(location.search);
+      return {
+        b: p.get("b") || "genesis",
+        c: Number(p.get("c") || "1"),
+        v: Number(p.get("v") || "1"),
+      };
     }
-    if(loopBtn){
-      loopBtn.classList.toggle('on', !!looping);
-      loopBtn.setAttribute('aria-pressed', looping ? 'true' : 'false');
-    }
-  }
-
-  function clearAllBtnStates(){
-    document.querySelectorAll('.playBtn, .loopBtn').forEach(b=>{
-      b.classList.remove('on');
-      b.setAttribute('aria-pressed','false');
-    });
-  }
-
-  function stopTTS(){
-    try{ window.speechSynthesis.cancel(); }catch(e){}
-    currentUtterance = null;
-    isPlaying = false;
-  }
-
-  function stopLoop(){
-    if(loopTimer){ clearTimeout(loopTimer); loopTimer = null; }
-    isLooping = false;
-    loopVerse = null;
-  }
-
-  // ===== voice =====
-  function getHebrewVoice(){
-    const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-    // Prefer he-* or Hebrew voices
-    const he = voices.find(v => (v.lang||'').toLowerCase().startsWith('he'));
-    if(he) return he;
-    const byName = voices.find(v => /hebrew|עברית/i.test(v.name||''));
-    return byName || null;
-  }
-
-  function speak(text, onend){
-    stopTTS();
-    const u = new SpeechSynthesisUtterance(text);
-    const v = getHebrewVoice();
-    if(v) u.voice = v;
-    u.rate = 0.9;
-    u.onend = () => { currentUtterance = null; onend && onend(); };
-    u.onerror = () => { currentUtterance = null; onend && onend(); };
-    currentUtterance = u;
-    window.speechSynthesis.speak(u);
-  }
-
-  // ===== data + render =====
-  function buildKorLine(words){
-    if(!Array.isArray(words)) return '';
-    const parts = words.map(w => (w && w.kor) ? String(w.kor).trim() : '').filter(Boolean);
-    return parts.join(' ');
-  }
-
-  function renderChapter(data){
-    DATA = data;
-    const versesDiv = document.getElementById('verses');
-    versesDiv.innerHTML = '';
-
-    const entries = Object.entries(data.verses || {});
-    // keys are "1","2"...; sort numerically just in case
-    entries.sort((a,b)=>Number(a[0])-Number(b[0]));
-
-    for(const [k, v] of entries){
-      const sec = document.createElement('section');
-      sec.className = 'verse';
-      sec.id = `v${k}`;
-
-      const ref = document.createElement('div');
-      ref.className = 'ref';
-      ref.textContent = v.reference || `${data.book || ''} ${data.chapter || ''}:${k}`;
-
-      const he = document.createElement('h1');
-      he.className = 'he';
-      he.textContent = v.verseText || '';
-
-      const kor = document.createElement('div');
-      kor.className = 'kor';
-      kor.textContent = buildKorLine(v.words);
-
-      const btnrow = document.createElement('div');
-      btnrow.className = 'btnrow';
-
-      const playBtn = document.createElement('button');
-      playBtn.className = 'playBtn';
-      playBtn.dataset.v = k;
-      playBtn.textContent = '🔊';
-      playBtn.setAttribute('aria-label', `${k}절 재생`);
-
-      const loopBtn = document.createElement('button');
-      loopBtn.className = 'loopBtn';
-      loopBtn.dataset.v = k;
-      loopBtn.textContent = '∞';
-      loopBtn.setAttribute('aria-label', `${k}절 반복`);
-
-      btnrow.appendChild(playBtn);
-      btnrow.appendChild(loopBtn);
-
-      sec.appendChild(ref);
-      sec.appendChild(he);
-      sec.appendChild(kor);
-      sec.appendChild(btnrow);
-
-      versesDiv.appendChild(sec);
+    function setQS(b,c,v){
+      const p = new URLSearchParams(location.search);
+      p.set("b", b);
+      p.set("c", String(c));
+      if (v) p.set("v", String(v));
+      history.replaceState(null, "", `${location.pathname}?${p.toString()}${location.hash||""}`);
     }
 
-    // update verse select
-    const verseSelect = document.getElementById('verseSelect');
-    verseSelect.innerHTML = '';
-    for(const [k] of entries){
-      const opt = document.createElement('option');
-      opt.value = k;
-      opt.textContent = `${k}절`;
-      verseSelect.appendChild(opt);
-    }
-  }
-
-  async function loadChapter(book, chapter){
-    // stop playback when changing chapter
-    stopLoop(); stopTTS(); clearAllBtnStates();
-
-    const path = `./data/${book}/${chapter}.json`;
-    const res = await fetch(path);
-    if(!res.ok) throw new Error(`Failed to load: ${path}`);
-    const data = await res.json();
-
-    renderChapter(data);
-
-    // title
-    const titleKor = (book === 'genesis') ? '창세기' : book;
-    document.title = `${titleKor} ${chapter}장`;
-  }
-
-  function jumpToVerse(v){
-    const el = document.getElementById(`v${v}`);
-    if(!el) return;
-    const bar = document.querySelector('.topbar');
-    const offset = bar ? bar.getBoundingClientRect().height : 0;
-    const y = el.getBoundingClientRect().top + window.pageYOffset - offset - 8;
-    window.scrollTo({ top: y, behavior: 'smooth' });
-  }
-
-  // ===== playback =====
-  function getVerseText(v){
-    const obj = DATA && DATA.verses ? DATA.verses[String(v)] : null;
-    return obj ? (obj.verseText || '') : '';
-  }
-
-  function playVerse(v, {fromLoop=false} = {}){
-    // if playing another verse: stop + clear
-    if(!fromLoop){
-      stopLoop();
-      clearAllBtnStates();
-    } else {
-      // looping: keep loop button ON
-      clearAllBtnStates();
-      setBtnState(v, false, true);
+    function cleanForTTS(text){
+      return String(text)
+        .replace(/[\/]/g, " ")
+        .replace(/[־–—]/g, " ")
+        .replace(/[.,;:!?״״'"]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
-    const raw = getVerseText(v);
-    const t = cleanForTTS(raw);
-    if(!t) return;
+    // ========= TTS (same behavior as g1.html) =========
+    let voicesReady = false;
+    let heVoice = null;
 
-    isPlaying = true;
-    setBtnState(v, true, isLooping && loopVerse === String(v));
+    function pickHebrewVoice(){
+      const voices = window.speechSynthesis.getVoices() || [];
+      heVoice = voices.find(v => (v.lang || "").toLowerCase().startsWith("he")) || null;
+      voicesReady = true;
+    }
 
-    speak(t, () => {
-      isPlaying = false;
-      // turn off play highlight (keep loop highlight if looping)
-      setBtnState(v, false, isLooping && loopVerse === String(v));
-      if(isLooping && loopVerse === String(v)){
-        loopTimer = setTimeout(() => playVerse(v, {fromLoop:true}), 350);
+    let playingV = null;     // verse number playing
+    let repeatV = null;      // verse number repeating
+    let VERSE_TEXTS = {};    // { [v:number]: hebrew string }
+
+    function setBtnState(v){
+      document.querySelectorAll(".playBtn[data-v]").forEach(b => b.classList.toggle("playing", Number(b.dataset.v) === v));
+      document.querySelectorAll(".loopBtn[data-v]").forEach(b => b.classList.toggle("repeatOn", Number(b.dataset.v) === repeatV));
+    }
+
+    function stopAll(){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      playingV = null;
+      setBtnState(null);
+    }
+
+    function speakVerse(v, fromRepeat=false){
+      v = Number(v);
+      const text = VERSE_TEXTS[v];
+      if (!text) return;
+
+      if (playingV !== null && playingV !== v){
+        stopAll();
       }
-    });
-  }
+      if (repeatV !== null && repeatV !== v && !fromRepeat){
+        repeatV = null;
+      }
 
-  function toggleLoop(v){
-    const sv = String(v);
-    // if another loop is active, disable it
-    if(isLooping && loopVerse !== sv){
-      setBtnState(loopVerse, false, false);
-      stopLoop();
+      const u = new SpeechSynthesisUtterance(cleanForTTS(text));
+      if (!voicesReady) pickHebrewVoice();
+      if (heVoice) u.voice = heVoice;
+      u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
+      u.rate = 1.0;
+
+      playingV = v;
+      setBtnState(v);
+
+      u.onend = () => {
+        playingV = null;
+        setBtnState(null);
+        if (repeatV === v){
+          setTimeout(() => speakVerse(v, true), 350);
+        }
+      };
+
+      u.onerror = () => {
+        playingV = null;
+        setBtnState(null);
+      };
+
+      window.speechSynthesis.speak(u);
     }
 
-    if(isLooping && loopVerse === sv){
-      // turn off
-      stopLoop();
-      setBtnState(sv, false, false);
-      return;
+    if ("speechSynthesis" in window){
+      window.speechSynthesis.onvoiceschanged = () => pickHebrewVoice();
+      pickHebrewVoice();
     }
 
-    // turn on
-    isLooping = true;
-    loopVerse = sv;
-    setBtnState(sv, false, true);
-    // start immediately
-    playVerse(sv, {fromLoop:true});
-  }
+    // Verse play/loop buttons (event delegation)
+    document.addEventListener("click", (e) => {
+      const p = e.target.closest(".playBtn[data-v]");
+      const l = e.target.closest(".loopBtn[data-v]");
 
-  // ===== init UI =====
-  function fillChapters(book){
-    const chapterSelect = document.getElementById('chapterSelect');
-    chapterSelect.innerHTML = '';
-    // genesis default 1..50
-    const max = (book === 'genesis') ? 50 : 150;
-    for(let i=1;i<=max;i++){
-      const opt = document.createElement('option');
-      opt.value = String(i);
-      opt.textContent = `${i}장`;
-      chapterSelect.appendChild(opt);
-    }
-  }
-
-  function getQuery(){
-    const p = new URLSearchParams(location.search);
-    return {
-      b: p.get('b') || 'genesis',
-      c: p.get('c') || '1',
-      v: p.get('v') || null
-    };
-  }
-
-  function setQuery(book, chapter, verse){
-    const p = new URLSearchParams();
-    p.set('b', book);
-    p.set('c', chapter);
-    if(verse) p.set('v', verse);
-    history.replaceState(null, '', `${location.pathname}?${p.toString()}`);
-  }
-
-  function wireEvents(){
-    document.body.addEventListener('click', (e)=>{
-      const pb = e.target.closest('.playBtn');
-      const lb = e.target.closest('.loopBtn');
-      if(pb){
-        const v = pb.dataset.v;
-        // any playback should cancel existing loop (g1.html behavior)
-        stopLoop();
-        clearAllBtnStates();
-        playVerse(v);
+      if (p){
+        const v = Number(p.dataset.v);
+        if (repeatV !== null && repeatV !== v) repeatV = null;
+        speakVerse(v);
         return;
       }
-      if(lb){
-        const v = lb.dataset.v;
-        toggleLoop(v);
+
+      if (l){
+        const v = Number(l.dataset.v);
+        if (repeatV === v){
+          repeatV = null;
+          setBtnState(playingV);
+          return;
+        }
+        repeatV = v;
+        setBtnState(playingV);
+        speakVerse(v);
         return;
       }
     });
 
-    const bookSelect = document.getElementById('bookSelect');
-    const chapterSelect = document.getElementById('chapterSelect');
-    const verseSelect = document.getElementById('verseSelect');
+    // ========= Word popup (same UX as g1.html) =========
+    const modalBg = document.getElementById("modalBg");
+    const modalWord = document.getElementById("modalWord");
+    const closeModalBtn = document.getElementById("closeModal");
+    const wordPlay = document.getElementById("wordPlay");
+    const wordLoop = document.getElementById("wordLoop");
 
-    bookSelect.addEventListener('change', async ()=>{
-      const book = bookSelect.value;
-      fillChapters(book);
-      const ch = chapterSelect.value || '1';
-      await loadChapter(book, ch);
-      setQuery(book, ch, verseSelect.value || null);
-      jumpToVerse(verseSelect.value || '1');
-    });
+    let currentWord = "";
+    let wordRepeat = false;
 
-    chapterSelect.addEventListener('change', async ()=>{
-      const book = bookSelect.value;
-      const ch = chapterSelect.value;
-      await loadChapter(book, ch);
-      setQuery(book, ch, verseSelect.value || null);
-      jumpToVerse(verseSelect.value || '1');
-    });
-
-    verseSelect.addEventListener('change', ()=>{
-      const book = bookSelect.value;
-      const ch = chapterSelect.value;
-      const v = verseSelect.value;
-      setQuery(book, ch, v);
-      jumpToVerse(v);
-    });
-
-    // voice list can be async on some browsers
-    if(window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined){
-      window.speechSynthesis.onvoiceschanged = () => { /* just trigger cache */ getHebrewVoice(); };
-    }
-  }
-
-  async function init(){
-    const q = getQuery();
-
-    const bookSelect = document.getElementById('bookSelect');
-    const chapterSelect = document.getElementById('chapterSelect');
-    const verseSelect = document.getElementById('verseSelect');
-
-    // set book
-    bookSelect.value = q.b || 'genesis';
-    fillChapters(bookSelect.value);
-
-    // set chapter
-    chapterSelect.value = q.c || '1';
-
-    await loadChapter(bookSelect.value, chapterSelect.value);
-
-    // set verse (after render)
-    if(q.v){
-      verseSelect.value = q.v;
-      jumpToVerse(q.v);
-    } else {
-      verseSelect.value = verseSelect.value || '1';
+    function openWordModal(word){
+      currentWord = word || "";
+      if (!currentWord) return;
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      // 단어 재생은 절 반복을 끈다
+      repeatV = null;
+      setBtnState(playingV);
+      modalWord.textContent = currentWord;
+      modalBg.classList.add("on");
     }
 
-    setQuery(bookSelect.value, chapterSelect.value, verseSelect.value || null);
-    wireEvents();
-  }
-
-  init().catch(err=>{
-    console.error(err);
-    const versesDiv = document.getElementById('verses');
-    if(versesDiv){
-      versesDiv.innerHTML = `<p style="color:#c00;">데이터를 불러오지 못했어요: ${err.message}</p>`;
+    function closeWordModal(){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      wordRepeat = false;
+      wordPlay.classList.remove("playing");
+      wordLoop.classList.remove("repeatOn");
+      modalBg.classList.remove("on");
     }
-  });
-</script>
+
+    function speakWord(){
+      if (!currentWord) return;
+      const u = new SpeechSynthesisUtterance(cleanForTTS(currentWord));
+      if (!voicesReady) pickHebrewVoice();
+      if (heVoice) u.voice = heVoice;
+      u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
+      u.rate = 1.0;
+
+      wordPlay.classList.add("playing");
+
+      u.onend = () => {
+        wordPlay.classList.remove("playing");
+        if (wordRepeat){
+          setTimeout(() => speakWord(), 300);
+        }
+      };
+      u.onerror = () => {
+        wordPlay.classList.remove("playing");
+      };
+
+      window.speechSynthesis.speak(u);
+    }
+
+    document.addEventListener("click", (e) => {
+      const w = e.target.closest(".w");
+      if (w && w.dataset.w){
+        openWordModal(w.dataset.w);
+      }
+    });
+
+    closeModalBtn.addEventListener("click", closeWordModal);
+    modalBg.addEventListener("click", (e) => {
+      if (e.target === modalBg) closeWordModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBg.classList.contains("on")) closeWordModal();
+    });
+
+    wordPlay.addEventListener("click", () => {
+      wordRepeat = false;
+      wordLoop.classList.remove("repeatOn");
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      speakWord();
+    });
+
+    wordLoop.addEventListener("click", () => {
+      wordRepeat = !wordRepeat;
+      wordLoop.classList.toggle("repeatOn", wordRepeat);
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      if (wordRepeat) speakWord();
+    });
+
+    // ========= Render =========
+    function escapeHTML(s){
+      return String(s)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+
+    function makeHebrewLineFromWords(words){
+      // word.text is already tokenized (maqaf kept), make clickable spans
+      return (words || []).map(w => {
+        const t = w && w.text ? String(w.text) : "";
+        if (!t) return "";
+        const clean = t.replace(/[.,;:!?״׳'"]/g, "");
+        return `<span class="w" data-w="${escapeHTML(clean)}">${escapeHTML(t)}</span>`;
+      }).join(" ");
+    }
+
+    function buildBookOptions(){
+      bookSelect.innerHTML = "";
+      for (const b of BOOKS){
+        const opt = document.createElement("option");
+        opt.value = b.id;
+        opt.textContent = b.label;
+        bookSelect.appendChild(opt);
+      }
+    }
+
+    function buildChapterOptions(bookId, current){
+      const b = BOOKS.find(x => x.id === bookId) || BOOKS[0];
+      chapterSelect.innerHTML = "";
+      for(let i=1;i<=b.maxCh;i++){
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${i}장`;
+        chapterSelect.appendChild(opt);
+      }
+      chapterSelect.value = String(current);
+    }
+
+    function buildVerseOptions(versesObj, bookId, ch, currentV){
+      verseSelect.innerHTML = "";
+      const keys = Object.keys(versesObj || {}).map(Number).sort((a,b)=>a-b);
+      const b = BOOKS.find(x => x.id === bookId) || BOOKS[0];
+
+      for(const v of keys){
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = `${b.label} ${ch}:${v}`;
+        verseSelect.appendChild(opt);
+      }
+      const setV = keys.includes(currentV) ? currentV : (keys[0] || 1);
+      verseSelect.value = String(setV);
+      return setV;
+    }
+
+    function jumpToVerse(v){
+      const el = document.getElementById(`v${v}`);
+      if (!el) return;
+
+      const y = el.getBoundingClientRect().top + window.pageYOffset;
+      const barH = document.querySelector(".topbar")?.offsetHeight || 0;
+
+      window.scrollTo({
+        top: y - barH - 12,
+        behavior: "smooth"
+      });
+
+      history.replaceState(null, "", `${location.pathname}${location.search}#v${v}`);
+    }
+
+    async function loadChapter(bookId, ch, focusV){
+      errorEl.style.display = "none";
+      errorEl.textContent = "";
+
+      stopAll(); // stop any TTS when changing chapter
+      repeatV = null;
+      setBtnState(null);
+
+      const url = `./data/${bookId}/${ch}.json`;
+
+      let data;
+      try{
+        const res = await fetch(url, { cache: "no-cache" });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        data = await res.json();
+      }catch(err){
+        versesEl.innerHTML = "";
+        errorEl.textContent = `데이터를 불러오지 못했어요: ${err && err.message ? err.message : err}`;
+        errorEl.style.display = "block";
+        return;
+      }
+
+      // render
+      const versesObj = data.verses || {};
+      VERSE_TEXTS = {};
+      versesEl.innerHTML = "";
+
+      const keys = Object.keys(versesObj).map(Number).sort((a,b)=>a-b);
+      for (const v of keys){
+        const item = versesObj[String(v)];
+        if (!item) continue;
+
+        const ref = item.reference || `${bookId} ${ch}:${v}`;
+        const verseText = item.verseText || "";
+        const words = Array.isArray(item.words) ? item.words : [];
+        const korLine = words.map(w => (w && w.kor) ? String(w.kor) : "").filter(Boolean).join(" ");
+
+        // prefer words tokens for display (so popup works cleanly)
+        const heHTML = words.length ? makeHebrewLineFromWords(words) : escapeHTML(verseText);
+
+        VERSE_TEXTS[v] = verseText || words.map(w => w.text).join(" ");
+
+        const sec = document.createElement("section");
+        sec.className = "verse";
+        sec.id = `v${v}`;
+        sec.innerHTML = `
+          <div class="ref">${escapeHTML(ref)}</div>
+          <h1 class="he">${heHTML}</h1>
+          <div class="kor">${escapeHTML(korLine)}</div>
+          <div class="btnrow">
+            <button class="playBtn" data-v="${v}">🔊</button>
+            <button class="loopBtn" data-v="${v}">∞</button>
+          </div>
+        `;
+        versesEl.appendChild(sec);
+      }
+
+      const pickedV = buildVerseOptions(versesObj, bookId, ch, focusV);
+      setQS(bookId, ch, pickedV);
+
+      // jump after render
+      requestAnimationFrame(() => jumpToVerse(pickedV));
+    }
+
+    // ========= Wire up =========
+    function init(){
+      const { b, c, v } = qs();
+
+      buildBookOptions();
+      bookSelect.value = b;
+
+      buildChapterOptions(b, c);
+
+      // handlers
+      bookSelect.addEventListener("change", () => {
+        const nb = bookSelect.value;
+        buildChapterOptions(nb, 1);
+        loadChapter(nb, 1, 1);
+      });
+
+      chapterSelect.addEventListener("change", () => {
+        const nb = bookSelect.value;
+        const nc = Number(chapterSelect.value);
+        loadChapter(nb, nc, 1);
+      });
+
+      verseSelect.addEventListener("change", () => {
+        const vv = Number(verseSelect.value);
+        setQS(bookSelect.value, Number(chapterSelect.value), vv);
+        jumpToVerse(vv);
+      });
+
+      window.addEventListener("hashchange", () => {
+        const m = (location.hash || "").match(/^#v(\d+)$/);
+        if (!m) return;
+        const vv = Number(m[1]);
+        if (Number(verseSelect.value) !== vv){
+          verseSelect.value = String(vv);
+          setQS(bookSelect.value, Number(chapterSelect.value), vv);
+        }
+        jumpToVerse(vv);
+      });
+
+      loadChapter(b, c, v);
+    }
+
+    init();
+  </script>
 </body>
 </html>
