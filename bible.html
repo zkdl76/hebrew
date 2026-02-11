@@ -371,7 +371,7 @@
       for(const v of keys){
         const opt = document.createElement("option");
         opt.value = v;
-        opt.textContent = `${b.label} ${ch}:${v}`;
+        opt.textContent = `${v}`;
         verseSelect.appendChild(opt);
       }
       const setV = keys.includes(currentV) ? currentV : (keys[0] || 1);
