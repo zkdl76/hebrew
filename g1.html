@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>창세기 1장 (1–31)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--gap:14px;--border:#e5e5e5;--muted:#666;--on:#0b5;--playing:#08f;}
+    body{margin:0; padding:18px; font-family:"Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fff; color:#111;}
+    .wrap{max-width:980px; margin:0 auto;}
+    .verse{border:1px solid var(--border); border-radius:14px; padding:14px; margin:0 0 var(--gap) 0;}
+    .ref{font-weight:700; margin:0 0 8px 0;}
+    h1.he{margin:0 0 10px 0; font-size:34px; line-height:1.25; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .kor{margin:0 0 10px 0; font-size:16px; color:#111;}
+    .btnrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    button{border:1px solid var(--border); background:#f7f7f7; padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
+    button:hover{background:#f0f0f0;}
+    button.playing{border-color:var(--playing); color:var(--playing); background:#eef6ff;}
+    button.repeatOn{border-color:var(--on); color:var(--on); background:#eafff3;}
+    .note{margin:0 0 14px 0; color:var(--muted); font-size:13px;}
+
+.topbar{
+  position: sticky;
+  top: 8px;
+  z-index: 999;
+  background: #fff;
+  padding: 10px 0;
+  margin: 0 0 14px 0;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .note{margin:0; color:var(--muted); font-size:13px;}
+.jump{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
+#jumpSelect{padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; font-weight:700;}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+  <p class="note">🔊: 히브리어만 읽기(구분기호 제거) / ∞: 해당 절만 반복</p>
+
+  <label class="jump">
+    <span>이동</span>
+    <select id="jumpSelect" aria-label="절 이동"></select>
+  </label>
+</div>
+
+
+    <section class="verse" id="v1">
+      <div class="ref">창세기 1:1</div>
+      <h1 class="he">בְּרֵאשִׁית / בָּרָא אֱלֹהִים / אֵת הַשָּׁמַיִם / וְאֵת הָאָרֶץ.</h1>
+      <div class="kor">태초에 / 창조했다 하나님 / 하늘들과 땅을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="1">🔊</button>
+        <button class="loopBtn" data-v="1">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v2">
+      <div class="ref">창세기 1:2</div>
+      <h1 class="he">וְהָאָרֶץ / הָיְתָה תֹהוּ וָבֹהוּ / וְחֹשֶׁךְ / עַל-פְּנֵי תְהוֹם / וְרוּחַ אֱלֹהִים / מְרַחֶפֶת עַל-פְּנֵי הַמָּיִם.</h1>
+      <div class="kor">그리고 땅은 / 있었다 혼돈과 공허 / 그리고 어둠이 / 깊음의 얼굴 위에 / 그리고 하나님의 영은 / 물들의 얼굴 위에 움직이고 있었다</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="2">🔊</button>
+        <button class="loopBtn" data-v="2">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v3">
+      <div class="ref">창세기 1:3</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / יְהִי אוֹר / וַיְהִי-אוֹר.</h1>
+      <div class="kor">그리고 말했다 하나님 / 빛이 있어라 / 그리고 있었다 빛이</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="3">🔊</button>
+        <button class="loopBtn" data-v="3">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v4">
+      <div class="ref">창세기 1:4</div>
+      <h1 class="he">וַיַּרְא אֱלֹהִים אֶת-הָאוֹר / כִּי-טוֹב / וַיַּבְדֵּל אֱלֹהִים / בֵּין הָאוֹר וּבֵּין הַחֹשֶׁךְ.</h1>
+      <div class="kor">그리고 보았다 하나님 빛을 / 그것이 좋음을 / 그리고 갈랐다 하나님 / 빛 사이와 어둠 사이를</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="4">🔊</button>
+        <button class="loopBtn" data-v="4">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v5">
+      <div class="ref">창세기 1:5</div>
+      <h1 class="he">וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם / וְלַחֹשֶׁךְ קָרָא לָיְלָה / וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם אֶחָד.</h1>
+      <div class="kor">그리고 불렀다 하나님 빛을 낮이라 / 그리고 어둠을 불렀다 밤이라 / 그리고 있었다 저녁 / 그리고 있었다 아침 / 하루(하나)</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="5">🔊</button>
+        <button class="loopBtn" data-v="5">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v6">
+      <div class="ref">창세기 1:6</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / יְהִי רָקִיעַ בְּתוֹךְ הַמָּיִם / וִיהִי מַבְדִּיל / בֵּין מַיִם לָמָיִם.</h1>
+      <div class="kor">그리고 말했다 하나님 / 물들의 가운데에 궁창이 있어라 / 그리고 있게 하라 구분하는 것을 / 물과 물 사이에서</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="6">🔊</button>
+        <button class="loopBtn" data-v="6">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v7">
+      <div class="ref">창세기 1:7</div>
+      <h1 class="he">וַיַּעַשׂ אֱלֹהִים / אֶת-הָרָקִיעַ / וַיַּבְדֵּל בֵּין הַמַּיִם אֲשֶׁר מִתַּחַת לָרָקִיעַ / וּבֵין הַמַּיִם אֲשֶׁר מֵעַל לָרָקִיעַ / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 만들었다 하나님 궁창을 / 그리고 갈랐다 / 궁창 아래의 물과 궁창 위의 물 사이를 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="7">🔊</button>
+        <button class="loopBtn" data-v="7">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v8">
+      <div class="ref">창세기 1:8</div>
+      <h1 class="he">וַיִּקְרָא אֱלֹהִים לָרָקִיעַ / שָׁמָיִם / וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם שֵׁנִי.</h1>
+      <div class="kor">그리고 불렀다 하나님 궁창을 하늘이라 / 그리고 있었다 저녁 / 그리고 있었다 아침 / 둘째 날</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="8">🔊</button>
+        <button class="loopBtn" data-v="8">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v9">
+      <div class="ref">창세기 1:9</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / יִקָּווּ הַמַּיִם מִתַּחַת הַשָּׁמַיִם אֶל-מָקוֹם אֶחָד / וְתֵרָאֶה / הַיַּבָּשָׁה / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 말했다 하나님 / 하늘 아래의 물들이 한 곳으로 모여라 / 그리고 보이게 하라 마른 땅을 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="9">🔊</button>
+        <button class="loopBtn" data-v="9">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v10">
+      <div class="ref">창세기 1:10</div>
+      <h1 class="he">וַיִּקְרָא אֱלֹהִים לַיַּבָּשָׁה אֶרֶץ / וּלְמִקְוֵה הַמַּיִם קָרָא יַמִּים / וַיַּרְא אֱלֹהִים / כִּי-טוֹב.</h1>
+      <div class="kor">그리고 불렀다 하나님 마른 땅을 땅이라 / 그리고 물들의 모임을 불렀다 바다들이라 / 그리고 보았다 하나님 / 좋음을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="10">🔊</button>
+        <button class="loopBtn" data-v="10">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v11">
+      <div class="ref">창세기 1:11</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / תַּדְשֵׁא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע / עֵץ פְּרִי עֹשֶׂה פְּרִי לְמִינוֹ / אֲשֶׁר זַרְעוֹ-בוֹ עַל-הָאָרֶץ / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 말했다 하나님 / 돋아라 땅이 / 풀(초록)과 씨 맺는 풀을 / 열매 맺는 나무를 그 종류대로 / 그 씨가 그 안에 있는 / 땅 위에 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="11">🔊</button>
+        <button class="loopBtn" data-v="11">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v12">
+      <div class="ref">창세기 1:12</div>
+      <h1 class="he">וַתּוֹצֵא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע / לְמִינֵהוּ / וְעֵץ עֹשֶׂה-פְּרִי אֲשֶׁר זַרְעוֹ-בוֹ / לְמִינֵהוּ / וַיַּרְא אֱלֹהִים / כִּי-טוֹב.</h1>
+      <div class="kor">그리고 내었다 땅이 / 풀(초록)과 씨 맺는 풀을 그 종류대로 / 그리고 열매 맺는 나무를 그 종류대로 / 그 씨가 그 안에 있는 / 그리고 보았다 하나님 / 좋음을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="12">🔊</button>
+        <button class="loopBtn" data-v="12">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v13">
+      <div class="ref">창세기 1:13</div>
+      <h1 class="he">וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם שְׁלִישִׁי.</h1>
+      <div class="kor">그리고 있었다 저녁 / 그리고 있었다 아침 / 셋째 날</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="13">🔊</button>
+        <button class="loopBtn" data-v="13">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v14">
+      <div class="ref">창세기 1:14</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / יְהִי מְאֹרֹת בִּרְקִיעַ הַשָּׁמַיִם / לְהַבְדִּיל / בֵּין הַיּוֹם וּבֵין הַלָּיְלָה / וְהָיוּ לְאֹתֹת וּלְמוֹעֲדִים / וּלְיָמִים וְשָׁנִים.</h1>
+      <div class="kor">그리고 말했다 하나님 / 하늘의 궁창에 광명체들이 있어라 / 낮과 밤 사이를 구분하게 하라 / 그리고 그것들이 / 표징들과 절기들과 날들과 해들이 되게 하라</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="14">🔊</button>
+        <button class="loopBtn" data-v="14">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v15">
+      <div class="ref">창세기 1:15</div>
+      <h1 class="he">וְהָיוּ לִמְאוֹרֹת בִּרְקִיעַ הַשָּׁמַיִם / לְהָאִיר עַל-הָאָרֶץ / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 그것들이 / 하늘의 궁창에서 광명체들이 되어 / 땅 위에 비추게 하라 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="15">🔊</button>
+        <button class="loopBtn" data-v="15">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v16">
+      <div class="ref">창세기 1:16</div>
+      <h1 class="he">וַיַּעַשׂ אֱלֹהִים / אֶת-שְׁנֵי הַמְּאֹרֹת הַגְּדֹלִים / אֶת-הַמָּאוֹר הַגָּדֹל / לְמֶמְשֶׁלֶת הַיּוֹם / וְאֶת-הַמָּאוֹר הַקָּטֹן לְמֶמְשֶׁלֶת הַלַּיְלָה / וְאֵת הַכּוֹכָבִים.</h1>
+      <div class="kor">그리고 만들었다 하나님 / 두 큰 광명체들을 / 큰 광명체를 낮의 다스림을 위해 / 그리고 작은 광명체를 밤의 다스림을 위해 / 그리고 별들을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="16">🔊</button>
+        <button class="loopBtn" data-v="16">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v17">
+      <div class="ref">창세기 1:17</div>
+      <h1 class="he">וַיִּתֵּן אֹתָם אֱלֹהִים / בִּרְקִיעַ הַשָּׁמָיִם / לְהָאִיר / עַל-הָאָרֶץ.</h1>
+      <div class="kor">그리고 두었다 하나님 그것들을 / 하늘의 궁창에 / 땅 위에 비추게 하려고</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="17">🔊</button>
+        <button class="loopBtn" data-v="17">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v18">
+      <div class="ref">창세기 1:18</div>
+      <h1 class="he">וְלִמְשֹׁל / בַּיּוֹם וּבַלַּיְלָה / וּלְהַבְדִּיל / בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ / וַיַּרְא אֱלֹהִים / כִּי-טוֹב.</h1>
+      <div class="kor">그리고 다스리게 하라 / 낮과 밤을 / 그리고 구분하게 하라 / 빛과 어둠 사이를 / 그리고 보았다 하나님 / 좋음을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="18">🔊</button>
+        <button class="loopBtn" data-v="18">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v19">
+      <div class="ref">창세기 1:19</div>
+      <h1 class="he">וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם רְבִיעִי.</h1>
+      <div class="kor">그리고 있었다 저녁 / 그리고 있었다 아침 / 넷째 날</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="19">🔊</button>
+        <button class="loopBtn" data-v="19">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v20">
+      <div class="ref">창세기 1:20</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים--יִשְׁרְצוּ הַמַּיִם / שֶׁרֶץ נֶפֶשׁ חַיָּה / וְעוֹף יְעוֹפֵף עַל-הָאָרֶץ / עַל-פְּנֵי רְקִיעַ הַשָּׁמָיִם.</h1>
+      <div class="kor">그리고 말했다 하나님 / 물들이 / 살아있는 생명의 떼를 떼로 번성시켜라 / 그리고 새가 날아다니게 하라 / 땅 위에서 / 하늘의 궁창의 얼굴 위에서</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="20">🔊</button>
+        <button class="loopBtn" data-v="20">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v21">
+      <div class="ref">창세기 1:21</div>
+      <h1 class="he">וַיִּבְרָא אֱלֹהִים / אֶת-הַתַּנִּינִם הַגְּדֹלִים / וְאֵת כָּל-נֶפֶשׁ הַחַיָּה הָרֹמֶשֶׂת אֲשֶׁר שָׁרְצוּ הַמַּיִם לְמִינֵהֶם / וְאֵת כָּל-עוֹף כָּנָף לְמִינֵהוּ / וַיַּרְא אֱלֹהִים / כִּי-טוֹב.</h1>
+      <div class="kor">그리고 창조했다 하나님 / 큰 바다짐승들을 / 그리고 물들이 번성시킨 / 기어다니는 모든 살아있는 생명을 그 종류대로 / 그리고 날개 달린 모든 새를 그 종류대로 / 그리고 보았다 하나님 / 좋음을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="21">🔊</button>
+        <button class="loopBtn" data-v="21">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v22">
+      <div class="ref">창세기 1:22</div>
+      <h1 class="he">וַיְבָרֶךְ אֹתָם אֱלֹהִים / לֵאמֹר / פְּרוּ וּרְבוּ / וּמִלְאוּ אֶת-הַמַּיִם בַּיַּמִּים / וְהָעוֹף / יִרֶב בָּאָרֶץ.</h1>
+      <div class="kor">그리고 복 주었다 하나님 그들에게 / 말하여 / 열매 맺어라 그리고 번성하여라 / 그리고 바다들 안의 물들을 채워라 / 그리고 새가 땅에서 번성하게 하라</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="22">🔊</button>
+        <button class="loopBtn" data-v="22">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v23">
+      <div class="ref">창세기 1:23</div>
+      <h1 class="he">וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם חֲמִישִׁי.</h1>
+      <div class="kor">그리고 있었다 저녁 / 그리고 있었다 아침 / 다섯째 날</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="23">🔊</button>
+        <button class="loopBtn" data-v="23">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v24">
+      <div class="ref">창세기 1:24</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / תּוֹצֵא הָאָרֶץ נֶפֶשׁ חַיָּה לְמִינָהּ / בְּהֵמָה וָרֶמֶשׂ וְחַיְתוֹ-אֶרֶץ / לְמִינָהּ / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 말했다 하나님 / 내어라 땅이 / 살아있는 생명을 그 종류대로 / 가축과 기는 것과 땅의 짐승을 그 종류대로 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="24">🔊</button>
+        <button class="loopBtn" data-v="24">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v25">
+      <div class="ref">창세기 1:25</div>
+      <h1 class="he">וַיַּעַשׂ אֱלֹהִים אֶת-חַיַּת הָאָרֶץ לְמִינָהּ / וְאֶת-הַבְּהֵמָה לְמִינָהּ / וְאֵת כָּל-רֶמֶשׂ הָאֲדָמָה / לְמִינֵהוּ / וַיַּרְא אֱלֹהִים / כִּי-טוֹב.</h1>
+      <div class="kor">그리고 만들었다 하나님 / 땅의 짐승을 그 종류대로 / 그리고 가축을 그 종류대로 / 그리고 땅의 모든 기는 것을 그 종류대로 / 그리고 보았다 하나님 / 좋음을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="25">🔊</button>
+        <button class="loopBtn" data-v="25">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v26">
+      <div class="ref">창세기 1:26</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / נַעֲשֶׂה אָדָם בְּצַלְמֵנוּ כִּדְמוּתֵנוּ / וְיִרְדּוּ בִדְגַת הַיָּם וּבְעוֹף הַשָּׁמַיִם / וּבַבְּהֵמָה וּבְכָל-הָאָרֶץ / וּבְכָל-הָרֶמֶשׂ / הָרֹמֵשׂ עַל-הָאָרֶץ.</h1>
+      <div class="kor">그리고 말했다 하나님 / 만들자 사람을 우리의 형상으로 우리의 모양대로 / 그리고 그들이 다스리게 하라 / 바다의 물고기와 하늘의 새와 가축과 온 땅과 땅 위에 기어다니는 모든 기는 것을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="26">🔊</button>
+        <button class="loopBtn" data-v="26">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v27">
+      <div class="ref">창세기 1:27</div>
+      <h1 class="he">וַיִּבְרָא אֱלֹהִים אֶת-הָאָדָם בְּצַלְמוֹ / בְּצֶלֶם אֱלֹהִים בָּרָא אֹתוֹ / זָכָר וּנְקֵבָה / בָּרָא אֹתָם.</h1>
+      <div class="kor">그리고 창조했다 하나님 사람을 그의 형상으로 / 하나님의 형상으로 창조했다 그를 / 남자와 여자로 / 창조했다 그들을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="27">🔊</button>
+        <button class="loopBtn" data-v="27">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v28">
+      <div class="ref">창세기 1:28</div>
+      <h1 class="he">וַיְבָרֶךְ אֹתָם / אֱלֹהִים / וַיֹּאמֶר לָהֶם אֱלֹהִים פְּרוּ וּרְבוּ וּמִלְאוּ אֶת-הָאָרֶץ / וְכִבְשֻׁהָ / וּרְדוּ בִּדְגַת הַיָּם / וּבְעוֹף הַשָּׁמַיִם / וּבְכָל-חַיָּה / הָרֹמֶשֶׂת עַל-הָאָרֶץ.</h1>
+      <div class="kor">그리고 복 주었다 하나님 그들에게 / 그리고 말했다 하나님 그들에게 / 열매 맺어라 그리고 번성하여라 그리고 땅을 채워라 / 그리고 그것을 정복하여라 / 그리고 다스려라 / 바다의 물고기와 하늘의 새와 땅 위에 기어다니는 모든 살아있는 것을</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="28">🔊</button>
+        <button class="loopBtn" data-v="28">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v29">
+      <div class="ref">창세기 1:29</div>
+      <h1 class="he">וַיֹּאמֶר אֱלֹהִים / הִנֵּה נָתַתִּי לָכֶם אֶת-כָּל-עֵשֶׂב זֹרֵעַ זֶרַע אֲשֶׁר עַל-פְּנֵי כָל-הָאָרֶץ / וְאֶת-כָּל-הָעֵץ אֲשֶׁר-בּוֹ פְרִי-עֵץ / זֹרֵעַ זָרַע / לָכֶם יִהְיֶה / לְאָכְלָה.</h1>
+      <div class="kor">그리고 말했다 하나님 / 보라 내가 주었다 너희에게 / 땅의 얼굴 위의 모든 씨 맺는 풀을 / 그리고 그 안에 씨 맺는 열매나무가 있는 모든 나무를 / 너희에게 그것이 음식이 되리라</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="29">🔊</button>
+        <button class="loopBtn" data-v="29">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v30">
+      <div class="ref">창세기 1:30</div>
+      <h1 class="he">וּלְכָל-חַיַּת הָאָרֶץ וּלְכָל-עוֹף הַשָּׁמַיִם וּלְכֹל רוֹמֵשׂ עַל-הָאָרֶץ / אֲשֶׁר-בּוֹ נֶפֶשׁ חַיָּה / אֶת-כָּל-יֶרֶק עֵשֶׂב / לְאָכְלָה / וַיְהִי-כֵן.</h1>
+      <div class="kor">그리고 땅의 모든 짐승에게와 하늘의 모든 새에게와 땅 위에 기어다니는 모든 것에게 / 그 안에 살아있는 생명이 있는 / 모든 푸른 풀을 음식으로 / 그리고 되었다 그렇게</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="30">🔊</button>
+        <button class="loopBtn" data-v="30">∞</button>
+      </div>
+    </section>
+
+    <section class="verse" id="v31">
+      <div class="ref">창세기 1:31</div>
+      <h1 class="he">וַיַּרְא אֱלֹהִים אֶת-כָּל-אֲשֶׁר עָשָׂה / וְהִנֵּה-טוֹב מְאֹד / וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר / יוֹם הַשִּׁשִּׁי.</h1>
+      <div class="kor">그리고 보았다 하나님 그가 만든 모든 것을 / 그리고 보라 매우 좋았다 / 그리고 있었다 저녁 / 그리고 있었다 아침 / 여섯째 날</div>
+      <div class="btnrow">
+        <button class="playBtn" data-v="31">🔊</button>
+        <button class="loopBtn" data-v="31">∞</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const VERSES = Object.fromEntries([
+      [1, 'בְּרֵאשִׁית, בָּרָא אֱלֹהִים, אֵת הַשָּׁמַיִם, וְאֵת הָאָרֶץ.'],
+      [2, 'וְהָאָרֶץ, הָיְתָה תֹהוּ וָבֹהוּ, וְחֹשֶׁךְ, עַל-פְּנֵי תְהוֹם; וְרוּחַ אֱלֹהִים, מְרַחֶפֶת עַל-פְּנֵי הַמָּיִם.'],
+      [3, 'וַיֹּאמֶר אֱלֹהִים, יְהִי אוֹר; וַיְהִי-אוֹר.'],
+      [4, 'וַיַּרְא אֱלֹהִים אֶת-הָאוֹר, כִּי-טוֹב; וַיַּבְדֵּל אֱלֹהִים, בֵּין הָאוֹר וּבֵּין הַחֹשֶׁךְ.'],
+      [5, 'וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם, וְלַחֹשֶׁךְ קָרָא לָיְלָה; וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם אֶחָד.'],
+      [6, 'וַיֹּאמֶר אֱלֹהִים, יְהִי רָקִיעַ בְּתוֹךְ הַמָּיִם, וִיהִי מַבְדִּיל, בֵּין מַיִם לָמָיִם.'],
+      [7, 'וַיַּעַשׂ אֱלֹהִים, אֶת-הָרָקִיעַ, וַיַּבְדֵּל בֵּין הַמַּיִם אֲשֶׁר מִתַּחַת לָרָקִיעַ, וּבֵין הַמַּיִם אֲשֶׁר מֵעַל לָרָקִיעַ; וַיְהִי-כֵן.'],
+      [8, 'וַיִּקְרָא אֱלֹהִים לָרָקִיעַ, שָׁמָיִם; וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם שֵׁנִי.'],
+      [9, 'וַיֹּאמֶר אֱלֹהִים, יִקָּווּ הַמַּיִם מִתַּחַת הַשָּׁמַיִם אֶל-מָקוֹם אֶחָד, וְתֵרָאֶה, הַיַּבָּשָׁה; וַיְהִי-כֵן.'],
+      [10, 'וַיִּקְרָא אֱלֹהִים לַיַּבָּשָׁה אֶרֶץ, וּלְמִקְוֵה הַמַּיִם קָרָא יַמִּים; וַיַּרְא אֱלֹהִים, כִּי-טוֹב.'],
+      [11, 'וַיֹּאמֶר אֱלֹהִים, תַּדְשֵׁא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע, עֵץ פְּרִי עֹשֶׂה פְּרִי לְמִינוֹ, אֲשֶׁר זַרְעוֹ-בוֹ עַל-הָאָרֶץ; וַיְהִי-כֵן.'],
+      [12, 'וַתּוֹצֵא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע, לְמִינֵהוּ, וְעֵץ עֹשֶׂה-פְּרִי אֲשֶׁר זַרְעוֹ-בוֹ, לְמִינֵהוּ; וַיַּרְא אֱלֹהִים, כִּי-טוֹב.'],
+      [13, 'וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם שְׁלִישִׁי.'],
+      [14, 'וַיֹּאמֶר אֱלֹהִים, יְהִי מְאֹרֹת בִּרְקִיעַ הַשָּׁמַיִם, לְהַבְדִּיל, בֵּין הַיּוֹם וּבֵין הַלָּיְלָה; וְהָיוּ לְאֹתֹת וּלְמוֹעֲדִים, וּלְיָמִים וְשָׁנִים.'],
+      [15, 'וְהָיוּ לִמְאוֹרֹת בִּרְקִיעַ הַשָּׁמַיִם, לְהָאִיר עַל-הָאָרֶץ; וַיְהִי-כֵן.'],
+      [16, 'וַיַּעַשׂ אֱלֹהִים, אֶת-שְׁנֵי הַמְּאֹרֹת הַגְּדֹלִים:  אֶת-הַמָּאוֹר הַגָּדֹל, לְמֶמְשֶׁלֶת הַיּוֹם, וְאֶת-הַמָּאוֹר הַקָּטֹן לְמֶמְשֶׁלֶת הַלַּיְלָה, וְאֵת הַכּוֹכָבִים.'],
+      [17, 'וַיִּתֵּן אֹתָם אֱלֹהִים, בִּרְקִיעַ הַשָּׁמָיִם, לְהָאִיר, עַל-הָאָרֶץ.'],
+      [18, 'וְלִמְשֹׁל, בַּיּוֹם וּבַלַּיְלָה, וּלְהַבְדִּיל, בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ; וַיַּרְא אֱלֹהִים, כִּי-טוֹב.'],
+      [19, 'וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם רְבִיעִי.'],
+      [20, 'וַיֹּאמֶר אֱלֹהִים--יִשְׁרְצוּ הַמַּיִם, שֶׁרֶץ נֶפֶשׁ חַיָּה; וְעוֹף יְעוֹפֵף עַל-הָאָרֶץ, עַל-פְּנֵי רְקִיעַ הַשָּׁמָיִם.'],
+      [21, 'וַיִּבְרָא אֱלֹהִים, אֶת-הַתַּנִּינִם הַגְּדֹלִים; וְאֵת כָּל-נֶפֶשׁ הַחַיָּה הָרֹמֶשֶׂת אֲשֶׁר שָׁרְצוּ הַמַּיִם לְמִינֵהֶם, וְאֵת כָּל-עוֹף כָּנָף לְמִינֵהוּ, וַיַּרְא אֱלֹהִים, כִּי-טוֹב.'],
+      [22, 'וַיְבָרֶךְ אֹתָם אֱלֹהִים, לֵאמֹר:  פְּרוּ וּרְבוּ, וּמִלְאוּ אֶת-הַמַּיִם בַּיַּמִּים, וְהָעוֹף, יִרֶב בָּאָרֶץ.'],
+      [23, 'וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם חֲמִישִׁי.'],
+      [24, 'וַיֹּאמֶר אֱלֹהִים, תּוֹצֵא הָאָרֶץ נֶפֶשׁ חַיָּה לְמִינָהּ, בְּהֵמָה וָרֶמֶשׂ וְחַיְתוֹ-אֶרֶץ, לְמִינָהּ; וַיְהִי-כֵן.'],
+      [25, 'וַיַּעַשׂ אֱלֹהִים אֶת-חַיַּת הָאָרֶץ לְמִינָהּ, וְאֶת-הַבְּהֵמָה לְמִינָהּ, וְאֵת כָּל-רֶמֶשׂ הָאֲדָמָה, לְמִינֵהוּ; וַיַּרְא אֱלֹהִים, כִּי-טוֹב.'],
+      [26, 'וַיֹּאמֶר אֱלֹהִים, נַעֲשֶׂה אָדָם בְּצַלְמֵנוּ כִּדְמוּתֵנוּ; וְיִרְדּוּ בִדְגַת הַיָּם וּבְעוֹף הַשָּׁמַיִם, וּבַבְּהֵמָה וּבְכָל-הָאָרֶץ, וּבְכָל-הָרֶמֶשׂ, הָרֹמֵשׂ עַל-הָאָרֶץ.'],
+      [27, 'וַיִּבְרָא אֱלֹהִים אֶת-הָאָדָם בְּצַלְמוֹ, בְּצֶלֶם אֱלֹהִים בָּרָא אֹתוֹ:  זָכָר וּנְקֵבָה, בָּרָא אֹתָם.'],
+      [28, 'וַיְבָרֶךְ אֹתָם, אֱלֹהִים, וַיֹּאמֶר לָהֶם אֱלֹהִים פְּרוּ וּרְבוּ וּמִלְאוּ אֶת-הָאָרֶץ, וְכִבְשֻׁהָ; וּרְדוּ בִּדְגַת הַיָּם, וּבְעוֹף הַשָּׁמַיִם, וּבְכָל-חַיָּה, הָרֹמֶשֶׂת עַל-הָאָרֶץ.'],
+      [29, 'וַיֹּאמֶר אֱלֹהִים, הִנֵּה נָתַתִּי לָכֶם אֶת-כָּל-עֵשֶׂב זֹרֵעַ זֶרַע אֲשֶׁר עַל-פְּנֵי כָל-הָאָרֶץ, וְאֶת-כָּל-הָעֵץ אֲשֶׁר-בּוֹ פְרִי-עֵץ, זֹרֵעַ זָרַע:  לָכֶם יִהְיֶה, לְאָכְלָה.'],
+      [30, 'וּלְכָל-חַיַּת הָאָרֶץ וּלְכָל-עוֹף הַשָּׁמַיִם וּלְכֹל רוֹמֵשׂ עַל-הָאָרֶץ, אֲשֶׁר-בּוֹ נֶפֶשׁ חַיָּה, אֶת-כָּל-יֶרֶק עֵשֶׂב, לְאָכְלָה; וַיְהִי-כֵן.'],
+      [31, 'וַיַּרְא אֱלֹהִים אֶת-כָּל-אֲשֶׁר עָשָׂה, וְהִנֵּה-טוֹב מְאֹד; וַיְהִי-עֶרֶב וַיְהִי-בֹקֶר, יוֹם הַשִּׁשִּׁי.'],
+    ]);
+
+    let voicesReady = false;
+    let heVoice = null;
+
+    function pickHebrewVoice(){
+      const voices = window.speechSynthesis.getVoices() || [];
+      heVoice = voices.find(v => (v.lang || "").toLowerCase().startsWith("he")) || null;
+      voicesReady = true;
+    }
+
+    function cleanForTTS(text){
+      return String(text)
+        .replace(/[\/]/g, " ")
+        .replace(/[־–—]/g, " ")
+        .replace(/[.,;:!?״״'"]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    let playingV = null;
+    let repeatV = null;
+
+    function setBtnState(v){
+      document.querySelectorAll(".playBtn").forEach(b => b.classList.toggle("playing", Number(b.dataset.v) === v));
+      document.querySelectorAll(".loopBtn").forEach(b => b.classList.toggle("repeatOn", Number(b.dataset.v) === repeatV));
+    }
+
+    function stopAll(){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+      playingV = null;
+      setBtnState(null);
+    }
+
+    function speakVerse(v, fromRepeat=false){
+      v = Number(v);
+      if (!VERSES[v]) return;
+
+      if (playingV !== null && playingV !== v){
+        stopAll();
+      }
+      if (repeatV !== null && repeatV !== v && !fromRepeat){
+        repeatV = null;
+      }
+
+      const u = new SpeechSynthesisUtterance(cleanForTTS(VERSES[v]));
+      if (!voicesReady) pickHebrewVoice();
+      if (heVoice) u.voice = heVoice;
+      u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
+      u.rate = 1.0;
+
+      playingV = v;
+      setBtnState(v);
+
+      u.onend = () => {
+        playingV = null;
+        setBtnState(null);
+        if (repeatV === v){
+          setTimeout(() => speakVerse(v, true), 350);
+        }
+      };
+
+      u.onerror = () => {
+        playingV = null;
+        setBtnState(null);
+      };
+
+      window.speechSynthesis.speak(u);
+    }
+
+    if ("speechSynthesis" in window){
+      window.speechSynthesis.onvoiceschanged = () => pickHebrewVoice();
+      pickHebrewVoice();
+    }
+
+    document.addEventListener("click", (e) => {
+      const p = e.target.closest(".playBtn");
+      const l = e.target.closest(".loopBtn");
+
+      if (p){
+        const v = Number(p.dataset.v);
+        if (repeatV !== null && repeatV !== v) repeatV = null;
+        speakVerse(v);
+        return;
+      }
+
+      if (l){
+        const v = Number(l.dataset.v);
+        if (repeatV === v){
+          repeatV = null;
+          setBtnState(playingV);
+          return;
+        }
+        repeatV = v;
+        setBtnState(playingV);
+        speakVerse(v);
+        return;
+      }
+    });
+// === Jump dropdown ===
+const jumpSelect = document.getElementById("jumpSelect");
+
+function buildJumpOptions(){
+  const maxV = Math.max(...Object.keys(VERSES).map(Number));
+  jumpSelect.innerHTML = "";
+  for(let i=1;i<=maxV;i++){
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `창세기 1:${i}`;
+    jumpSelect.appendChild(opt);
+  }
+  // 기본값: 현재 해시가 있으면 그걸로
+  const hashV = (location.hash || "").match(/^#v(\d+)$/);
+  if (hashV) jumpSelect.value = Number(hashV[1]);
+}
+
+function jumpToVerse(v){
+  const el = document.getElementById(`v${v}`);
+  if (!el) return;
+
+  const y = el.getBoundingClientRect().top + window.pageYOffset;
+  const barH = document.querySelector(".topbar")?.offsetHeight || 0;
+
+  window.scrollTo({
+    top: y - barH - 12,   // 12는 추가 여유
+    behavior: "smooth"
+  });
+
+  history.replaceState(null, "", `#v${v}`);
+}
+
+
+buildJumpOptions();
+
+jumpSelect.addEventListener("change", (e) => {
+  jumpToVerse(Number(e.target.value));
+});
+
+window.addEventListener("hashchange", () => {
+  const m = (location.hash || "").match(/^#v(\d+)$/);
+  if (m) jumpSelect.value = Number(m[1]);
+});
+
+  </script>
+</body>
+</html>
