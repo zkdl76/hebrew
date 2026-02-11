@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bible</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--gap:14px;--border:#e5e5e5;--muted:#666;--on:#0b5;--playing:#08f;}
+    body{margin:0; padding:18px; font-family:"Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fff; color:#111;}
+    .wrap{max-width:980px; margin:0 auto;}
+    .verse{border:1px solid var(--border); border-radius:14px; padding:14px; margin:0 0 var(--gap) 0;}
+    .ref{font-weight:700; margin:0 0 8px 0;}
+    h1.he{margin:0 0 10px 0; font-size:34px; line-height:1.25; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .kor{margin:0 0 10px 0; font-size:16px; color:#111;}
+    .btnrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    button{border:1px solid var(--border); background:#f7f7f7; padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
+    button:hover{background:#f0f0f0;}
+    button.playing{border-color:var(--playing); color:var(--playing); background:#eef6ff;}
+    button.repeatOn{border-color:var(--on); color:var(--on); background:#eafff3;}
+    .note{margin:0 0 14px 0; color:var(--muted); font-size:13px;}
+
+.topbar{
+  position: sticky;
+  top: 8px;
+  z-index: 999;
+  background: #fff;
+  padding: 10px 0;
+  margin: 0 0 14px 0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom: 1px solid var(--border);
+}
+
+.jumpGroup{display:flex; align-items:center; gap:14px;}
+.jump{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
+.jump select{padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; font-weight:700;}
+
+    /* word clickable */
+    .w{cursor:pointer; padding:0 2px; border-radius:6px;}
+    .w:hover{background:#f3f6ff;}
+
+    /* modal */
+    .modalBg{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center;
+      padding:18px; z-index:2000;
+    }
+    .modalBg.on{display:flex;}
+    .modal{
+      width:min(720px, 96vw);
+      background:#fff; border:1px solid var(--border); border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+      padding:14px;
+    }
+    .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
+    .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
+    .wordHead{margin:0; font-size:46px; line-height:1.1; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+  <div class="jumpGroup">
+<label class="jump">
+    <span>성경</span>
+    <select id="bookSelect" aria-label="성경 선택">
+      <option value="genesis">창세기</option>
+    </select>
+  </label>
+
+  <label class="jump">
+    <span>장</span>
+    <select id="chapterSelect" aria-label="장 선택"></select>
+  </label>
+
+  <label class="jump">
+    <span>절</span>
+    <select id="verseSelect" aria-label="절 선택"></select>
+  </label>
+  </div>
+</div>
+
+    <div id="verses"></div>
+
+  </div>
+
+<script>
+  // ===== state =====
+  let CURRENT = { book: 'genesis', chapter: '1', verse: null };
+  let DATA = null; // loaded chapter json
+  let isPlaying = false;
+  let isLooping = false;
+  let loopVerse = null;
+  let loopTimer = null;
+  let currentUtterance = null;
+
+  // ===== utils =====
+  function cleanForTTS(t){
+    return (t||'')
+      .replace(/[\/]/g,' ')          // meaning chunk separators
+      .replace(/[־]/g,' ')            // maqaf to space for TTS
+      .replace(/[.,;:!?()\[\]{}"“”‘’]/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function setBtnState(v, playing, looping){
+    const playBtn = document.querySelector(`.playBtn[data-v="${v}"]`);
+    const loopBtn = document.querySelector(`.loopBtn[data-v="${v}"]`);
+    if(playBtn){
+      playBtn.classList.toggle('on', !!playing);
+      playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    }
+    if(loopBtn){
+      loopBtn.classList.toggle('on', !!looping);
+      loopBtn.setAttribute('aria-pressed', looping ? 'true' : 'false');
+    }
+  }
+
+  function clearAllBtnStates(){
+    document.querySelectorAll('.playBtn, .loopBtn').forEach(b=>{
+      b.classList.remove('on');
+      b.setAttribute('aria-pressed','false');
+    });
+  }
+
+  function stopTTS(){
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    currentUtterance = null;
+    isPlaying = false;
+  }
+
+  function stopLoop(){
+    if(loopTimer){ clearTimeout(loopTimer); loopTimer = null; }
+    isLooping = false;
+    loopVerse = null;
+  }
+
+  // ===== voice =====
+  function getHebrewVoice(){
+    const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+    // Prefer he-* or Hebrew voices
+    const he = voices.find(v => (v.lang||'').toLowerCase().startsWith('he'));
+    if(he) return he;
+    const byName = voices.find(v => /hebrew|עברית/i.test(v.name||''));
+    return byName || null;
+  }
+
+  function speak(text, onend){
+    stopTTS();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = getHebrewVoice();
+    if(v) u.voice = v;
+    u.rate = 0.9;
+    u.onend = () => { currentUtterance = null; onend && onend(); };
+    u.onerror = () => { currentUtterance = null; onend && onend(); };
+    currentUtterance = u;
+    window.speechSynthesis.speak(u);
+  }
+
+  // ===== data + render =====
+  function buildKorLine(words){
+    if(!Array.isArray(words)) return '';
+    const parts = words.map(w => (w && w.kor) ? String(w.kor).trim() : '').filter(Boolean);
+    return parts.join(' ');
+  }
+
+  function renderChapter(data){
+    DATA = data;
+    const versesDiv = document.getElementById('verses');
+    versesDiv.innerHTML = '';
+
+    const entries = Object.entries(data.verses || {});
+    // keys are "1","2"...; sort numerically just in case
+    entries.sort((a,b)=>Number(a[0])-Number(b[0]));
+
+    for(const [k, v] of entries){
+      const sec = document.createElement('section');
+      sec.className = 'verse';
+      sec.id = `v${k}`;
+
+      const ref = document.createElement('div');
+      ref.className = 'ref';
+      ref.textContent = v.reference || `${data.book || ''} ${data.chapter || ''}:${k}`;
+
+      const he = document.createElement('h1');
+      he.className = 'he';
+      he.textContent = v.verseText || '';
+
+      const kor = document.createElement('div');
+      kor.className = 'kor';
+      kor.textContent = buildKorLine(v.words);
+
+      const btnrow = document.createElement('div');
+      btnrow.className = 'btnrow';
+
+      const playBtn = document.createElement('button');
+      playBtn.className = 'playBtn';
+      playBtn.dataset.v = k;
+      playBtn.textContent = '🔊';
+      playBtn.setAttribute('aria-label', `${k}절 재생`);
+
+      const loopBtn = document.createElement('button');
+      loopBtn.className = 'loopBtn';
+      loopBtn.dataset.v = k;
+      loopBtn.textContent = '∞';
+      loopBtn.setAttribute('aria-label', `${k}절 반복`);
+
+      btnrow.appendChild(playBtn);
+      btnrow.appendChild(loopBtn);
+
+      sec.appendChild(ref);
+      sec.appendChild(he);
+      sec.appendChild(kor);
+      sec.appendChild(btnrow);
+
+      versesDiv.appendChild(sec);
+    }
+
+    // update verse select
+    const verseSelect = document.getElementById('verseSelect');
+    verseSelect.innerHTML = '';
+    for(const [k] of entries){
+      const opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = `${k}절`;
+      verseSelect.appendChild(opt);
+    }
+  }
+
+  async function loadChapter(book, chapter){
+    // stop playback when changing chapter
+    stopLoop(); stopTTS(); clearAllBtnStates();
+
+    const path = `./data/${book}/${chapter}.json`;
+    const res = await fetch(path);
+    if(!res.ok) throw new Error(`Failed to load: ${path}`);
+    const data = await res.json();
+
+    renderChapter(data);
+
+    // title
+    const titleKor = (book === 'genesis') ? '창세기' : book;
+    document.title = `${titleKor} ${chapter}장`;
+  }
+
+  function jumpToVerse(v){
+    const el = document.getElementById(`v${v}`);
+    if(!el) return;
+    const bar = document.querySelector('.topbar');
+    const offset = bar ? bar.getBoundingClientRect().height : 0;
+    const y = el.getBoundingClientRect().top + window.pageYOffset - offset - 8;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
+  // ===== playback =====
+  function getVerseText(v){
+    const obj = DATA && DATA.verses ? DATA.verses[String(v)] : null;
+    return obj ? (obj.verseText || '') : '';
+  }
+
+  function playVerse(v, {fromLoop=false} = {}){
+    // if playing another verse: stop + clear
+    if(!fromLoop){
+      stopLoop();
+      clearAllBtnStates();
+    } else {
+      // looping: keep loop button ON
+      clearAllBtnStates();
+      setBtnState(v, false, true);
+    }
+
+    const raw = getVerseText(v);
+    const t = cleanForTTS(raw);
+    if(!t) return;
+
+    isPlaying = true;
+    setBtnState(v, true, isLooping && loopVerse === String(v));
+
+    speak(t, () => {
+      isPlaying = false;
+      // turn off play highlight (keep loop highlight if looping)
+      setBtnState(v, false, isLooping && loopVerse === String(v));
+      if(isLooping && loopVerse === String(v)){
+        loopTimer = setTimeout(() => playVerse(v, {fromLoop:true}), 350);
+      }
+    });
+  }
+
+  function toggleLoop(v){
+    const sv = String(v);
+    // if another loop is active, disable it
+    if(isLooping && loopVerse !== sv){
+      setBtnState(loopVerse, false, false);
+      stopLoop();
+    }
+
+    if(isLooping && loopVerse === sv){
+      // turn off
+      stopLoop();
+      setBtnState(sv, false, false);
+      return;
+    }
+
+    // turn on
+    isLooping = true;
+    loopVerse = sv;
+    setBtnState(sv, false, true);
+    // start immediately
+    playVerse(sv, {fromLoop:true});
+  }
+
+  // ===== init UI =====
+  function fillChapters(book){
+    const chapterSelect = document.getElementById('chapterSelect');
+    chapterSelect.innerHTML = '';
+    // genesis default 1..50
+    const max = (book === 'genesis') ? 50 : 150;
+    for(let i=1;i<=max;i++){
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = `${i}장`;
+      chapterSelect.appendChild(opt);
+    }
+  }
+
+  function getQuery(){
+    const p = new URLSearchParams(location.search);
+    return {
+      b: p.get('b') || 'genesis',
+      c: p.get('c') || '1',
+      v: p.get('v') || null
+    };
+  }
+
+  function setQuery(book, chapter, verse){
+    const p = new URLSearchParams();
+    p.set('b', book);
+    p.set('c', chapter);
+    if(verse) p.set('v', verse);
+    history.replaceState(null, '', `${location.pathname}?${p.toString()}`);
+  }
+
+  function wireEvents(){
+    document.body.addEventListener('click', (e)=>{
+      const pb = e.target.closest('.playBtn');
+      const lb = e.target.closest('.loopBtn');
+      if(pb){
+        const v = pb.dataset.v;
+        // any playback should cancel existing loop (g1.html behavior)
+        stopLoop();
+        clearAllBtnStates();
+        playVerse(v);
+        return;
+      }
+      if(lb){
+        const v = lb.dataset.v;
+        toggleLoop(v);
+        return;
+      }
+    });
+
+    const bookSelect = document.getElementById('bookSelect');
+    const chapterSelect = document.getElementById('chapterSelect');
+    const verseSelect = document.getElementById('verseSelect');
+
+    bookSelect.addEventListener('change', async ()=>{
+      const book = bookSelect.value;
+      fillChapters(book);
+      const ch = chapterSelect.value || '1';
+      await loadChapter(book, ch);
+      setQuery(book, ch, verseSelect.value || null);
+      jumpToVerse(verseSelect.value || '1');
+    });
+
+    chapterSelect.addEventListener('change', async ()=>{
+      const book = bookSelect.value;
+      const ch = chapterSelect.value;
+      await loadChapter(book, ch);
+      setQuery(book, ch, verseSelect.value || null);
+      jumpToVerse(verseSelect.value || '1');
+    });
+
+    verseSelect.addEventListener('change', ()=>{
+      const book = bookSelect.value;
+      const ch = chapterSelect.value;
+      const v = verseSelect.value;
+      setQuery(book, ch, v);
+      jumpToVerse(v);
+    });
+
+    // voice list can be async on some browsers
+    if(window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined){
+      window.speechSynthesis.onvoiceschanged = () => { /* just trigger cache */ getHebrewVoice(); };
+    }
+  }
+
+  async function init(){
+    const q = getQuery();
+
+    const bookSelect = document.getElementById('bookSelect');
+    const chapterSelect = document.getElementById('chapterSelect');
+    const verseSelect = document.getElementById('verseSelect');
+
+    // set book
+    bookSelect.value = q.b || 'genesis';
+    fillChapters(bookSelect.value);
+
+    // set chapter
+    chapterSelect.value = q.c || '1';
+
+    await loadChapter(bookSelect.value, chapterSelect.value);
+
+    // set verse (after render)
+    if(q.v){
+      verseSelect.value = q.v;
+      jumpToVerse(q.v);
+    } else {
+      verseSelect.value = verseSelect.value || '1';
+    }
+
+    setQuery(bookSelect.value, chapterSelect.value, verseSelect.value || null);
+    wireEvents();
+  }
+
+  init().catch(err=>{
+    console.error(err);
+    const versesDiv = document.getElementById('verses');
+    if(versesDiv){
+      versesDiv.innerHTML = `<p style="color:#c00;">데이터를 불러오지 못했어요: ${err.message}</p>`;
+    }
+  });
+</script>
+</body>
+</html>
