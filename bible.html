@@ -259,6 +259,11 @@
       setBtnState(playingV);
       modalWord.textContent = currentWord;
       modalBg.classList.add("on");
+      
+      // 🔊 팝업 열리면 자동 1회 재생
+      wordRepeat = false;
+      wordLoop.classList.remove("repeatOn");
+      speakWord();
     }
 
     function closeWordModal(){
