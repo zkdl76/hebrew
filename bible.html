@@ -249,6 +249,9 @@
 
     let currentWord = "";
     let wordRepeat = false;
+    let wordAutoCount = 0;     // 현재 재생 횟수
+    let wordAutoMax = 10;      // 자동 재생 횟수
+
 
     function openWordModal(word){
       currentWord = word || "";
@@ -259,11 +262,16 @@
       setBtnState(playingV);
       modalWord.textContent = currentWord;
       modalBg.classList.add("on");
+
+      wordAutoCount = 0;
+      wordRepeat = false; // 무한반복 끔
+      speakWord();        // 자동 시작
+
       
       // 🔊 팝업 열리면 자동 1회 재생
-      wordRepeat = false;
-      wordLoop.classList.remove("repeatOn");
-      speakWord();
+      //wordRepeat = false;
+      //wordLoop.classList.remove("repeatOn");
+      //speakWord();
     }
 
     function closeWordModal(){
@@ -285,11 +293,21 @@
       wordPlay.classList.add("playing");
 
       u.onend = () => {
-        wordPlay.classList.remove("playing");
-        if (wordRepeat){
-          setTimeout(() => speakWord(), 300);
-        }
-      };
+      wordPlay.classList.remove("playing");
+
+      // 무한 반복 모드
+      if (wordRepeat){
+        setTimeout(() => speakWord(), 300);
+        return;
+      }
+
+      // 자동 10회 반복 모드
+      wordAutoCount++;
+      if (wordAutoCount < wordAutoMax){
+        setTimeout(() => speakWord(), 300);
+      }
+    };
+
       u.onerror = () => {
         wordPlay.classList.remove("playing");
       };
@@ -306,7 +324,10 @@
 
     closeModalBtn.addEventListener("click", closeWordModal);
     modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) closeWordModal();
+      if (e.target === modalBg) 
+        closeWordModal(); 
+        wordAutoCount = 0;
+
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modalBg.classList.contains("on")) closeWordModal();
