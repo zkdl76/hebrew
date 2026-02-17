@@ -74,6 +74,11 @@
     .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
 
     .error{color:#c00; font-weight:700; margin:10px 0;}
+    button:disabled {
+      opacity:0.4;
+      cursor:default;
+    }
+
   </style>
 </head>
 <body>
@@ -82,12 +87,11 @@
       <div class="navcenter">
         <span>성경</span>
         <select id="bookSelect" aria-label="성경 선택"></select>
-
-        
         <select id="chapterSelect" aria-label="장 선택"></select>
-
-        
+      <button id="prevVerseBtn" style="padding:6px 10px;">&lt;</button>
         <select id="verseSelect" aria-label="절 이동"></select>
+      <button id="nextVerseBtn" style="padding:6px 10px;">&gt;</button>
+
       </div>
     </div>
 
@@ -111,6 +115,10 @@
   </div>
 
   <script>
+    // 절 < > 이동 변수
+    const prevVerseBtn = document.getElementById("prevVerseBtn");
+    const nextVerseBtn = document.getElementById("nextVerseBtn");
+
     // ========= Data + routing =========
     const BOOKS = [
       { id:"genesis", label:"창세기", maxCh:50, refPrefix:"창세기" }
@@ -415,8 +423,20 @@
       }
       const setV = keys.includes(currentV) ? currentV : (keys[0] || 1);
       verseSelect.value = String(setV);
+      updateVerseNavButtons();
       return setV;
     }
+
+    function updateVerseNavButtons(){
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const min = Math.min(...options);
+      const max = Math.max(...options);
+    
+      prevVerseBtn.disabled = (current === min);
+      nextVerseBtn.disabled = (current === max);
+    }
+
 
     function jumpToVerse(v){
       const el = document.getElementById(`v${v}`);
@@ -497,6 +517,29 @@
 
     // ========= Wire up =========
     async function init(){
+      prevVerseBtn.addEventListener("click", () => {
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const min = Math.min(...options);
+    
+      if (current > min){
+        verseSelect.value = String(current - 1);
+        verseSelect.dispatchEvent(new Event("change"));
+      }
+    });
+    
+    nextVerseBtn.addEventListener("click", () => {
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const max = Math.max(...options);
+    
+      if (current < max){
+        verseSelect.value = String(current + 1);
+        verseSelect.dispatchEvent(new Event("change"));
+      }
+    });
+
+      
       const { b, c, v } = qs();
 
       buildBookOptions();
@@ -521,7 +564,9 @@
         const vv = Number(verseSelect.value);
         setQS(bookSelect.value, Number(chapterSelect.value), vv);
         jumpToVerse(vv);
+        updateVerseNavButtons();
       });
+
 
       window.addEventListener("hashchange", () => {
         const m = (location.hash || "").match(/^#v(\d+)$/);
