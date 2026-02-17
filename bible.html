@@ -88,6 +88,7 @@
         <span>성경</span>
         <select id="bookSelect" aria-label="성경 선택"></select>
         <select id="chapterSelect" aria-label="장 선택"></select>
+        <span>장</span>
       <button id="prevVerseBtn" style="padding:6px 10px;">&lt;</button>
         <select id="verseSelect" aria-label="절 이동"></select>
         <span>절</span>
@@ -403,7 +404,7 @@
       for (const ch of existingChapters){
         const opt = document.createElement("option");
         opt.value = ch;
-        opt.textContent = `${ch}장`;
+        opt.textContent = `${ch}`;
         chapterSelect.appendChild(opt);
       }
 
