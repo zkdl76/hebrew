@@ -303,20 +303,27 @@
       wordPlay.classList.add("playing");
 
       u.onend = () => {
-      wordPlay.classList.remove("playing");
+  	wordPlay.classList.remove("playing");
 
-      // 무한 반복 모드
-      if (wordRepeat){
-        setTimeout(() => speakWord(), 300);
-        return;
-      }
+  	// 무한 반복 모드면 계속
+  	if (wordRepeat){
+    	setTimeout(() => speakWord(), 300);
+    	return;
+  	}
 
-      // 자동 10회 반복 모드
-      wordAutoCount++;
-      if (wordAutoCount < wordAutoMax){
-        setTimeout(() => speakWord(), 300);
-      }
-    };
+  	// 자동 반복 카운트 증가
+  	wordAutoCount++;
+
+  	if (wordAutoCount < wordAutoMax){
+    	setTimeout(() => speakWord(), 300);
+  	} else {
+    	// 자동 반복 종료 → 팝업 닫기
+    	setTimeout(() => {
+      	closeWordModal();
+    	}, 300);
+  }
+};
+
 
       u.onerror = () => {
         wordPlay.classList.remove("playing");
