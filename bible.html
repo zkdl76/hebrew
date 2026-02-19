@@ -63,65 +63,54 @@
     }
     .modalBg.on{display:flex;}
     .modal{
-      width:min(720px, 96vw);
-      background:#fff; border:1px solid var(--border); border-radius:16px;
-      box-shadow:0 10px 30px rgba(0,0,0,.18);
-      padding:14px;
-    }
+  width:min(1000px, 90vw);
+  height:60vh;                     /* 화면 높이의 60% */
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
     .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
     .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
-    .wordHead{margin:0; font-size:46px; line-height:1.1; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .wordHead{
+  margin:20px 0;
+  font-size:clamp(70px, 9vw, 140px);  /* 반응형 초대형 */
+  line-height:1.1;
+  direction:rtl;
+  unicode-bidi:plaintext;
+  text-align:center;                 /* 가운데 정렬 */
+  font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;
+}
+
     .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
 
     .error{color:#c00; font-weight:700; margin:10px 0;}
+    button:disabled {
+      opacity:0.4;
+      cursor:default;
+    }
+
   </style>
-
-<style>
-.drawControls{
-  display:flex;
-  gap:10px;
-  margin-top:20px;
-  justify-content:center;
-  flex-wrap:wrap;
-  z-index:5;
-  position:relative;
-}
-.drawControls button{
-  padding:6px 12px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  background:#f5f5f5;
-  cursor:pointer;
-}
-.drawControls button.active{
-  background:#4caf50;
-  color:white;
-  border-color:#4caf50;
-}
-#drawLayer{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  z-index:2;
-}
-.wordHead.drawingOn{
-  opacity:0.2;
-}
-</style>
-
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <div class="navcenter">
-        <span>성경</span>
+        
         <select id="bookSelect" aria-label="성경 선택"></select>
-
-        <span>장</span>
         <select id="chapterSelect" aria-label="장 선택"></select>
-
-        <span>절</span>
+        <span>장</span>
+      <button id="prevVerseBtn" style="padding:6px 10px;">&lt;</button>
         <select id="verseSelect" aria-label="절 이동"></select>
+        <span>절</span>
+      <button id="nextVerseBtn" style="padding:6px 10px;">&gt;</button>
+
       </div>
     </div>
 
@@ -145,6 +134,10 @@
   </div>
 
   <script>
+    // 절 < > 이동 변수
+    const prevVerseBtn = document.getElementById("prevVerseBtn");
+    const nextVerseBtn = document.getElementById("nextVerseBtn");
+
     // ========= Data + routing =========
     const BOOKS = [
       { id:"genesis", label:"창세기", maxCh:50, refPrefix:"창세기" }
@@ -283,6 +276,9 @@
 
     let currentWord = "";
     let wordRepeat = false;
+    let wordAutoCount = 0;     // 현재 재생 횟수
+    let wordAutoMax = 3;      // 자동 재생 횟수 10을 5/10/20으로 변경하면 숫자만큼 반복함, Infinity = 무한대 재생
+
 
     function openWordModal(word){
       currentWord = word || "";
@@ -293,6 +289,16 @@
       setBtnState(playingV);
       modalWord.textContent = currentWord;
       modalBg.classList.add("on");
+
+      wordAutoCount = 0;
+      wordRepeat = false; // 무한반복 끔
+      speakWord();        // 자동 시작
+
+      
+      // 🔊 팝업 열리면 자동 1회 재생
+      //wordRepeat = false;
+      //wordLoop.classList.remove("repeatOn");
+      //speakWord();
     }
 
     function closeWordModal(){
@@ -314,11 +320,28 @@
       wordPlay.classList.add("playing");
 
       u.onend = () => {
-        wordPlay.classList.remove("playing");
-        if (wordRepeat){
-          setTimeout(() => speakWord(), 300);
-        }
-      };
+  	wordPlay.classList.remove("playing");
+
+  	// 무한 반복 모드면 계속
+  	if (wordRepeat){
+    	setTimeout(() => speakWord(), 300);
+    	return;
+  	}
+
+  	// 자동 반복 카운트 증가
+  	wordAutoCount++;
+
+  	if (wordAutoCount < wordAutoMax){
+    	setTimeout(() => speakWord(), 300);
+  	} else {
+    	// 자동 반복 종료 → 팝업 닫기
+    	setTimeout(() => {
+      	closeWordModal();
+    	}, 300);
+  }
+};
+
+
       u.onerror = () => {
         wordPlay.classList.remove("playing");
       };
@@ -335,7 +358,10 @@
 
     closeModalBtn.addEventListener("click", closeWordModal);
     modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) closeWordModal();
+      if (e.target === modalBg) 
+        closeWordModal(); 
+        wordAutoCount = 0;
+
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modalBg.classList.contains("on")) closeWordModal();
@@ -402,7 +428,7 @@
       for (const ch of existingChapters){
         const opt = document.createElement("option");
         opt.value = ch;
-        opt.textContent = `${ch}장`;
+        opt.textContent = `${ch}`;
         chapterSelect.appendChild(opt);
       }
 
@@ -423,8 +449,20 @@
       }
       const setV = keys.includes(currentV) ? currentV : (keys[0] || 1);
       verseSelect.value = String(setV);
+      updateVerseNavButtons();
       return setV;
     }
+
+    function updateVerseNavButtons(){
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const min = Math.min(...options);
+      const max = Math.max(...options);
+    
+      prevVerseBtn.disabled = (current === min);
+      nextVerseBtn.disabled = (current === max);
+    }
+
 
     function jumpToVerse(v){
       const el = document.getElementById(`v${v}`);
@@ -505,6 +543,29 @@
 
     // ========= Wire up =========
     async function init(){
+      prevVerseBtn.addEventListener("click", () => {
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const min = Math.min(...options);
+    
+      if (current > min){
+        verseSelect.value = String(current - 1);
+        verseSelect.dispatchEvent(new Event("change"));
+      }
+    });
+    
+    nextVerseBtn.addEventListener("click", () => {
+      const current = Number(verseSelect.value);
+      const options = Array.from(verseSelect.options).map(o => Number(o.value));
+      const max = Math.max(...options);
+    
+      if (current < max){
+        verseSelect.value = String(current + 1);
+        verseSelect.dispatchEvent(new Event("change"));
+      }
+    });
+
+      
       const { b, c, v } = qs();
 
       buildBookOptions();
@@ -529,7 +590,9 @@
         const vv = Number(verseSelect.value);
         setQS(bookSelect.value, Number(chapterSelect.value), vv);
         jumpToVerse(vv);
+        updateVerseNavButtons();
       });
+
 
       window.addEventListener("hashchange", () => {
         const m = (location.hash || "").match(/^#v(\d+)$/);
@@ -547,107 +610,5 @@
 
     init();
   </script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
-  const modal = document.querySelector(".modal");
-  if(!modal) return;
-
-  const wordHead = modal.querySelector(".wordHead");
-
-  // Create controls once
-  const controls = document.createElement("div");
-  controls.className = "drawControls";
-  controls.innerHTML = `
-    <button id="drawToggleBtn">그리기</button>
-    <button id="clearDrawBtn">지우기</button>
-    <label>선굵기
-      <input type="range" id="brushSize" min="2" max="40" value="8">
-    </label>
-  `;
-  modal.appendChild(controls);
-
-  // Canvas layer
-  const canvas = document.createElement("canvas");
-  canvas.id = "drawLayer";
-  modal.appendChild(canvas);
-  const ctx = canvas.getContext("2d");
-
-  function resizeCanvas(){
-    canvas.width = modal.clientWidth;
-    canvas.height = modal.clientHeight;
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
-
-  let drawing = false;
-  let drawMode = false;
-
-  function getPos(e){
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
-  }
-
-  function start(e){
-    if(!drawMode) return;
-    drawing = true;
-    const p = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    e.preventDefault();
-  }
-
-  function move(e){
-    if(!drawing) return;
-    const p = getPos(e);
-    ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = document.getElementById("brushSize").value;
-    ctx.lineCap = "round";
-    ctx.stroke();
-    e.preventDefault();
-  }
-
-  function end(){
-    drawing = false;
-  }
-
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  canvas.addEventListener("mouseup", end);
-  canvas.addEventListener("mouseleave", end);
-
-  canvas.addEventListener("touchstart", start, {passive:false});
-  canvas.addEventListener("touchmove", move, {passive:false});
-  canvas.addEventListener("touchend", end);
-
-  document.getElementById("drawToggleBtn").addEventListener("click", function(e){
-    e.stopPropagation();
-    drawMode = !drawMode;
-    this.classList.toggle("active", drawMode);
-
-    if(drawMode){
-      wordHead.classList.add("drawingOn");
-      canvas.style.pointerEvents = "auto";
-    }else{
-      wordHead.classList.remove("drawingOn");
-      canvas.style.pointerEvents = "none";
-    }
-  });
-
-  document.getElementById("clearDrawBtn").addEventListener("click", function(e){
-    e.stopPropagation();
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-  });
-
-});
-</script>
-
 </body>
 </html>
