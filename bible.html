@@ -63,14 +63,31 @@
     }
     .modalBg.on{display:flex;}
     .modal{
-      width:min(720px, 96vw);
-      background:#fff; border:1px solid var(--border); border-radius:16px;
-      box-shadow:0 10px 30px rgba(0,0,0,.18);
-      padding:14px;
-    }
+  width:min(1000px, 90vw);
+  height:60vh;                     /* 화면 높이의 60% */
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
     .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
     .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
-    .wordHead{margin:0; font-size:46px; line-height:1.1; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
+    .wordHead{
+  margin:20px 0;
+  font-size:clamp(70px, 9vw, 140px);  /* 반응형 초대형 */
+  line-height:1.1;
+  direction:rtl;
+  unicode-bidi:plaintext;
+  text-align:center;                 /* 가운데 정렬 */
+  font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;
+}
+
     .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
 
     .error{color:#c00; font-weight:700; margin:10px 0;}
