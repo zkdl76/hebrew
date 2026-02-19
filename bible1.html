@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Bible</title>
+
+<style>
+:root{--border:#e5e5e5;}
+body{margin:0;padding:20px;font-family:sans-serif;}
+.modalBg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;}
+.modalBg.on{display:flex;}
+.modal{width:90vw;height:60vh;background:#fff;border-radius:20px;padding:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+.wordHead{font-size:100px;}
+.wordHead.drawingOn{opacity:0.2;}
+.wordDrawWrap{position:relative;display:inline-block;}
+#wordDrawCanvas{position:absolute;inset:0;pointer-events:none;}
+.drawControls{margin-top:20px;display:flex;gap:10px;}
+.drawControls button.active{background:#4caf50;color:#fff;}
+</style>
+</head>
+
+<body>
+
+<button onclick="openWordModal('בְּרֵאשִׁית')">단어 열기</button>
+
+<div class="modalBg" id="modalBg">
+  <div class="modal" id="modal">
+    <button id="closeModal" style="position:absolute;top:10px;right:10px;">닫기</button>
+    <div class="wordDrawWrap">
+      <h1 class="wordHead" id="modalWord"></h1>
+      <canvas id="wordDrawCanvas"></canvas>
+    </div>
+
+    <div class="drawControls">
+      <button id="drawToggleBtn">그리기</button>
+      <button id="clearDrawBtn">지우기</button>
+      <label>선굵기
+        <input type="range" id="brushSize" min="2" max="40" value="8">
+      </label>
+    </div>
+  </div>
+</div>
+
+<script>
+const modalBg = document.getElementById("modalBg");
+const modal = document.getElementById("modal");
+const modalWord = document.getElementById("modalWord");
+const canvas = document.getElementById("wordDrawCanvas");
+const ctx = canvas.getContext("2d");
+
+let drawing=false;
+let drawMode=false;
+let cancelAutoClose=false;
+
+function resizeCanvas(){
+  const rect = modalWord.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
+
+function openWordModal(word){
+  cancelAutoClose=false;
+  modalWord.textContent=word;
+  modalBg.classList.add("on");
+  setTimeout(resizeCanvas,0);
+}
+
+function closeWordModal(){
+  drawMode=false;
+  modalWord.classList.remove("drawingOn");
+  canvas.style.pointerEvents="none";
+  modalBg.classList.remove("on");
+}
+
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const y = (e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  return {x,y};
+}
+
+function start(e){
+  if(!drawMode) return;
+  drawing=true;
+  const p=getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(p.x,p.y);
+  e.preventDefault();
+}
+
+function move(e){
+  if(!drawing) return;
+  const p=getPos(e);
+  ctx.lineTo(p.x,p.y);
+  ctx.strokeStyle="#000";
+  ctx.lineWidth=Number(document.getElementById("brushSize").value);
+  ctx.lineCap="round";
+  ctx.stroke();
+  e.preventDefault();
+}
+
+function end(){drawing=false;}
+
+canvas.addEventListener("mousedown",start);
+canvas.addEventListener("mousemove",move);
+canvas.addEventListener("mouseup",end);
+canvas.addEventListener("mouseleave",end);
+canvas.addEventListener("touchstart",start,{passive:false});
+canvas.addEventListener("touchmove",move,{passive:false});
+canvas.addEventListener("touchend",end);
+
+document.getElementById("drawToggleBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  drawMode=!drawMode;
+  this.classList.toggle("active",drawMode);
+  if(drawMode){
+    modalWord.classList.add("drawingOn");
+    canvas.style.pointerEvents="auto";
+  }else{
+    modalWord.classList.remove("drawingOn");
+    canvas.style.pointerEvents="none";
+  }
+});
+
+document.getElementById("clearDrawBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+});
+
+document.getElementById("closeModal").addEventListener("click",closeWordModal);
+
+modalBg.addEventListener("click",function(e){
+  if(e.target===modalBg){
+    closeWordModal();
+  }
+});
+
+modal.addEventListener("click",function(e){
+  e.stopPropagation();
+  cancelAutoClose=true;
+});
+
+window.addEventListener("resize",resizeCanvas);
+</script>
+
+</body>
+</html>
