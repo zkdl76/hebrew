@@ -17,15 +17,30 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 #wordCanvas {
     font-size: 100px;
     direction: rtl;
+    position: relative;
+}
+.overlay::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 180px;
+}
+.correct::after { content: "⭕"; color: red; }
+.wrong::after { content: "❌"; color: red; }
+
+.form-row {
+    margin-top: 30px;
 }
 input {
     padding: 12px;
     font-size: 20px;
-    width: 340px;
+    width: 320px;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -35,30 +50,14 @@ button {
     font-size: 18px;
     border-radius: 8px;
     border: none;
-    margin: 10px;
+    background-color: #ffcc00;
+    font-weight: bold;
     cursor: pointer;
-}
-#pauseBtn {
-    display: none;
-    background-color: orange;
-}
-#resumeBtn {
-    display: none;
-    background-color: green;
-    color: white;
 }
 #feedback {
     margin-top: 20px;
     font-size: 22px;
-    min-height: 90px;
-}
-.speaker {
-    cursor: pointer;
-    font-size: 40px;
-    margin-left: 15px;
-    display:none;
-.correct::after { content: "⭕"; color: red; }
-.wrong::after { content: "❌"; color: red; }
+    min-height: 60px;
 }
 </style>
 </head>
