@@ -17,12 +17,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
 }
 #wordCanvas {
     font-size: 100px;
     direction: rtl;
-    position: relative;
 }
 .overlay::after {
     position: absolute;
@@ -40,7 +38,7 @@ body {
 input {
     padding: 12px;
     font-size: 20px;
-    width: 320px;
+    width: 340px;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -50,14 +48,28 @@ button {
     font-size: 18px;
     border-radius: 8px;
     border: none;
-    background-color: #ffcc00;
-    font-weight: bold;
+    margin: 10px;
     cursor: pointer;
+}
+#pauseBtn {
+    display: none;
+    background-color: orange;
+}
+#resumeBtn {
+    display: none;
+    background-color: green;
+    color: white;
 }
 #feedback {
     margin-top: 20px;
     font-size: 22px;
-    min-height: 60px;
+    min-height: 90px;
+}
+.speaker {
+    cursor: pointer;
+    font-size: 40px;
+    margin-left: 15px;
+    display:none;
 }
 </style>
 </head>
