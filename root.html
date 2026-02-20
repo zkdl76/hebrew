@@ -169,7 +169,7 @@ function checkAnswer(){
 
  delay=rootOk&&meaningOk?5000:10000;
 
- canvas.className=rootOk&&meaningOk?"correct":"wrong";
+ canvas.className="overlay "+(rootOk&&meaningOk?"correct":"wrong");
 
  feedback.innerHTML=
  (rootOk&&meaningOk?"정답!":"오답!")+"<br>"+
