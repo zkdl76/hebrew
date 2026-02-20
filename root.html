@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>창세기 1장 히브리어 동사 게임 v10 (창 1장 전용, 복수 뜻 허용)</title>
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    text-align: center;
+}
+#wordContainer {
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#wordCanvas {
+    font-size: 100px;
+    direction: rtl;
+}
+input {
+    padding: 12px;
+    font-size: 20px;
+    width: 340px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+}
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+    margin: 10px;
+    cursor: pointer;
+}
+#pauseBtn {
+    display: none;
+    background-color: orange;
+}
+#resumeBtn {
+    display: none;
+    background-color: green;
+    color: white;
+}
+#feedback {
+    margin-top: 20px;
+    font-size: 22px;
+    min-height: 90px;
+}
+.speaker {
+    cursor: pointer;
+    font-size: 40px;
+    margin-left: 15px;
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<div id="wordContainer">
+    <div>
+        <span id="wordCanvas"></span>
+        <span id="speakerBtn" class="speaker">🔊</span>
+    </div>
+</div>
+
+<div>
+<input type="text" id="answerInput" placeholder="어근명 뜻 (예: 바달 나누다)">
+<button onclick="checkAnswer()">정답확인</button>
+</div>
+
+<div>
+<button id="pauseBtn" onclick="pauseGame()">⏸ 잠시멈춤</button>
+<button id="resumeBtn" onclick="resumeGame()">▶ 재개</button>
+</div>
+
+<div id="feedback"></div>
+
+<script>
+
+// 창세기 1:1–31 동사만, meaning 배열로 복수 뜻 허용
+const verbs = [
+
+{form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:1"},
+{form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다", verse:"창 1:3"},
+{form:"יהי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라", verse:"창 1:3"},
+{form:"ויהי", root:"하야", meaning:["있다","되다"], gloss:"그렇게 되었다", verse:"창 1:3"},
+{form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다", verse:"창 1:4"},
+{form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다", verse:"창 1:4"},
+{form:"ויקרא", root:"카라", meaning:["부르다","이름하다"], gloss:"그가 불렀다", verse:"창 1:5"},
+{form:"ויעש", root:"아사", meaning:["만들다","행하다"], gloss:"그가 만들었다", verse:"창 1:7"},
+{form:"יהיו", root:"하야", meaning:["있다","되다"], gloss:"있게 되라", verse:"창 1:14"},
+{form:"להאיר", root:"오르", meaning:["빛나다","비추다"], gloss:"비추기 위해", verse:"창 1:15"},
+{form:"ויתן", root:"나탄", meaning:["주다","두다"], gloss:"그가 두었다", verse:"창 1:17"},
+{form:"למשל", root:"마샬", meaning:["다스리다","통치하다"], gloss:"다스리기 위해", verse:"창 1:18"},
+{form:"ויברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:21"},
+{form:"ויברך", root:"바라크", meaning:["복주다","축복하다"], gloss:"그가 축복했다", verse:"창 1:22"},
+{form:"פרו", root:"파라", meaning:["생육하다","번성하다"], gloss:"생육하라", verse:"창 1:22"},
+{form:"רבו", root:"라바", meaning:["많아지다","번성하다"], gloss:"번성하라", verse:"창 1:22"},
+{form:"מלאו", root:"말레", meaning:["채우다"], gloss:"채우라", verse:"창 1:22"},
+{form:"ותוצא", root:"야차", meaning:["나오다","내다"], gloss:"내었다", verse:"창 1:24"},
+{form:"נעשה", root:"아사", meaning:["만들다","행하다"], gloss:"우리가 만들자", verse:"창 1:26"},
+{form:"ורדו", root:"라다", meaning:["다스리다"], gloss:"다스리라", verse:"창 1:26"},
+{form:"כבשה", root:"카바쉬", meaning:["정복하다"], gloss:"정복하라", verse:"창 1:28"},
+{form:"נתתי", root:"나탄", meaning:["주다"], gloss:"내가 주었다", verse:"창 1:29"},
+{form:"יהיה", root:"하야", meaning:["있다","되다"], gloss:"있을 것이다", verse:"창 1:30"}
+
+];
+
+let current;
+let timer=null;
+let paused=false;
+let delay=5000;
+
+const canvas=document.getElementById("wordCanvas");
+const input=document.getElementById("answerInput");
+const feedback=document.getElementById("feedback");
+const speakerBtn=document.getElementById("speakerBtn");
+const pauseBtn=document.getElementById("pauseBtn");
+const resumeBtn=document.getElementById("resumeBtn");
+
+function normalize(t){return t.trim().replace(/\s+/g,"");}
+
+function newQuestion(){
+ speakerBtn.style.display="none";
+ pauseBtn.style.display="none";
+ resumeBtn.style.display="none";
+ current=verbs[Math.floor(Math.random()*verbs.length)];
+ canvas.innerText=current.form;
+ feedback.innerHTML="";
+ input.value="";
+ input.focus();
+}
+
+function parseInput(t){
+ const p=t.trim().split(/\s+/);
+ return {root:p[0]||"", meaning:p.slice(1).join("")};
+}
+
+function checkAnswer(){
+
+ const parsed=parseInput(input.value);
+
+ const rootOk=normalize(parsed.root)==normalize(current.root);
+
+ const meaningOk=current.meaning.some(
+  m=>normalize(m)==normalize(parsed.meaning)
+ );
+
+ delay=rootOk&&meaningOk?5000:10000;
+
+ canvas.className=rootOk&&meaningOk?"correct":"wrong";
+
+ feedback.innerHTML=
+ (rootOk&&meaningOk?"정답!":"오답!")+"<br>"+
+ "어근: "+current.root+" ("+current.meaning.join(", ")+")<br>"+
+ "형태 뜻: "+current.gloss+"<br>"+
+ "위치: "+current.verse;
+
+ speakerBtn.style.display="inline";
+ pauseBtn.style.display="inline";
+
+ playTTS(current.form);
+
+ timer=setTimeout(()=>{if(!paused)newQuestion();},delay);
+}
+
+function pauseGame(){
+ paused=true;
+ clearTimeout(timer);
+ pauseBtn.style.display="none";
+ resumeBtn.style.display="inline";
+}
+
+function resumeGame(){
+ paused=false;
+ pauseBtn.style.display="inline";
+ resumeBtn.style.display="none";
+ timer=setTimeout(newQuestion,delay);
+}
+
+function playTTS(text){
+
+ fetch("https://translate.googleapis.com/translate_tts?ie=UTF-8&q="+encodeURIComponent(text)+"&tl=he&client=tw-ob")
+ .then(r=>r.blob())
+ .then(b=>{
+  const audio=new Audio(URL.createObjectURL(b));
+  audio.play();
+ })
+ .catch(()=>{
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="he-IL";
+  speechSynthesis.speak(u);
+ });
+}
+
+speakerBtn.onclick=function(){playTTS(current.form);};
+
+input.addEventListener("keypress",e=>{if(e.key==="Enter")checkAnswer();});
+
+newQuestion();
+
+</script>
+</body>
+</html>
