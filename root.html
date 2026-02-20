@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>창세기 1장 히브리어 동사 게임 v10 (창 1장 전용, 복수 뜻 허용)</title>
+<title>창세기 1장 히브리어 어근 게임 v8</title>
 <style>
 body {
     margin: 0;
@@ -40,7 +39,7 @@ body {
 input {
     padding: 12px;
     font-size: 20px;
-    width: 340px;
+    width: 320px;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -50,56 +49,33 @@ button {
     font-size: 18px;
     border-radius: 8px;
     border: none;
-    margin: 10px;
+    background-color: #ffcc00;
+    font-weight: bold;
     cursor: pointer;
-}
-#pauseBtn {
-    display: none;
-    background-color: orange;
-}
-#resumeBtn {
-    display: none;
-    background-color: green;
-    color: white;
 }
 #feedback {
     margin-top: 20px;
     font-size: 22px;
-    min-height: 90px;
-}
-.speaker {
-    cursor: pointer;
-    font-size: 40px;
-    margin-left: 15px;
-    display:none;
+    min-height: 60px;
 }
 </style>
 </head>
 <body>
 
 <div id="wordContainer">
-    <div>
-        <span id="wordCanvas"></span>
-        <span id="speakerBtn" class="speaker">🔊</span>
-    </div>
+    <div id="wordCanvas"></div>
 </div>
 
-<div>
-<input type="text" id="answerInput" placeholder="어근명 뜻 (예: 바달 나누다)">
-<button onclick="checkAnswer()">정답확인</button>
-</div>
-
-<div>
-<button id="pauseBtn" onclick="pauseGame()">⏸ 잠시멈춤</button>
-<button id="resumeBtn" onclick="resumeGame()">▶ 재개</button>
+<div class="form-row">
+    <input type="text" id="answerInput" placeholder="어근명 뜻 (예: 아마르 말하다)">
+    <button onclick="checkAnswer()">정답확인</button>
 </div>
 
 <div id="feedback"></div>
 
 <script>
 
-// 창세기 1:1–31 동사만, meaning 배열로 복수 뜻 허용
-const verbs = [
+const words = [
 
 {form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:1"},
 {form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다", verse:"창 1:3"},
@@ -127,94 +103,49 @@ const verbs = [
 
 ];
 
-let current;
-let timer=null;
-let paused=false;
-let delay=5000;
+let currentEntry, currentFormObj;
 
-const canvas=document.getElementById("wordCanvas");
-const input=document.getElementById("answerInput");
-const feedback=document.getElementById("feedback");
-const speakerBtn=document.getElementById("speakerBtn");
-const pauseBtn=document.getElementById("pauseBtn");
-const resumeBtn=document.getElementById("resumeBtn");
+const canvas = document.getElementById("wordCanvas");
+const input = document.getElementById("answerInput");
+const feedback = document.getElementById("feedback");
 
 function normalize(t){return t.trim().replace(/\s+/g,"");}
 
 function newQuestion(){
- speakerBtn.style.display="none";
- pauseBtn.style.display="none";
- resumeBtn.style.display="none";
- current=verbs[Math.floor(Math.random()*verbs.length)];
- canvas.innerText=current.form;
- feedback.innerHTML="";
- input.value="";
- input.focus();
+currentEntry = words[Math.floor(Math.random()*words.length)];
+currentFormObj = currentEntry.forms[Math.floor(Math.random()*currentEntry.forms.length)];
+canvas.className="";
+canvas.innerText=currentFormObj.form;
+input.value="";
+feedback.innerHTML="";
+input.focus();
 }
 
 function parseInput(t){
- const p=t.trim().split(/\s+/);
- return {root:p[0]||"", meaning:p.slice(1).join("")};
+const p=t.trim().split(/\s+/);
+return {root:p[0]||"",meaning:p.slice(1).join("")};
 }
 
 function checkAnswer(){
 
- const parsed=parseInput(input.value);
+const parsed=parseInput(input.value);
+const rootOk=currentEntry.root.some(r=>normalize(r)==normalize(parsed.root));
+const meaningOk=currentEntry.meaning.some(m=>normalize(m)==normalize(parsed.meaning));
 
- const rootOk=normalize(parsed.root)==normalize(current.root);
+canvas.className="overlay "+(rootOk&&meaningOk?"correct":"wrong");
 
- const meaningOk=current.meaning.some(
-  m=>normalize(m)==normalize(parsed.meaning)
- );
+let delay=rootOk&&meaningOk?5000:15000;
 
- delay=rootOk&&meaningOk?5000:10000;
+feedback.innerHTML=
+(rootOk&&meaningOk?"정답!":"오답!")+"<br>"+
+"어근: "+currentEntry.root[0]+" ("+currentEntry.meaning.join(", ")+")<br>"+
+"형태 뜻: "+currentFormObj.form+" = "+currentFormObj.gloss;
 
- canvas.className="overlay "+(rootOk&&meaningOk?"correct":"wrong");
+input.focus();
+input.select();
 
- feedback.innerHTML=
- (rootOk&&meaningOk?"정답!":"오답!")+"<br>"+
- "어근: "+current.root+" ("+current.meaning.join(", ")+")<br>"+
- "형태 뜻: "+current.gloss+"<br>"+
- "위치: "+current.verse;
-
- speakerBtn.style.display="inline";
- pauseBtn.style.display="inline";
-
- playTTS(current.form);
-
- timer=setTimeout(()=>{if(!paused)newQuestion();},delay);
+setTimeout(newQuestion,delay);
 }
-
-function pauseGame(){
- paused=true;
- clearTimeout(timer);
- pauseBtn.style.display="none";
- resumeBtn.style.display="inline";
-}
-
-function resumeGame(){
- paused=false;
- pauseBtn.style.display="inline";
- resumeBtn.style.display="none";
- timer=setTimeout(newQuestion,delay);
-}
-
-function playTTS(text){
-
- fetch("https://translate.googleapis.com/translate_tts?ie=UTF-8&q="+encodeURIComponent(text)+"&tl=he&client=tw-ob")
- .then(r=>r.blob())
- .then(b=>{
-  const audio=new Audio(URL.createObjectURL(b));
-  audio.play();
- })
- .catch(()=>{
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang="he-IL";
-  speechSynthesis.speak(u);
- });
-}
-
-speakerBtn.onclick=function(){playTTS(current.form);};
 
 input.addEventListener("keypress",e=>{if(e.key==="Enter")checkAnswer();});
 
