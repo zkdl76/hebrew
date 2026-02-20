@@ -76,29 +76,171 @@ button {
 <script>
 
 const words = [
-{form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:1"},
-{form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다", verse:"창 1:3"},
-{form:"יהי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라", verse:"창 1:3"},
-{form:"ויהי", root:"하야", meaning:["있다","되다"], gloss:"그렇게 되었다", verse:"창 1:3"},
-{form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다", verse:"창 1:4"},
-{form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다", verse:"창 1:4"},
-{form:"ויקרא", root:"카라", meaning:["부르다","이름하다"], gloss:"그가 불렀다", verse:"창 1:5"},
-{form:"ויעש", root:"아사", meaning:["만들다","행하다"], gloss:"그가 만들었다", verse:"창 1:7"},
-{form:"יהיו", root:"하야", meaning:["있다","되다"], gloss:"있게 되라", verse:"창 1:14"},
-{form:"להאיר", root:"오르", meaning:["빛나다","비추다"], gloss:"비추기 위해", verse:"창 1:15"},
-{form:"ויתן", root:"나탄", meaning:["주다","두다"], gloss:"그가 두었다", verse:"창 1:17"},
-{form:"למשל", root:"마샬", meaning:["다스리다","통치하다"], gloss:"다스리기 위해", verse:"창 1:18"},
-{form:"ויברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:21"},
-{form:"ויברך", root:"바라크", meaning:["복주다","축복하다"], gloss:"그가 축복했다", verse:"창 1:22"},
-{form:"פרו", root:"파라", meaning:["생육하다","번성하다"], gloss:"생육하라", verse:"창 1:22"},
-{form:"רבו", root:"라바", meaning:["많아지다","번성하다"], gloss:"번성하라", verse:"창 1:22"},
-{form:"מלאו", root:"말레", meaning:["채우다"], gloss:"채우라", verse:"창 1:22"},
-{form:"ותוצא", root:"야차", meaning:["나오다","내다"], gloss:"내었다", verse:"창 1:24"},
-{form:"נעשה", root:"아사", meaning:["만들다","행하다"], gloss:"우리가 만들자", verse:"창 1:26"},
-{form:"ורדו", root:"라다", meaning:["다스리다"], gloss:"다스리라", verse:"창 1:26"},
-{form:"כבשה", root:"카바쉬", meaning:["정복하다"], gloss:"정복하라", verse:"창 1:28"},
-{form:"נתתי", root:"나탄", meaning:["주다"], gloss:"내가 주었다", verse:"창 1:29"},
-{form:"יהיה", root:"하야", meaning:["있다","되다"], gloss:"있을 것이다", verse:"창 1:30"}
+
+{
+root:["아마르"], meaning:["말하다"],
+forms:[
+{form:"אמר", gloss:"그가 말했다"},
+{form:"ויאמר", gloss:"그가 말했다"},
+{form:"יאמר", gloss:"그가 말할 것이다"},
+{form:"תאמר", gloss:"네가 말할 것이다"},
+{form:"אמרו", gloss:"그들이 말했다"}
+]
+},
+
+{
+root:["나탄"], meaning:["주다","두다"],
+forms:[
+{form:"נתן", gloss:"그가 주었다"},
+{form:"ויתן", gloss:"그가 주었다"},
+{form:"יתן", gloss:"그가 줄 것이다"},
+{form:"תתן", gloss:"네가 줄 것이다"},
+{form:"נתנו", gloss:"그들이 주었다"}
+]
+},
+
+{
+root:["라아"], meaning:["보다","살피다"],
+forms:[
+{form:"ראה", gloss:"그가 보았다"},
+{form:"וירא", gloss:"그가 보았다"},
+{form:"יראה", gloss:"그가 볼 것이다"},
+{form:"תראה", gloss:"네가 볼 것이다"},
+{form:"ראו", gloss:"그들이 보았다"}
+]
+},
+
+{
+root:["바라"], meaning:["창조하다"],
+forms:[
+{form:"ברא", gloss:"그가 창조했다"},
+{form:"ויברא", gloss:"그가 창조했다"},
+{form:"יברא", gloss:"그가 창조할 것이다"},
+{form:"תברא", gloss:"네가 창조할 것이다"},
+{form:"בראו", gloss:"그들이 창조했다"}
+]
+},
+
+{
+root:["아사"], meaning:["만들다","행하다"],
+forms:[
+{form:"עשה", gloss:"그가 만들었다"},
+{form:"ויעש", gloss:"그가 만들었다"},
+{form:"יעשה", gloss:"그가 만들 것이다"},
+{form:"תעשה", gloss:"네가 만들 것이다"},
+{form:"עשו", gloss:"그들이 만들었다"}
+]
+},
+
+{
+root:["하야"], meaning:["있다","되다"],
+forms:[
+{form:"היה", gloss:"그가 있었다"},
+{form:"ויהי", gloss:"그가 있었다"},
+{form:"יהיה", gloss:"그가 있을 것이다"},
+{form:"תהיה", gloss:"네가 있을 것이다"},
+{form:"היו", gloss:"그들이 있었다"}
+]
+},
+
+{
+root:["카라"], meaning:["부르다"],
+forms:[
+{form:"קרא", gloss:"그가 불렀다"},
+{form:"ויקרא", gloss:"그가 불렀다"},
+{form:"יקרא", gloss:"그가 부를 것이다"},
+{form:"תקרא", gloss:"네가 부를 것이다"},
+{form:"קראו", gloss:"그들이 불렀다"}
+]
+},
+
+{
+root:["바달"], meaning:["나누다","구별하다"],
+forms:[
+{form:"בדל", gloss:"그가 나누었다"},
+{form:"ויבדל", gloss:"그가 나누었다"},
+{form:"יבדל", gloss:"그가 나눌 것이다"},
+{form:"תבדל", gloss:"네가 나눌 것이다"},
+{form:"בדלו", gloss:"그들이 나누었다"}
+]
+},
+
+{
+root:["바라크"], meaning:["복주다","축복하다"],
+forms:[
+{form:"ברך", gloss:"그가 축복했다"},
+{form:"ויברך", gloss:"그가 축복했다"},
+{form:"יברך", gloss:"그가 축복할 것이다"},
+{form:"תברך", gloss:"네가 축복할 것이다"},
+{form:"ברכו", gloss:"그들이 축복했다"}
+]
+},
+
+{
+root:["차마흐"], meaning:["돋아나다","자라다"],
+forms:[
+{form:"צמח", gloss:"그가 자랐다"},
+{form:"ויצמח", gloss:"그가 자랐다"},
+{form:"יצמח", gloss:"그가 자랄 것이다"},
+{form:"תצמח", gloss:"네가 자랄 것이다"},
+{form:"צמחו", gloss:"그들이 자랐다"}
+]
+},
+
+{
+root:["말레"], meaning:["채우다","가득하다"],
+forms:[
+{form:"מלא", gloss:"그가 채웠다"},
+{form:"וימלא", gloss:"그가 채웠다"},
+{form:"ימלא", gloss:"그가 채울 것이다"},
+{form:"תמלא", gloss:"네가 채울 것이다"},
+{form:"מלאו", gloss:"그들이 채웠다"}
+]
+},
+
+{
+root:["카바쉬"], meaning:["정복하다"],
+forms:[
+{form:"כבש", gloss:"그가 정복했다"},
+{form:"ויכבש", gloss:"그가 정복했다"},
+{form:"יכבש", gloss:"그가 정복할 것이다"},
+{form:"תכבש", gloss:"네가 정복할 것이다"},
+{form:"כבשו", gloss:"그들이 정복했다"}
+]
+},
+
+{
+root:["라다"], meaning:["다스리다"],
+forms:[
+{form:"רדה", gloss:"그가 다스렸다"},
+{form:"וירד", gloss:"그가 다스렸다"},
+{form:"ירדה", gloss:"그가 다스릴 것이다"},
+{form:"תרדה", gloss:"네가 다스릴 것이다"},
+{form:"רדו", gloss:"그들이 다스렸다"}
+]
+},
+
+{
+root:["야차"], meaning:["나가다","나오다"],
+forms:[
+{form:"יצא", gloss:"그가 나갔다"},
+{form:"ויצא", gloss:"그가 나갔다"},
+{form:"יצא", gloss:"그가 나갈 것이다"},
+{form:"תצא", gloss:"네가 나갈 것이다"},
+{form:"יצאו", gloss:"그들이 나갔다"}
+]
+},
+
+{
+root:["카바"], meaning:["모이다","기다리다"],
+forms:[
+{form:"קוה", gloss:"그가 기다렸다"},
+{form:"ויקוו", gloss:"그들이 기다렸다"},
+{form:"יקוה", gloss:"그가 기다릴 것이다"},
+{form:"תקוה", gloss:"네가 기다릴 것이다"},
+{form:"קוו", gloss:"그들이 기다렸다"}
+]
+}
 
 ];
 
