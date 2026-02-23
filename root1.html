@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>창세기 1-2장 어근 정복 + 오답 노트 v14</title>
+<title>창세기 1-2장 히브리어 어근 정복 v18</title>
 <style>
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; padding: 20px; }
     #wordContainer { height: 220px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 20px; }
@@ -13,20 +13,15 @@
     #reviewBtn { background-color: #ff3d00; color: white; display: none; }
     #feedback { margin-top: 15px; font-size: 19px; min-height: 100px; line-height: 1.5; }
     .speaker { cursor: pointer; font-size: 35px; margin-left: 15px; display:none; vertical-align: middle; }
-    
-    /* 오답 리스트 스타일 */
     #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
     .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; cursor: pointer; direction: rtl; font-size: 20px; }
-
-    /* 정오답 표시 */
     .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 140px; border: 10px solid #00ff88; border-radius: 50%; pointer-events: none; opacity: 0.7; }
     .wrong::after { content: "✕"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3d00; font-size: 160px; font-weight: 900; pointer-events: none; opacity: 0.7; }
 </style>
 </head>
 <body>
 
-<h2>Genesis 1-2 Root & Review</h2>
-
+<h2>Genesis 1-2 Root Master</h2>
 <div id="modeIndicator" style="color: #ffeb3b; font-weight: bold;">[ 전체 학습 모드 ]</div>
 
 <div id="wordContainer">
@@ -52,97 +47,108 @@
 </div>
 
 <script>
-// 데이터 세트 (앞서 제공한 1-2장 통합 데이터)
 const allVerbs = [
-    // --- 창세기 1장 주요 어근 (샘플) ---
+    // --- 창세기 1장 데이터 ---
     {form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:1"},
-    {form:"אמר", root:"아마르", meaning:["말하다"], gloss:"그가 말했다", verse:"창 1:3"},
+    {form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다", verse:"창 1:3"},
+    {form:"יהי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라", verse:"창 1:3"},
+    {form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다", verse:"창 1:4"},
+    {form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다", verse:"창 1:4"},
+    {form:"ויקרא", root:"카라", meaning:["부르다","이름하다"], gloss:"그가 불렀다", verse:"창 1:5"},
+    {form:"ויעש", root:"아사", meaning:["만들다","행하다"], gloss:"그가 만들었다", verse:"창 1:7"},
+    {form:"ויתן", root:"나탄", meaning:["주다","두다"], gloss:"그가 두었다", verse:"창 1:17"},
+    {form:"ויברך", root:"바라크", meaning:["복주다","축복하다"], gloss:"그가 축복했다", verse:"창 1:22"},
+    {form:"פרו", root:"파라", meaning:["생육하다","번성하다"], gloss:"생육하라", verse:"창 1:22"},
+    {form:"רבו", root:"라바", meaning:["많아지다","번성하다"], gloss:"번성하라", verse:"창 1:22"},
+    {form:"כבשה", root:"카바쉬", meaning:["정복하다"], gloss:"정복하라", verse:"창 1:28"},
 
-    // --- 창세기 2장 핵심 어근 12개 & 각 5개 파생형 ---
-    
-    // 1. כלה (칼라 - 마치다, 완성하다)
+
+    // --- 창세기 2장 핵심 어근 12개 & 파생형 ---
+    // 1. 칼라 (완성하다)
     {form:"ויכלו", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 완성되었다", verse:"창 2:1"},
     {form:"ויכל", root:"칼라", meaning:["마치다","완성하다"], gloss:"그가 마치셨다", verse:"창 2:2"},
-    {form:"כלה", root:"칼라", meaning:["마치다","완성하다"], gloss:"그가 끝냈다", verse:"파생"},
-    {form:"לכלות", root:"칼라", meaning:["마치다","완성하다"], gloss:"마치기 위하여", verse:"파생"},
-    {form:"יכלו", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 마칠 것이다", verse:"파생"},
+    {form:"כלה", root:"칼라", meaning:["마치다"], gloss:"그가 끝냈다", verse:"파생"},
+    {form:"לכלות", root:"칼라", meaning:["마치다"], gloss:"마치기 위하여", verse:"파생"},
+    {form:"יכלו", root:"칼라", meaning:["마치다"], gloss:"그들이 마칠 것이다", verse:"파생"},
 
-    // 2. שבת (샤바트 - 쉬다, 그치다)
+    // 2. 샤바트 (쉬다)
     {form:"וישבת", root:"샤바트", meaning:["쉬다","그치다"], gloss:"그가 쉬셨다", verse:"창 2:2"},
-    {form:"שבת", root:"샤바트", meaning:["쉬다","그치다"], gloss:"그가 쉬었다", verse:"파생"},
-    {form:"שובת", root:"샤바트", meaning:["쉬다","그치다"], gloss:"쉬는 자", verse:"파생"},
-    {form:"לשבות", root:"샤바트", meaning:["쉬다","그치다"], gloss:"쉬는 것", verse:"파생"},
-    {form:"נשבות", root:"샤바트", meaning:["쉬다","그치다"], gloss:"우리가 쉴 것이다", verse:"파생"},
+    {form:"שבת", root:"샤바트", meaning:["쉬다"], gloss:"그가 쉬었다", verse:"파생"},
+    {form:"שובת", root:"샤바트", meaning:["쉬다"], gloss:"쉬는 자", verse:"파생"},
+    {form:"לשבות", root:"샤바트", meaning:["쉬다"], gloss:"쉬는 것", verse:"파생"},
+    {form:"נשבות", root:"샤바트", meaning:["쉬다"], gloss:"우리가 쉴 것이다", verse:"파생"},
 
-    // 3. קדש (카다쉬 - 거룩하다)
-    {form:"ויקדש", root:"카다쉬", meaning:["거룩하다","구별하다"], gloss:"그가 거룩하게 하셨다", verse:"창 2:3"},
+    // 3. 카다쉬 (거룩하다)
+    {form:"ויקדש", root:"카다쉬", meaning:["거룩하다"], gloss:"그가 거룩하게 하셨다", verse:"창 2:3"},
     {form:"קדש", root:"카다쉬", meaning:["거룩하다"], gloss:"거룩함", verse:"파생"},
-    {form:"성소", root:"카다쉬", meaning:["거룩하다"], gloss:"성소(미크다쉬)", verse:"파생"},
+    {form:"מקדש", root:"카다쉬", meaning:["거룩하다"], gloss:"성소", verse:"파생"},
     {form:"קדשו", root:"카다쉬", meaning:["거룩하다"], gloss:"그들이 거룩하게 했다", verse:"파생"},
     {form:"יקדש", root:"카다쉬", meaning:["거룩하다"], gloss:"그가 거룩하게 될 것이다", verse:"파생"},
 
-    // 4. צמח (차마흐 - 싹나다, 자라다)
-    {form:"יצמח", root:"차마흐", meaning:["싹나다","자라다"], gloss:"그것이 자랄 것이다", verse:"창 2:5"},
-    {form:"ויצמח", root:"차마흐", meaning:["싹나다","자라다"], gloss:"그가 자라게 하셨다", verse:"창 2:9"},
+    // 4. 차마흐 (싹나다)
+    {form:"יצמח", root:"차마흐", meaning:["싹나다"], gloss:"그것이 자랄 것이다", verse:"창 2:5"},
+    {form:"ויצמח", root:"차마흐", meaning:["싹나다"], gloss:"그가 자라게 하셨다", verse:"창 2:9"},
     {form:"צמח", root:"차마흐", meaning:["싹나다"], gloss:"싹(명사)", verse:"파생"},
     {form:"צמחה", root:"차마흐", meaning:["싹나다"], gloss:"그녀가 자랐다", verse:"파생"},
     {form:"מצמיח", root:"차마흐", meaning:["싹나다"], gloss:"자라게 하는 분", verse:"파생"},
 
-    // 5. 남았다 (야차르 - 빚다) *위 답변 중복 제외 구성
-    {form:"וייצר", root:"야차르", meaning:["빚다","형성하다"], gloss:"그가 빚으셨다", verse:"창 2:7"},
+    // 5. 야차르 (빚다)
+    {form:"וייצר", root:"야차르", meaning:["빚다"], gloss:"그가 빚으셨다", verse:"창 2:7"},
     {form:"נוצר", root:"야차르", meaning:["빚다"], gloss:"그가 형성되었다", verse:"파생"},
     {form:"יצרו", root:"야차르", meaning:["빚다"], gloss:"그들이 빚었다", verse:"파생"},
     {form:"יוצר", root:"야차르", meaning:["빚다"], gloss:"토기장이", verse:"파생"},
     {form:"תצר", root:"야차르", meaning:["빚다"], gloss:"네가 빚을 것이다", verse:"파생"},
 
-    // 6. נפח (나파흐 - 불다)
-    {form:"ויפח", root:"나파흐", meaning:["불다"], gloss:"그가 불어넣으셨다", verse:"창 2:7"},
-    {form:"נפח", root:"나파흐", meaning:["불다"], gloss:"그가 불었다", verse:"파생"},
-    {form:"לנפוח", root:"나파흐", meaning:["불다"], gloss:"부는 것", verse:"파생"},
-    {form:"מפוח", root:"나파흐", meaning:["불다"], gloss:"풀무", verse:"파생"},
-    {form:"תפח", root:"나파흐", meaning:["불다"], gloss:"그녀가 불 것이다", verse:"파생"},
 
-    // 7. נטע (나타 - 심다)
+    // 6. 나타 (심다)
     {form:"ויטע", root:"나타", meaning:["심다"], gloss:"그가 심으셨다", verse:"창 2:8"},
     {form:"נטע", root:"나타", meaning:["심다"], gloss:"그가 심었다", verse:"파생"},
     {form:"נטוע", root:"나타", meaning:["심다"], gloss:"심겨진", verse:"파생"},
     {form:"לנטוע", root:"나타", meaning:["심다"], gloss:"심기 위하여", verse:"파생"},
     {form:"יטעו", root:"나타", meaning:["심다"], gloss:"그들이 심을 것이다", verse:"파생"},
 
-    // 8. פرد (파라드 - 나누이다, 갈라지다)
-    {form:"יפר드", root:"파라드", meaning:["나누이다","갈라지다"], gloss:"그것이 갈라졌다", verse:"창 2:10"},
+    // 7. 파라드 (나누이다 / '드' 수정완료)
+    {form:"יפרד", root:"파라드", meaning:["나누이다"], gloss:"그것이 갈라졌다", verse:"창 2:10"},
     {form:"נפרדו", root:"파라드", meaning:["나누이다"], gloss:"그들이 나누어졌다", verse:"파생"},
-    {form:"הפרי드", root:"파라드", meaning:["나누이다"], gloss:"그가 분리시켰다", verse:"파생"},
-    {form:"파라드", root:"파라드", meaning:["나누이다"], gloss:"그가 나누었다", verse:"파생"},
-    {form:"מפרי드", root:"파라드", meaning:["나누이다"], gloss:"나누는 자", verse:"파생"},
+    {form:"הפריד", root:"파라드", meaning:["나누이다"], gloss:"그가 분리시켰다", verse:"파생"},
+    {form:"פרד", root:"파라드", meaning:["나누이다"], gloss:"그가 나누었다", verse:"파생"},
+    {form:"מפריד", root:"파라드", meaning:["나누이다"], gloss:"나누는 자", verse:"파생"},
 
-    // 9. 노다 (누아흐 - 안식하다, 두다)
-    {form:"וינחהו", root:"누아흐", meaning:["두다","안식하게하다"], gloss:"그를 그곳에 두셨다", verse:"창 2:15"},
-    {form:"הניח", root:"누아흐", meaning:["두다"], gloss:"그가 두었다(사역)", verse:"파생"},
-    {form:"יניח", root:"누아흐", meaning:["두다"], gloss:"그가 쉴 것이다", verse:"파생"},
-    {form:"노아", root:"누아흐", meaning:["두다"], gloss:"노아(안식)", verse:"파생"},
-    {form:"מנוחה", root:"누아흐", meaning:["두다"], gloss:"안식처", verse:"파생"},
+     // 8. 누아흐 (두다, 안식하다)
+    {form:"וינחהו", root:"누아흐", meaning:["두다"], gloss:"그를 그곳에 두셨다", verse:"창 2:15"},
+    {form:"הניח", root:"누아흐", meaning:["두다"], gloss:"그가 두었다", verse:"파생"},
+    {form:"יניח", root:"누아흐", meaning:["안식하다"], gloss:"그가 쉴 것이다", verse:"파생"},
+    {form:"נוח", root:"누아흐", meaning:["안식하다"], gloss:"노아(안식)", verse:"파생"},
+    {form:"מנוחה", root:"누아흐", meaning:["안식하다"], gloss:"안식처", verse:"파생"},
 
-    // 10. שמר (샤마르 - 지키다)
-    {form:"ולשמרה", root:"샤마르", meaning:["지키다","보존하다"], gloss:"그것을 지키게 하려", verse:"창 2:15"},
+
+    // 9. 샤마르 (지키다)
+    {form:"ולשמרה", root:"샤마르", meaning:["지키다"], gloss:"그것을 지키게 하려", verse:"창 2:15"},
     {form:"שמר", root:"샤마르", meaning:["지키다"], gloss:"그가 지켰다", verse:"파생"},
-    {form:"שומר", root:"샤마르", meaning:["지키다"], gloss:"파수꾼(지키는 자)", verse:"파생"},
-    {form:"נשמר", root:"샤마르", meaning:["지키다"], gloss:"주의하다(수동)", verse:"파생"},
+    {form:"שומר", root:"샤마르", meaning:["지키다"], gloss:"파수꾼", verse:"파생"},
+    {form:"נשמר", root:"샤마르", meaning:["지키다"], gloss:"주의하다", verse:"파생"},
     {form:"אשמור", root:"샤마르", meaning:["지키다"], gloss:"내가 지킬 것이다", verse:"파생"},
 
-    // 11. צוה (차와 - 명령하다)
+    // 10. 차와 (명령하다)
     {form:"ויצו", root:"차와", meaning:["명령하다"], gloss:"그가 명령하셨다", verse:"창 2:16"},
     {form:"צוה", root:"차와", meaning:["명령하다"], gloss:"그가 명령했다", verse:"파생"},
     {form:"מצוה", root:"차와", meaning:["명령하다"], gloss:"계명", verse:"파생"},
-    {form:"מצו게", root:"차와", meaning:["명령하다"], gloss:"명령받은 자", verse:"파생"},
-    {form:"명령", root:"차와", meaning:["명령하다"], gloss:"명령하기 위하여", verse:"파생"},
+    {form:"מצווה", root:"차와", meaning:["명령하다"], gloss:"명령받은 자", verse:"파생"},
+    {form:"לצוות", root:"차와", meaning:["명령하다"], gloss:"명령하기 위하여", verse:"파생"},
 
-    // 12. עזר (아자르 - 돕다)
-    {form:"עזר", root:"아자르", meaning:["돕다"], gloss:"돕는 배필(도움)", verse:"창 2:18"},
+    // 11. 아자르 (돕다)
+    {form:"עזר", root:"아자르", meaning:["돕다"], gloss:"돕는 배필", verse:"창 2:18"},
     {form:"עזרתי", root:"아자르", meaning:["돕다"], gloss:"내가 도왔다", verse:"파생"},
     {form:"יעזור", root:"아자르", meaning:["돕다"], gloss:"그가 도울 것이다", verse:"파생"},
     {form:"נעזר", root:"아자르", meaning:["돕다"], gloss:"도움을 받다", verse:"파생"},
-    {form:"עוזר", root:"아자르", meaning:["돕다"], gloss:"조력자", verse:"파생"}
+    {form:"עוזר", root:"아자르", meaning:["돕다"], gloss:"조력자", verse:"파생"},
+
+    // 12. 아자브 (떠나다)
+    {form:"יעז브", root:"아자브", meaning:["떠나다"], gloss:"그가 떠날 것이다", verse:"창 2:24"},
+    {form:"עזב", root:"아자브", meaning:["떠나다"], gloss:"그가 떠났다", verse:"파생"},
+    {form:"עזבו", root:"아자브", meaning:["떠나다"], gloss:"그들이 떠났다", verse:"파생"},
+    {form:"לעזוב", root:"아자브", meaning:["떠나다"], gloss:"떠나는 것", verse:"파생"},
+    {form:"נעזב", root:"아자브", meaning:["떠나다"], gloss:"버려지다", verse:"파생"}
 ];
 
 let currentVerbs = [...allVerbs];
@@ -155,7 +161,7 @@ function normalize(t){return t.trim().replace(/\s+/g,"");}
 
 function newQuestion(){
     if(currentVerbs.length === 0) {
-        feedback.innerHTML = isReviewMode ? "오답 노트를 모두 완료했습니다! 전체 모드로 돌아갑니다." : "모든 문제를 풀었습니다!";
+        feedback.innerHTML = isReviewMode ? "오답 복습 완료!" : "학습 완료!";
         if(isReviewMode) endReviewMode();
         return;
     }
@@ -172,13 +178,8 @@ function checkAnswer(){
     const isCorrect = rootOk && meaningOk;
 
     canvas.className = isCorrect ? "correct" : "wrong";
-    
-    if(!isCorrect) {
-        addWrongList(current);
-    } else if (isReviewMode) {
-        // 복습 모드에서 맞추면 해당 리스트에서 제거
-        currentVerbs = currentVerbs.filter(v => v.form !== current.form);
-    }
+    if(!isCorrect) { addWrongList(current); } 
+    else if (isReviewMode) { currentVerbs = currentVerbs.filter(v => v.form !== current.form); }
 
     feedback.innerHTML = `<b style="color:${isCorrect?'#00ff88':'#ff3d00'}">${isCorrect?'정답!':'오답!'}</b><br>어근: ${current.root} (${current.meaning.join(", ")})<br>뜻: ${current.gloss}`;
     speakerBtn.style.display="inline";
@@ -205,18 +206,14 @@ function updateWrongDisplay() {
 
 function startReviewMode() {
     if(wrongAnswers.length === 0) return;
-    isReviewMode = true;
-    currentVerbs = [...wrongAnswers];
-    modeInd.innerText = "[ 오답 복습 모드 ]";
-    modeInd.style.color = "#ff3d00";
+    isReviewMode = true; currentVerbs = [...wrongAnswers];
+    modeInd.innerText = "[ 오답 복습 모드 ]"; modeInd.style.color = "#ff3d00";
     newQuestion();
 }
 
 function endReviewMode() {
-    isReviewMode = false;
-    currentVerbs = [...allVerbs];
-    modeInd.innerText = "[ 전체 학습 모드 ]";
-    modeInd.style.color = "#ffeb3b";
+    isReviewMode = false; currentVerbs = [...allVerbs];
+    modeInd.innerText = "[ 전체 학습 모드 ]"; modeInd.style.color = "#ffeb3b";
     newQuestion();
 }
 
