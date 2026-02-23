@@ -2,24 +2,32 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>창세기 1-2장 히브리어 어근 정복 v13</title>
+<title>창세기 1-2장 어근 정복 + 오답 노트 v14</title>
 <style>
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-    #wordContainer { height: 250px; display: flex; justify-content: center; align-items: center; position: relative; }
-    #wordCanvas { font-size: 100px; direction: rtl; font-weight: bold; }
-    .input-area { margin: 20px 0; }
-    input { padding: 15px; font-size: 20px; width: 350px; border-radius: 10px; border: none; text-align: center; }
-    button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; }
-    #checkBtn { background-color: #00d4ff; }
-    #feedback { margin-top: 15px; font-size: 20px; min-height: 110px; line-height: 1.6; }
-    .speaker { cursor: pointer; font-size: 40px; margin-left: 15px; display:none; vertical-align: middle; }
-    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; border: 12px solid #FF3D00; border-radius: 50%; pointer-events: none; opacity: 0.8; }
-    .wrong::after { content: "✕"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #FF3D00; font-size: 180px; font-weight: 900; pointer-events: none; opacity: 0.8; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; padding: 20px; }
+    #wordContainer { height: 220px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 20px; }
+    #wordCanvas { font-size: 90px; direction: rtl; font-weight: bold; }
+    input { padding: 15px; font-size: 18px; width: 320px; border-radius: 10px; border: none; text-align: center; }
+    button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    #checkBtn { background-color: #00d4ff; color: #00334e; }
+    #reviewBtn { background-color: #ff3d00; color: white; display: none; }
+    #feedback { margin-top: 15px; font-size: 19px; min-height: 100px; line-height: 1.5; }
+    .speaker { cursor: pointer; font-size: 35px; margin-left: 15px; display:none; vertical-align: middle; }
+    
+    /* 오답 리스트 스타일 */
+    #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; cursor: pointer; direction: rtl; font-size: 20px; }
+
+    /* 정오답 표시 */
+    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 140px; border: 10px solid #00ff88; border-radius: 50%; pointer-events: none; opacity: 0.7; }
+    .wrong::after { content: "✕"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3d00; font-size: 160px; font-weight: 900; pointer-events: none; opacity: 0.7; }
 </style>
 </head>
 <body>
 
-<h2>Genesis 1-2 Root Master</h2>
+<h2>Genesis 1-2 Root & Review</h2>
+
+<div id="modeIndicator" style="color: #ffeb3b; font-weight: bold;">[ 전체 학습 모드 ]</div>
 
 <div id="wordContainer">
     <div>
@@ -28,15 +36,24 @@
     </div>
 </div>
 
-<div class="input-area">
+<div>
     <input type="text" id="answerInput" placeholder="어근명 뜻 (예: 바라 창조하다)" autocomplete="off">
     <button id="checkBtn" onclick="checkAnswer()">확인</button>
 </div>
 
 <div id="feedback"></div>
 
+<div id="wrongListContainer">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">❌ 오답 리스트</h3>
+        <button id="reviewBtn" onclick="startReviewMode()">오답만 연습하기</button>
+    </div>
+    <div id="wrongItems" style="margin-top: 10px;">틀린 단어가 여기에 표시됩니다.</div>
+</div>
+
 <script>
-const verbs = [
+// 데이터 세트 (앞서 제공한 1-2장 통합 데이터)
+const allVerbs = [
     // --- 창세기 1장 주요 어근 (샘플) ---
     {form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다", verse:"창 1:1"},
     {form:"אמר", root:"아마르", meaning:["말하다"], gloss:"그가 말했다", verse:"창 1:3"},
@@ -89,7 +106,7 @@ const verbs = [
     {form:"ויטע", root:"나타", meaning:["심다"], gloss:"그가 심으셨다", verse:"창 2:8"},
     {form:"נטע", root:"나타", meaning:["심다"], gloss:"그가 심었다", verse:"파생"},
     {form:"נטוע", root:"나타", meaning:["심다"], gloss:"심겨진", verse:"파생"},
-    {form:"임다", root:"나타", meaning:["심다"], gloss:"심기 위하여", verse:"파생"},
+    {form:"לנטוע", root:"나타", meaning:["심다"], gloss:"심기 위하여", verse:"파생"},
     {form:"יטעו", root:"나타", meaning:["심다"], gloss:"그들이 심을 것이다", verse:"파생"},
 
     // 8. פرد (파라드 - 나누이다, 갈라지다)
@@ -128,36 +145,86 @@ const verbs = [
     {form:"עוזר", root:"아자르", meaning:["돕다"], gloss:"조력자", verse:"파생"}
 ];
 
-let current, timer=null, paused=false;
-const canvas=document.getElementById("wordCanvas"), input=document.getElementById("answerInput"), feedback=document.getElementById("feedback"), speakerBtn=document.getElementById("speakerBtn");
+let currentVerbs = [...allVerbs];
+let wrongAnswers = [];
+let current, timer=null, isReviewMode = false;
+
+const canvas=document.getElementById("wordCanvas"), input=document.getElementById("answerInput"), feedback=document.getElementById("feedback"), speakerBtn=document.getElementById("speakerBtn"), wrongItemsDiv=document.getElementById("wrongItems"), reviewBtn=document.getElementById("reviewBtn"), modeInd=document.getElementById("modeIndicator");
 
 function normalize(t){return t.trim().replace(/\s+/g,"");}
+
 function newQuestion(){
+    if(currentVerbs.length === 0) {
+        feedback.innerHTML = isReviewMode ? "오답 노트를 모두 완료했습니다! 전체 모드로 돌아갑니다." : "모든 문제를 풀었습니다!";
+        if(isReviewMode) endReviewMode();
+        return;
+    }
     speakerBtn.style.display="none"; canvas.className = "";
-    current=verbs[Math.floor(Math.random()*verbs.length)];
+    current=currentVerbs[Math.floor(Math.random()*currentVerbs.length)];
     canvas.innerText=current.form; feedback.innerHTML=""; input.value=""; input.focus();
 }
-function parseInput(t){
-    const p=t.trim().split(/\s+/);
-    return {root:p[0]||"", meaning:p.slice(1).join("")};
-}
+
 function checkAnswer(){
     if(timer) clearTimeout(timer);
-    const parsed=parseInput(input.value);
-    const rootOk=normalize(parsed.root)==normalize(current.root);
-    const meaningOk=current.meaning.some(m=>normalize(m)==normalize(parsed.meaning));
+    const p = input.value.trim().split(/\s+/);
+    const rootOk = normalize(p[0]||"") == normalize(current.root);
+    const meaningOk = current.meaning.some(m => normalize(m) == normalize(p.slice(1).join("")));
     const isCorrect = rootOk && meaningOk;
-    canvas.className=isCorrect?"correct":"wrong";
-    feedback.innerHTML=`<b style="color:${isCorrect?'#00ff88':'#ff4b2b'}">${isCorrect?'정답!':'오답!'}</b><br>어근: ${current.root} (${current.meaning.join(", ")})<br>해설: ${current.gloss}<br>출처: ${current.verse}`;
+
+    canvas.className = isCorrect ? "correct" : "wrong";
+    
+    if(!isCorrect) {
+        addWrongList(current);
+    } else if (isReviewMode) {
+        // 복습 모드에서 맞추면 해당 리스트에서 제거
+        currentVerbs = currentVerbs.filter(v => v.form !== current.form);
+    }
+
+    feedback.innerHTML = `<b style="color:${isCorrect?'#00ff88':'#ff3d00'}">${isCorrect?'정답!':'오답!'}</b><br>어근: ${current.root} (${current.meaning.join(", ")})<br>뜻: ${current.gloss}`;
     speakerBtn.style.display="inline";
     playTTS(current.form);
-    timer=setTimeout(newQuestion, isCorrect?4000:7000);
+    timer = setTimeout(newQuestion, isCorrect?3000:6000);
 }
+
+function addWrongList(item) {
+    if(!wrongAnswers.find(v => v.form === item.form)) {
+        wrongAnswers.push(item);
+        updateWrongDisplay();
+    }
+}
+
+function updateWrongDisplay() {
+    if(wrongAnswers.length === 0) {
+        wrongItemsDiv.innerText = "틀린 단어가 여기에 표시됩니다.";
+        reviewBtn.style.display = "none";
+    } else {
+        wrongItemsDiv.innerHTML = wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
+        reviewBtn.style.display = "inline-block";
+    }
+}
+
+function startReviewMode() {
+    if(wrongAnswers.length === 0) return;
+    isReviewMode = true;
+    currentVerbs = [...wrongAnswers];
+    modeInd.innerText = "[ 오답 복습 모드 ]";
+    modeInd.style.color = "#ff3d00";
+    newQuestion();
+}
+
+function endReviewMode() {
+    isReviewMode = false;
+    currentVerbs = [...allVerbs];
+    modeInd.innerText = "[ 전체 학습 모드 ]";
+    modeInd.style.color = "#ffeb3b";
+    newQuestion();
+}
+
 function playTTS(text){
-    fetch("https://translate.googleapis.com"+encodeURIComponent(text)+"&tl=he&client=tw-ob")
-    .then(r=>r.blob()).then(b=>{ new Audio(URL.createObjectURL(b)).play(); })
-    .catch(()=>{ const u=new SpeechSynthesisUtterance(text); u.lang="he-IL"; speechSynthesis.speak(u); });
+    const url = "https://translate.googleapis.com"+encodeURIComponent(text)+"&tl=he&client=tw-ob";
+    new Audio(url).play().catch(()=>{});
 }
+
 input.addEventListener("keypress",e=>{if(e.key==="Enter")checkAnswer();});
 newQuestion();
 </script>
