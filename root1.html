@@ -236,6 +236,10 @@ function checkAnswer() {
         input.value = ""; input.focus();
         feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
         
+        // ✨ 핵심 수정: 틀려도 다시 10초를 줍니다! 
+        // 뇌를 진정시키고 다시 입력하세요.
+        startCountdown(); 
+
         if(failCount >= 3 && score >= 5) hintBtn.style.display = "inline-block";
         if(!wrongAnswers.find(w => w.form === current.form)) wrongAnswers.push(current);
         updateStatus();
