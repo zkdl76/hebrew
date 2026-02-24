@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Genesis Root Master: Hardcore</title>
+<title>Genesis Root Master: Hardcore v5.0</title>
 <style>
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a0a0a, #301934); color: white; text-align: center; min-height: 100vh; padding: 20px; }
     #statusBoard { display: flex; justify-content: space-around; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ff3d00; font-weight: bold; }
@@ -14,12 +14,11 @@
     button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     #checkBtn { background-color: #ff3d00; color: white; }
     #hintBtn { background-color: #ffeb3b; color: #333; display: none; }
-    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; animation: pulse 1.5s infinite; }
+    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; font-weight: 900; }
     #feedback { margin-top: 15px; font-size: 19px; min-height: 80px; line-height: 1.5; }
     .hint-box { color: #ffeb3b; font-size: 18px; margin-top: 10px; padding: 10px; border: 1px dashed #ffeb3b; border-radius: 10px; }
     #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
     .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; direction: rtl; font-size: 18px; }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 10px solid #00ff88; border-radius: 50%; opacity: 0.7; }
 </style>
 </head>
@@ -36,7 +35,7 @@
 <select id="chapterSelect" onchange="changeChapter()"></select>
 
 <div id="wordContainer">
-    <span id="wordCanvas">START!</span>
+    <span id="wordCanvas"></span>
 </div>
 
 <div>
@@ -46,7 +45,7 @@
 </div>
 
 <div id="feedback"></div>
-<button id="nextLevelBtn" onclick="levelUp()">🔥 NEXT STAGE 🔥</button>
+<button id="nextLevelBtn" onclick="levelUp()">🔓 NEXT STAGE UNLOCKED 🔓</button>
 
 <div id="wrongListContainer">
     <h3 style="margin: 0;">💀 오답 보관소 (클리어 필수)</h3>
@@ -57,7 +56,7 @@
 const bibleData = {
     1: [
         {form:"בָּרָא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
-        {form:"וַיֹּאמֶר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
+        {form:"וַיֹּ아מֶר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
         {form:"יְהִי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
         {form:"וַיַּרְא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
         {form:"וַיַּבְדֵּל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
@@ -70,7 +69,7 @@ const bibleData = {
 };
 
 let currentChapter = 1, currentVerbs = [], wrongAnswers = [], current = null;
-let score = 10, failCount = 0, timer = null, eventMultiplier = 1;
+let score = 10, failCount = 0, timer = null, unlockedStages = [1];
 
 const canvas = document.getElementById("wordCanvas"), input = document.getElementById("answerInput"), 
       feedback = document.getElementById("feedback"), scoreDisp = document.getElementById("scoreDisplay"),
@@ -80,8 +79,16 @@ const canvas = document.getElementById("wordCanvas"), input = document.getElemen
       eventInd = document.getElementById("eventIndicator");
 
 function init() {
-    chSelect.innerHTML = Object.keys(bibleData).map(ch => `<option value="${ch}">GENESIS ${ch}</option>`).join("");
-    loadChapter(1);
+    updateDropdown();
+    loadChapter(1); // 스타트 문구 없이 바로 시작
+}
+
+function updateDropdown() {
+    chSelect.innerHTML = Object.keys(bibleData).map(ch => {
+        const isLocked = !unlockedStages.includes(parseInt(ch));
+        return `<option value="${ch}" ${isLocked ? 'disabled' : ''}>${isLocked ? '🔒' : '📖'} GENESIS ${ch}</option>`;
+    }).join("");
+    chSelect.value = currentChapter;
 }
 
 function loadChapter(ch) {
@@ -104,47 +111,53 @@ function updateStatus() {
         wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
 }
 
-
-
-function updateScore(amount) {
-    score += amount;
-    scoreDisp.innerText = score; // 즉시 반영
-    
-    if (score < 0) {
-        gameOver(); // 0점 미만이면 가차 없이 종료
-    }
-}
-
 function newQuestion() {
-    // ... (리스트 체크 로직 동일)
-    
+    if(currentVerbs.length === 0 && wrongAnswers.length === 0) {
+        canvas.innerText = "CLEAR!";
+        const next = currentChapter + 1;
+        if(bibleData[next] && !unlockedStages.includes(next)) {
+            unlockedStages.push(next);
+            updateDropdown();
+        }
+        nextBtn.style.display = "block";
+        return;
+    }
     canvas.className = "";
     hintBtn.style.display = "none";
     failCount = 0;
     
-    // ✨ 수정: 점수가 0점일 때는 행운의 이벤트 발생 안 함!
+    // 점수가 있을 때만 이벤트 발생
     const rand = Math.random();
     if(score > 0 && rand < 0.2) {
-        eventMultiplier = 2;
         eventInd.innerText = "⭐ 더블 포인트 찬스! (+20P)";
         eventInd.style.color = "#00ff88";
     } else if(score > 0 && rand < 0.3) {
-        eventMultiplier = 2;
         eventInd.innerText = "⚠️ 데인저 모드! 감점 2배";
         eventInd.style.color = "#ff3d00";
     } else {
-        eventMultiplier = 1;
         eventInd.innerText = "";
     }
-    // ... (이후 동일)
+
+    let source = wrongAnswers.length > 0 ? (Math.random() < 0.3 ? wrongAnswers : currentVerbs) : currentVerbs;
+    if(source.length === 0) source = currentVerbs.length > 0 ? currentVerbs : wrongAnswers;
+    
+    current = source[Math.floor(Math.random() * source.length)];
+    canvas.innerText = current.form;
+    feedback.innerHTML = ""; input.value = ""; input.focus();
 }
 
+function updateScore(amount) {
+    score += amount;
+    scoreDisp.innerText = score;
+    if (score < 0) gameOver();
+}
 
 function gameOver() {
-    alert("💀 GAME OVER! 점수가 0미만이 되었습니다.\n모든 기록이 소멸되며 STAGE 1로 추방됩니다.");
+    alert("💀 GAME OVER! 점수가 소멸되었습니다. STAGE 1로 추방됩니다.");
     score = 10;
     currentChapter = 1;
-    chSelect.value = 1;
+    unlockedStages = [1];
+    updateDropdown();
     loadChapter(1);
 }
 
@@ -156,7 +169,7 @@ function checkAnswer() {
 
     if(isCorrect) {
         canvas.className = "correct";
-        const earn = 10 * (eventInd.innerText.includes("찬스") ? 2 : 1);
+        const earn = eventInd.innerText.includes("찬스") ? 20 : 10;
         updateScore(earn);
         feedback.innerHTML = `<b style="color:#00ff88">+${earn}P SUCCESS!</b><br>어근: ${current.root}`;
         
@@ -166,39 +179,27 @@ function checkAnswer() {
         timer = setTimeout(newQuestion, 2000);
     } else {
         failCount++;
-        const loss = -2 * (eventInd.innerText.includes("위기") ? 2 : 1);
+        const loss = eventInd.innerText.includes("데인저") ? -4 : -2;
         updateScore(loss);
-        if(score < 0) return; // 이미 게임오버면 중단
+        if(score < 0) return;
 
         input.value = ""; input.focus();
+        feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
         
-        // 💡 수정된 부분: 3회 오답 시 '돈'이 있을 때만 힌트 버튼 노출!
-        if(failCount >= 3) {
-            if(score >= 5) {
-                hintBtn.style.display = "inline-block";
-                feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!<br>힌트를 살 수 있습니다!`;
-            } else {
-                hintBtn.style.display = "none";
-                feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!<br><span style="color:#aaa; font-size:14px;">(힌트를 사기엔 점수가 부족합니다... 거지라니! 😭)</span>`;
-            }
-        } else {
-            feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
-        }
+        // 3회 오답 시 잔고 확인 후 힌트 버튼 노출
+        if(failCount >= 3 && score >= 5) hintBtn.style.display = "inline-block";
         
-        // 5회 틀리면 정답 공개
         if(failCount >= 5) {
-            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료! 정답: [${current.root} ${current.meaning}]</b>`;
+            feedback.innerHTML = `<b style="color:#ffeb3b">TIMEOUT! 정답: [${current.root} ${current.meaning[0]}]</b>`;
             timer = setTimeout(newQuestion, 4000);
         }
-        addWrong(current);
+        if(!wrongAnswers.find(w => w.form === current.form)) wrongAnswers.push(current);
         updateStatus();
     }
 }
 
-function addWrong(v) { if(!wrongAnswers.find(w => w.form === v.form)) wrongAnswers.push(v); }
-
 function buyHint() {
-    if(score < 5) { feedback.innerHTML = "점수 부족! (5P 필요)"; return; }
+    if(score < 5) return;
     updateScore(-5);
     const r = current.root.split("");
     const rIdx = Math.floor(Math.random() * r.length);
@@ -207,21 +208,17 @@ function buyHint() {
     
     feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 완료 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
     hintBtn.style.display = "none";
-
-    // ✨ 바로 이 코드입니다! 힌트 구매 후 입력창으로 커서 자동 이동
-    input.focus();     
+    input.focus(); // 힌트 구매 후 즉시 입력창 커서 이동
 }
 
 function levelUp() {
     const next = currentChapter + 1;
-    if(bibleData[next]) { chSelect.value = next; loadChapter(next); }
-    else { alert("데이터가 더 없습니다!"); }
+    if(bibleData[next]) loadChapter(next);
 }
 
-function normalize(t){return t.trim().replace(/\s+/g,"");}
+function normalize(t){return t?t.trim().replace(/\s+/g,""):"";}
 input.addEventListener("keypress", e => { if(e.key==="Enter") checkAnswer(); });
 init();
 </script>
-
 </body>
 </html>
