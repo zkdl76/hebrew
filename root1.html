@@ -126,6 +126,22 @@ function newQuestion(){
     input.focus();
 }
 
+// 3회 오답 시 실행되는 힌트 생성 함수
+function getDynamicHint(root, meaning) {
+    // 1. 어근 힌트: 3글자 중 하나만 랜덤으로 보여주기 (예: '아마르' -> '_마_')
+    const rootArr = root.split(""); // ['아', '마', '르']
+    const randomIndex = Math.floor(Math.random() * rootArr.length);
+    const hintRoot = rootArr.map((char, idx) => (idx === randomIndex ? char : "ㅇ")).join("");
+    
+    // 2. 뜻 힌트: 첫 글자만 보여주기
+    const hintMean = meaning[0].charAt(0) + "ㅇㅇ"; 
+
+    return `💡 힌트: 어근 [${hintRoot}] & 뜻 [${hintMean}]`;
+}
+
+    
+    
+    
 function checkAnswer(){
     if(timer) clearTimeout(timer);
     const p = input.value.trim().split(/\s+/);
@@ -137,10 +153,7 @@ function checkAnswer(){
         canvas.className = "correct";
         feedback.innerHTML = `<b style="color:#00ff88">정답!</b><br>어근: ${current.root}<br>의미: ${current.meaning.join(", ")}`;
         
-        // 1. 전체 목록에서 제거 (이미 완료한 단어)
         currentVerbs = currentVerbs.filter(v => v.form !== current.form);
-        
-        // 2. ✨ 핵심 수정: 정답을 맞히면 오답 리스트에서도 즉시 제거!
         wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
         updateWrongDisplay(); 
 
@@ -150,7 +163,6 @@ function checkAnswer(){
         failCount++;
         addWrongList(current);
         
-        // 틀렸을 때 입력창 비우고 커서 고정
         input.value = ""; 
         input.focus();
 
@@ -158,12 +170,15 @@ function checkAnswer(){
             feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료!</b><br>정답은 <b style="color:#00d4ff">${current.root} ${current.meaning[0]}</b> 입니다.<br>잠시 후 다음 문제로 넘어갑니다.`;
             timer = setTimeout(newQuestion, 4000); 
         } else if(failCount === 3) {
-            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">💡 힌트: '${current.root[0]}...' '${current.meaning[0][0]}...'</div>`;
+            // ✨ 랜덤 힌트 적용 부분
+            const hintMsg = getDynamicHint(current.root, current.meaning);
+            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">${hintMsg}</div>`;
         } else {
             feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b><br>다시 시도해보세요!`;
         }
     }
 }
+
 
 
 
@@ -192,6 +207,8 @@ function startReviewMode() {
     modeInd.style.color = "#ff3d00";
     newQuestion();
 }
+
+    
 
 input.addEventListener("keypress", e => { if(e.key==="Enter") checkAnswer(); });
 init();
