@@ -2,25 +2,25 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Genesis Root Master: Countdown v6.0</title>
+<title>Genesis Root Master: Hardcore v6.5</title>
 <style>
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a0a0a, #301934); color: white; text-align: center; min-height: 100vh; padding: 20px; overflow: hidden; }
     #statusBoard { display: flex; justify-content: space-around; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ff3d00; font-weight: bold; }
-    #timerContainer { font-size: 40px; font-weight: 900; margin-bottom: 10px; height: 50px; text-shadow: 0 0 10px rgba(255,61,0,0.5); }
-    #eventIndicator { font-size: 20px; height: 30px; margin-bottom: 10px; font-weight: bold; }
-    #wordContainer { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 10px; }
-    #wordCanvas { font-size: 85px; direction: rtl; font-weight: bold; }
+    #timerContainer { font-size: 35px; font-weight: 900; margin-bottom: 5px; height: 45px; text-shadow: 0 0 10px rgba(255,61,0,0.5); }
+    #eventIndicator { font-size: 22px; height: 35px; margin-bottom: 10px; font-weight: bold; transition: 0.3s; min-height: 35px; }
+    #wordContainer { height: 160px; display: flex; justify-content: center; align-items: center; position: relative; }
+    #wordCanvas { font-size: 85px; direction: rtl; font-weight: bold; text-shadow: 0 0 15px rgba(255,255,255,0.3); }
     select { padding: 10px; font-size: 16px; border-radius: 8px; background: #2c003e; color: white; border: 1px solid #ff3d00; margin-bottom: 10px; }
     input { padding: 15px; font-size: 18px; width: 300px; border-radius: 10px; border: none; text-align: center; background: #eee; }
     button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     #checkBtn { background-color: #ff3d00; color: white; }
     #hintBtn { background-color: #ffeb3b; color: #333; display: none; }
-    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; font-weight: 900; }
+    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; font-weight: 900; box-shadow: 0 0 20px #00ff88; }
     #feedback { margin-top: 15px; font-size: 19px; min-height: 80px; line-height: 1.5; }
     .hint-box { color: #ffeb3b; font-size: 18px; margin-top: 10px; padding: 10px; border: 1px dashed #ffeb3b; border-radius: 10px; }
-    #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+    #wrongListContainer { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
     .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; direction: rtl; font-size: 18px; }
-    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 10px solid #00ff88; border-radius: 50%; opacity: 0.7; }
+    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 10px solid #00ff88; border-radius: 50%; opacity: 0.7; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -57,22 +57,21 @@
 <script>
 const bibleData = {
     1: [
-        {form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
-        {form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
-        {form:"יהי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
-        {form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
-        {form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
+        {form:"בָּרָא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
+        {form:"וַיֹּאמֶר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
+        {form:"יְהִי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
+        {form:"וַיַּרְא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
+        {form:"וַיַּבְדֵּל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
     ],
     2: [
-        {form:"ויכלו", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 마쳐졌다"},
-        {form:"וישבת", root:"샤바트", meaning:["안식하다","쉬다"], gloss:"그가 쉬셨다"},
-        {form:"וייצר", root:"야차르", meaning:["지으시다","빚다"], gloss:"그가 빚으셨다"}
+        {form:"וַיְכֻלּוּ", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 마쳐졌다"},
+        {form:"וַיִּשְׁבֹּת", root:"샤바트", meaning:["안식하다","쉬다"], gloss:"그가 쉬셨다"},
+        {form:"וַיִּיצֶר", root:"야차르", meaning:["지으시다","빚다"], gloss:"그가 빚으셨다"}
     ]
 };
 
 let currentChapter = 1, currentVerbs = [], wrongAnswers = [], current = null;
-let score = 10, failCount = 0, nextBtnTimer = null, countTimer = null;
-let timeLeft = 10, unlockedStages =;
+let score = 10, failCount = 0, countTimer = null, timeLeft = 10, unlockedStages = [1];
 
 const canvas = document.getElementById("wordCanvas"), input = document.getElementById("answerInput"), 
       feedback = document.getElementById("feedback"), scoreDisp = document.getElementById("scoreDisplay"),
@@ -132,8 +131,9 @@ function startCountdown() {
 }
 
 function handleTimeout() {
+    eventInd.innerText = ""; // 이벤트 초기화
     updateScore(-2);
-    feedback.innerHTML = `<b style="color:#ff3d00">TIME OVER!</b> -2P 감점!<br>정답은 [${current.root} ${current.meaning}]`;
+    feedback.innerHTML = `<b style="color:#ff3d00">TIME OVER!</b> -2P 감점!<br>정답: [${current.root} ${current.meaning[0]}]`;
     if(!wrongAnswers.find(w => w.form === current.form)) wrongAnswers.push(current);
     updateStatus();
     setTimeout(newQuestion, 3000);
@@ -155,10 +155,14 @@ function newQuestion() {
     hintBtn.style.display = "none";
     failCount = 0;
     
+    // 이벤트 발생 로직
     const rand = Math.random();
     if(score > 0 && rand < 0.25) {
         eventInd.innerText = "⭐ 더블 포인트 찬스! (+20P)";
         eventInd.style.color = "#00ff88";
+    } else if(score > 0 && rand < 0.35) {
+        eventInd.innerText = "⚠️ 데인저 모드! 감점 2배";
+        eventInd.style.color = "#ff3d00";
     } else {
         eventInd.innerText = "";
     }
@@ -180,27 +184,30 @@ function updateScore(amount) {
 
 function gameOver() {
     if(countTimer) clearInterval(countTimer);
-    alert("💀 GAME OVER! 시간 초과 및 오답으로 점수가 소멸되었습니다.");
+    alert("💀 GAME OVER! 점수가 소멸되었습니다. STAGE 1로 추방됩니다.");
     score = 10;
     currentChapter = 1;
-    unlockedStages =;
+    unlockedStages = [1];
     updateDropdown();
     loadChapter(1);
 }
 
 function checkAnswer() {
     const p = input.value.trim().split(/\s+/);
-    const isCorrect = (normalize(p||"") == normalize(current.root)) && 
+    const isCorrect = (normalize(p[0]||"") == normalize(current.root)) && 
                       current.meaning.some(m => normalize(m) == normalize(p.slice(1).join("")));
+
+    // 이벤트 상태 즉시 저장 후 초기화
+    const currentEvent = eventInd.innerText;
+    eventInd.innerText = ""; 
 
     if(isCorrect) {
         if(countTimer) clearInterval(countTimer);
         canvas.className = "correct";
         
-        let earn = eventInd.innerText.includes("찬스") ? 20 : 10;
+        let earn = currentEvent.includes("찬스") ? 20 : 10;
         let bonusMsg = "";
         
-        // ✨ 3초 보너스 로직
         if(timeLeft >= 7) { 
             earn *= 2; 
             bonusMsg = " ⚡번개 보너스(x2)⚡"; 
@@ -215,9 +222,13 @@ function checkAnswer() {
         setTimeout(newQuestion, 2000);
     } else {
         failCount++;
-        updateScore(-2);
+        const loss = currentEvent.includes("데인저") ? -4 : -2;
+        updateScore(loss);
+        if(score < 0) return;
+
         input.value = ""; input.focus();
-        feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> -2P 감점!`;
+        feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
+        
         if(failCount >= 3 && score >= 5) hintBtn.style.display = "inline-block";
         if(!wrongAnswers.find(w => w.form === current.form)) wrongAnswers.push(current);
         updateStatus();
@@ -230,8 +241,8 @@ function buyHint() {
     const r = current.root.split("");
     const rIdx = Math.floor(Math.random() * r.length);
     const hintRoot = r.map((c, i) => i === rIdx ? c : "ㅇ").join("");
-    const hintMean = current.meaning.charAt(0) + "ㅇㅇ";
-    feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
+    const hintMean = current.meaning[0].charAt(0) + "ㅇㅇ";
+    feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 완료 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
     hintBtn.style.display = "none";
     input.focus();
 }
