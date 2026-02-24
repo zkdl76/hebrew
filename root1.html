@@ -137,36 +137,34 @@ function checkAnswer(){
         canvas.className = "correct";
         feedback.innerHTML = `<b style="color:#00ff88">정답!</b><br>어근: ${current.root}<br>의미: ${current.meaning.join(", ")}`;
         
+        // 1. 전체 목록에서 제거 (이미 완료한 단어)
         currentVerbs = currentVerbs.filter(v => v.form !== current.form);
-        if(isReviewMode) {
-            wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
-            updateWrongDisplay();
-        }
+        
+        // 2. ✨ 핵심 수정: 정답을 맞히면 오답 리스트에서도 즉시 제거!
+        wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
+        updateWrongDisplay(); 
+
         timer = setTimeout(newQuestion, 2000);
     } else {
         canvas.className = "wrong";
         failCount++;
         addWrongList(current);
-
-        // --- 여기 두 줄을 추가하세요! ---
-        input.value = "";   // 입력칸 비우기
-        input.focus();      // 커서 다시 가져오기
-        // ----------------------------
         
+        // 틀렸을 때 입력창 비우고 커서 고정
+        input.value = ""; 
+        input.focus();
+
         if(failCount >= 4) {
-            // 4번째 틀리면 정답 공개 후 강제 이동
             feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료!</b><br>정답은 <b style="color:#00d4ff">${current.root} ${current.meaning[0]}</b> 입니다.<br>잠시 후 다음 문제로 넘어갑니다.`;
-            timer = setTimeout(newQuestion, 4000); //오답 후 보여주는 시간
+            timer = setTimeout(newQuestion, 4000); 
         } else if(failCount === 3) {
-            // 3번째 틀리면 힌트 제공
-            let hintRoot = current.root.charAt(0);
-            let hintMean = current.meaning[0].charAt(0);
-            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">💡 힌트: '${hintRoot}...' '${hintMean}...'</div>`;
+            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">💡 힌트: '${current.root[0]}...' '${current.meaning[0][0]}...'</div>`;
         } else {
-            feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b><br>다시 생각해보세요!`;
+            feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b><br>다시 시도해보세요!`;
         }
     }
 }
+
 
 
 function addWrongList(item) {
