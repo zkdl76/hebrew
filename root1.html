@@ -2,37 +2,41 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Genesis Root RPG v3.0</title>
+<title>Genesis Root Master: Hardcore</title>
 <style>
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; padding: 20px; }
-    #statusBoard { display: flex; justify-content: space-around; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; border: 1px solid #00d4ff; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a0a0a, #301934); color: white; text-align: center; min-height: 100vh; padding: 20px; }
+    #statusBoard { display: flex; justify-content: space-around; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ff3d00; font-weight: bold; }
+    #eventIndicator { font-size: 20px; height: 30px; margin-bottom: 10px; font-weight: bold; transition: 0.3s; }
     #wordContainer { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 10px; }
-    #wordCanvas { font-size: 80px; direction: rtl; font-weight: bold; }
-    select { padding: 10px; font-size: 16px; border-radius: 8px; background: #1a2a6c; color: white; border: 1px solid #00d4ff; margin-bottom: 10px; }
-    input { padding: 15px; font-size: 18px; width: 300px; border-radius: 10px; border: none; text-align: center; }
+    #wordCanvas { font-size: 85px; direction: rtl; font-weight: bold; text-shadow: 0 0 15px rgba(255,255,255,0.3); }
+    select { padding: 10px; font-size: 16px; border-radius: 8px; background: #2c003e; color: white; border: 1px solid #ff3d00; margin-bottom: 10px; }
+    input { padding: 15px; font-size: 18px; width: 300px; border-radius: 10px; border: none; text-align: center; background: #eee; }
     button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-    #checkBtn { background-color: #00d4ff; color: #00334e; }
-    #hintBtn { background-color: #ffeb3b; color: #333; display: none; } /* 3회 오류시 등장 */
-    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; }
+    #checkBtn { background-color: #ff3d00; color: white; }
+    #hintBtn { background-color: #ffeb3b; color: #333; display: none; }
+    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; animation: pulse 1.5s infinite; }
     #feedback { margin-top: 15px; font-size: 19px; min-height: 80px; line-height: 1.5; }
     .hint-box { color: #ffeb3b; font-size: 18px; margin-top: 10px; padding: 10px; border: 1px dashed #ffeb3b; border-radius: 10px; }
-    #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+    #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
     .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; direction: rtl; font-size: 18px; }
-    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border: 8px solid #00ff88; border-radius: 50%; opacity: 0.6; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 130px; height: 130px; border: 10px solid #00ff88; border-radius: 50%; opacity: 0.7; }
 </style>
 </head>
 <body>
 
 <div id="statusBoard">
-    <div>LEVEL: <span id="lvDisplay">1</span></div>
-    <div>SCORE: <span id="scoreDisplay" style="color:#00ff88">0</span> P</div>
-    <div>남은 단어: <span id="remainDisplay">0</span></div>
+    <div>STAGE: <span id="lvDisplay">1</span></div>
+    <div>POINTS: <span id="scoreDisplay" style="color:#00ff88">10</span> P</div>
+    <div>REMAIN: <span id="remainDisplay">0</span></div>
 </div>
+
+<div id="eventIndicator"></div>
 
 <select id="chapterSelect" onchange="changeChapter()"></select>
 
 <div id="wordContainer">
-    <span id="wordCanvas">준비!</span>
+    <span id="wordCanvas">START!</span>
 </div>
 
 <div>
@@ -42,40 +46,41 @@
 </div>
 
 <div id="feedback"></div>
-<button id="nextLevelBtn" onclick="levelUp()">🎉 다음 단계로 진출하기! 🎉</button>
+<button id="nextLevelBtn" onclick="levelUp()">🔥 NEXT STAGE 🔥</button>
 
 <div id="wrongListContainer">
-    <h3 style="margin: 0;">❌ 오답 리스트</h3>
-    <div id="wrongItems" style="margin-top: 10px;">클리어 시 레벨업 가능!</div>
+    <h3 style="margin: 0;">💀 오답 보관소 (클리어 필수)</h3>
+    <div id="wrongItems" style="margin-top: 10px;"></div>
 </div>
 
 <script>
 const bibleData = {
     1: [
-        {form:"בר아", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
-        {form:"ויא머", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
-        {form:"יה이", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
-        {form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
-        {form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
+        {form:"בָּרָא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
+        {form:"וַיֹּאמֶר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
+        {form:"יְהִי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
+        {form:"וַיַּרְא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
+        {form:"וַיַּבְדֵּל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
     ],
     2: [
-        {form:"ויכלו", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 마쳐졌다"},
-        {form:"וישבת", root:"샤바트", meaning:["안식하다","쉬다"], gloss:"그가 쉬셨다"},
-        {form:"וייצר", root:"야차르", meaning:["지으시다","빚다"], gloss:"그가 빚으셨다"}
+        {form:"וַיְכֻלּוּ", root:"칼라", meaning:["마치다","완성하다"], gloss:"그들이 마쳐졌다"},
+        {form:"וַיִּשְׁבֹּת", root:"샤바트", meaning:["안식하다","쉬다"], gloss:"그가 쉬셨다"},
+        {form:"וַיִּיצֶר", root:"야차르", meaning:["지으시다","빚다"], gloss:"그가 빚으셨다"}
     ]
 };
 
 let currentChapter = 1, currentVerbs = [], wrongAnswers = [], current = null;
-let score = 0, failCount = 0, timer = null;
+let score = 10, failCount = 0, timer = null, eventMultiplier = 1;
 
 const canvas = document.getElementById("wordCanvas"), input = document.getElementById("answerInput"), 
       feedback = document.getElementById("feedback"), scoreDisp = document.getElementById("scoreDisplay"),
       remainDisp = document.getElementById("remainDisplay"), lvDisp = document.getElementById("lvDisplay"),
       hintBtn = document.getElementById("hintBtn"), nextBtn = document.getElementById("nextLevelBtn"),
-      wrongItemsDiv = document.getElementById("wrongItems"), chSelect = document.getElementById("chapterSelect");
+      wrongItemsDiv = document.getElementById("wrongItems"), chSelect = document.getElementById("chapterSelect"),
+      eventInd = document.getElementById("eventIndicator");
 
 function init() {
-    chSelect.innerHTML = Object.keys(bibleData).map(ch => `<option value="${ch}">창세기 ${ch}장</option>`).join("");
+    chSelect.innerHTML = Object.keys(bibleData).map(ch => `<option value="${ch}">GENESIS ${ch}</option>`).join("");
     loadChapter(1);
 }
 
@@ -95,25 +100,57 @@ function changeChapter() { loadChapter(chSelect.value); }
 function updateStatus() {
     scoreDisp.innerText = score;
     remainDisp.innerText = currentVerbs.length;
-    wrongItemsDiv.innerHTML = wrongAnswers.length === 0 ? "클리어 시 레벨업 가능!" : 
+    wrongItemsDiv.innerHTML = wrongAnswers.length === 0 ? "보관소가 비었습니다." : 
         wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
 }
 
 function newQuestion() {
     if(currentVerbs.length === 0 && wrongAnswers.length === 0) {
-        canvas.innerText = "CLEAR!";
-        feedback.innerHTML = `<b style="color:#00ff88">축하합니다! ${currentChapter}장을 정복했습니다!</b>`;
-        nextBtn.style.display = "block"; // 다음 단계 버튼 노출
+        canvas.innerText = "MASTERED";
+        feedback.innerHTML = `<b style="color:#00ff88">STREET CLEAR! ${currentChapter}장을 정복했습니다!</b>`;
+        nextBtn.style.display = "block";
         return;
     }
     canvas.className = "";
     hintBtn.style.display = "none";
     failCount = 0;
-    // 오답 리스트가 있으면 거기서 먼저 냄, 없으면 전체 리스트
+    
+    // 랜덤 이벤트 발생 (20% 확률로 2배 찬스, 10% 확률로 2배 위기)
+    const rand = Math.random();
+    if(rand < 0.2) {
+        eventMultiplier = 2;
+        eventInd.innerText = "⭐ 더블 포인트 찬스! (+20P)";
+        eventInd.style.color = "#00ff88";
+    } else if(rand < 0.3) {
+        eventMultiplier = 2;
+        eventInd.innerText = "⚠️ 데인저 모드! 감점 2배 (-4P)";
+        eventInd.style.color = "#ff3d00";
+    } else {
+        eventMultiplier = 1;
+        eventInd.innerText = "";
+    }
+
     let source = wrongAnswers.length > 0 ? wrongAnswers : currentVerbs;
     current = source[Math.floor(Math.random() * source.length)];
     canvas.innerText = current.form;
     feedback.innerHTML = ""; input.value = ""; input.focus();
+}
+
+function updateScore(amount) {
+    score += amount;
+    if (score < 0) {
+        gameOver();
+    } else {
+        scoreDisp.innerText = score;
+    }
+}
+
+function gameOver() {
+    alert("💀 GAME OVER! 점수가 0미만이 되었습니다.\n모든 기록이 소멸되며 STAGE 1로 추방됩니다.");
+    score = 10;
+    currentChapter = 1;
+    chSelect.value = 1;
+    loadChapter(1);
 }
 
 function checkAnswer() {
@@ -124,8 +161,9 @@ function checkAnswer() {
 
     if(isCorrect) {
         canvas.className = "correct";
-        score += 10;
-        feedback.innerHTML = `<b style="color:#00ff88">+10P 정답!</b><br>어근: ${current.root} (${current.meaning[0]})`;
+        const earn = 10 * (eventInd.innerText.includes("찬스") ? 2 : 1);
+        updateScore(earn);
+        feedback.innerHTML = `<b style="color:#00ff88">+${earn}P SUCCESS!</b><br>어근: ${current.root}`;
         
         currentVerbs = currentVerbs.filter(v => v.form !== current.form);
         wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
@@ -133,12 +171,15 @@ function checkAnswer() {
         timer = setTimeout(newQuestion, 2000);
     } else {
         failCount++;
-        score = Math.max(0, score - 2); // 틀리면 2점 감점 (긴장감!)
+        const loss = -2 * (eventInd.innerText.includes("위기") ? 2 : 1);
+        updateScore(loss);
+        if(score < 0) return;
+
         input.value = ""; input.focus();
-        feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b> -2P 감점!`;
+        feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
         if(failCount >= 3) hintBtn.style.display = "inline-block";
         if(failCount >= 5) {
-            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료! 정답은 [${current.root} ${current.meaning[0]}]</b>`;
+            feedback.innerHTML = `<b style="color:#ffeb3b">TIMEOUT! 정답: [${current.root} ${current.meaning[0]}]</b>`;
             timer = setTimeout(newQuestion, 4000);
         }
         addWrong(current);
@@ -149,26 +190,21 @@ function checkAnswer() {
 function addWrong(v) { if(!wrongAnswers.find(w => w.form === v.form)) wrongAnswers.push(v); }
 
 function buyHint() {
-    if(score < 5) { feedback.innerHTML = "점수가 부족합니다! (5P 필요)"; return; }
-    score -= 5;
+    if(score < 5) { feedback.innerHTML = "점수 부족! (5P 필요)"; return; }
+    updateScore(-5);
     const r = current.root.split("");
-    const rIdx = Math.floor(Math.random() * 3);
+    const rIdx = Math.floor(Math.random() * r.length);
     const hintRoot = r.map((c, i) => i === rIdx ? c : "ㅇ").join("");
     const hintMean = current.meaning[0].charAt(0) + "ㅇㅇ";
     
     feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 완료 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
     hintBtn.style.display = "none";
-    scoreDisp.innerText = score;
 }
 
 function levelUp() {
     const next = currentChapter + 1;
-    if(bibleData[next]) {
-        chSelect.value = next;
-        loadChapter(next);
-    } else {
-        alert("다음 장 데이터가 아직 없습니다! 업데이트를 기다려주세요.");
-    }
+    if(bibleData[next]) { chSelect.value = next; loadChapter(next); }
+    else { alert("데이터가 더 없습니다!"); }
 }
 
 function normalize(t){return t.trim().replace(/\s+/g,"");}
