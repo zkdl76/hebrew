@@ -173,13 +173,26 @@ function checkAnswer() {
         failCount++;
         const loss = -2 * (eventInd.innerText.includes("위기") ? 2 : 1);
         updateScore(loss);
-        if(score < 0) return;
+        if(score < 0) return; // 이미 게임오버면 중단
 
         input.value = ""; input.focus();
-        feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
-        if(failCount >= 3) hintBtn.style.display = "inline-block";
+        
+        // 💡 수정된 부분: 3회 오답 시 '돈'이 있을 때만 힌트 버튼 노출!
+        if(failCount >= 3) {
+            if(score >= 5) {
+                hintBtn.style.display = "inline-block";
+                feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!<br>힌트를 살 수 있습니다!`;
+            } else {
+                hintBtn.style.display = "none";
+                feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!<br><span style="color:#aaa; font-size:14px;">(힌트를 사기엔 점수가 부족합니다... 거지라니! 😭)</span>`;
+            }
+        } else {
+            feedback.innerHTML = `<b style="color:#ff3d00">FAILED! (${failCount}회)</b> ${loss}P 감점!`;
+        }
+        
+        // 5회 틀리면 정답 공개
         if(failCount >= 5) {
-            feedback.innerHTML = `<b style="color:#ffeb3b">TIMEOUT! 정답: [${current.root} ${current.meaning[0]}]</b>`;
+            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료! 정답: [${current.root} ${current.meaning}]</b>`;
             timer = setTimeout(newQuestion, 4000);
         }
         addWrong(current);
