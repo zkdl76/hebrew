@@ -147,11 +147,16 @@ function checkAnswer(){
         canvas.className = "wrong";
         failCount++;
         addWrongList(current);
+
+        // --- 여기 두 줄을 추가하세요! ---
+        input.value = "";   // 입력칸 비우기
+        input.focus();      // 커서 다시 가져오기
+        // ----------------------------
         
         if(failCount >= 4) {
             // 4번째 틀리면 정답 공개 후 강제 이동
             feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료!</b><br>정답은 <b style="color:#00d4ff">${current.root} ${current.meaning[0]}</b> 입니다.<br>잠시 후 다음 문제로 넘어갑니다.`;
-            timer = setTimeout(newQuestion, 4000); 
+            timer = setTimeout(newQuestion, 4000); //오답 후 보여주는 시간
         } else if(failCount === 3) {
             // 3번째 틀리면 힌트 제공
             let hintRoot = current.root.charAt(0);
