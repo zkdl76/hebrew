@@ -137,7 +137,6 @@ function checkAnswer(){
         canvas.className = "correct";
         feedback.innerHTML = `<b style="color:#00ff88">정답!</b><br>어근: ${current.root}<br>의미: ${current.meaning.join(", ")}`;
         
-        // 정답을 맞추면 목록에서 제거(리뷰모드거나 전체모드거나 동일하게 적용하여 '완전학습' 유도)
         currentVerbs = currentVerbs.filter(v => v.form !== current.form);
         if(isReviewMode) {
             wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
@@ -149,15 +148,21 @@ function checkAnswer(){
         failCount++;
         addWrongList(current);
         
-        let hintMsg = "";
-        if(failCount >= 3) {
-            hintMsg = `<div class="hint-box">💡 힌트: 어근 첫글자 '${current.root[0]}' & 뜻 첫글자 '${current.meaning[0][0]}'</div>`;
+        if(failCount >= 4) {
+            // 4번째 틀리면 정답 공개 후 강제 이동
+            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료!</b><br>정답은 <b style="color:#00d4ff">${current.root} ${current.meaning[0]}</b> 입니다.<br>잠시 후 다음 문제로 넘어갑니다.`;
+            timer = setTimeout(newQuestion, 4000); 
+        } else if(failCount === 3) {
+            // 3번째 틀리면 힌트 제공
+            let hintRoot = current.root.charAt(0);
+            let hintMean = current.meaning[0].charAt(0);
+            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">💡 힌트: '${hintRoot}...' '${hintMean}...'</div>`;
+        } else {
+            feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b><br>다시 생각해보세요!`;
         }
-        
-        feedback.innerHTML = `<b style="color:#ff3d00">오답! (연속 ${failCount}회)</b>${hintMsg}<br>계속 시도해보세요!`;
-        // 오답 시에는 자동으로 다음문제로 안 넘어가고 사용자가 다시 입력하게 함
     }
 }
+
 
 function addWrongList(item) {
     if(!wrongAnswers.find(v => v.form === item.form)) {
