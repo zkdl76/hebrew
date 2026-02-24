@@ -104,46 +104,41 @@ function updateStatus() {
         wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
 }
 
-function newQuestion() {
-    if(currentVerbs.length === 0 && wrongAnswers.length === 0) {
-        canvas.innerText = "MASTERED";
-        feedback.innerHTML = `<b style="color:#00ff88">STREET CLEAR! ${currentChapter}장을 정복했습니다!</b>`;
-        nextBtn.style.display = "block";
-        return;
+
+
+function updateScore(amount) {
+    score += amount;
+    scoreDisp.innerText = score; // 즉시 반영
+    
+    if (score < 0) {
+        gameOver(); // 0점 미만이면 가차 없이 종료
     }
+}
+
+function newQuestion() {
+    // ... (리스트 체크 로직 동일)
+    
     canvas.className = "";
     hintBtn.style.display = "none";
     failCount = 0;
     
-    // 랜덤 이벤트 발생 (20% 확률로 2배 찬스, 10% 확률로 2배 위기)
+    // ✨ 수정: 점수가 0점일 때는 행운의 이벤트 발생 안 함!
     const rand = Math.random();
-    if(rand < 0.2) {
+    if(score > 0 && rand < 0.2) {
         eventMultiplier = 2;
         eventInd.innerText = "⭐ 더블 포인트 찬스! (+20P)";
         eventInd.style.color = "#00ff88";
-    } else if(rand < 0.3) {
+    } else if(score > 0 && rand < 0.3) {
         eventMultiplier = 2;
-        eventInd.innerText = "⚠️ 데인저 모드! 감점 2배 (-4P)";
+        eventInd.innerText = "⚠️ 데인저 모드! 감점 2배";
         eventInd.style.color = "#ff3d00";
     } else {
         eventMultiplier = 1;
         eventInd.innerText = "";
     }
-
-    let source = wrongAnswers.length > 0 ? wrongAnswers : currentVerbs;
-    current = source[Math.floor(Math.random() * source.length)];
-    canvas.innerText = current.form;
-    feedback.innerHTML = ""; input.value = ""; input.focus();
+    // ... (이후 동일)
 }
 
-function updateScore(amount) {
-    score += amount;
-    if (score < 0) {
-        gameOver();
-    } else {
-        scoreDisp.innerText = score;
-    }
-}
 
 function gameOver() {
     alert("💀 GAME OVER! 점수가 0미만이 되었습니다.\n모든 기록이 소멸되며 STAGE 1로 추방됩니다.");
