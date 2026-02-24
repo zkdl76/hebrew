@@ -207,6 +207,9 @@ function buyHint() {
     
     feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 완료 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
     hintBtn.style.display = "none";
+
+    // ✨ 바로 이 코드입니다! 힌트 구매 후 입력창으로 커서 자동 이동
+    input.focus();     
 }
 
 function levelUp() {
