@@ -2,61 +2,59 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Genesis Root Master v2.0</title>
+<title>Genesis Root RPG v3.0</title>
 <style>
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #2c5364); color: white; text-align: center; min-height: 100vh; padding: 20px; }
-    #wordContainer { height: 220px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 10px; }
-    #wordCanvas { font-size: 90px; direction: rtl; font-weight: bold; transition: 0.3s; }
-    select { padding: 10px; font-size: 16px; border-radius: 8px; margin-bottom: 20px; background: #1a2a6c; color: white; border: 1px solid #00d4ff; }
-    input { padding: 15px; font-size: 18px; width: 320px; border-radius: 10px; border: none; text-align: center; }
+    #statusBoard { display: flex; justify-content: space-around; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; border: 1px solid #00d4ff; }
+    #wordContainer { height: 180px; display: flex; justify-content: center; align-items: center; position: relative; margin-top: 10px; }
+    #wordCanvas { font-size: 80px; direction: rtl; font-weight: bold; }
+    select { padding: 10px; font-size: 16px; border-radius: 8px; background: #1a2a6c; color: white; border: 1px solid #00d4ff; margin-bottom: 10px; }
+    input { padding: 15px; font-size: 18px; width: 300px; border-radius: 10px; border: none; text-align: center; }
     button { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: none; margin: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     #checkBtn { background-color: #00d4ff; color: #00334e; }
-    #reviewBtn { background-color: #ff3d00; color: white; display: none; }
-    #feedback { margin-top: 15px; font-size: 19px; min-height: 120px; line-height: 1.5; }
-    .hint-box { color: #ffeb3b; font-size: 18px; margin-top: 5px; font-weight: bold; }
+    #hintBtn { background-color: #ffeb3b; color: #333; display: none; } /* 3회 오류시 등장 */
+    #nextLevelBtn { background-color: #00ff88; color: #00334e; display: none; padding: 20px; font-size: 20px; width: 100%; max-width: 400px; margin: 20px auto; }
+    #feedback { margin-top: 15px; font-size: 19px; min-height: 80px; line-height: 1.5; }
+    .hint-box { color: #ffeb3b; font-size: 18px; margin-top: 10px; padding: 10px; border: 1px dashed #ffeb3b; border-radius: 10px; }
     #wrongListContainer { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 15px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
-    .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; direction: rtl; font-size: 20px; }
-    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 140px; border: 10px solid #00ff88; border-radius: 50%; pointer-events: none; opacity: 0.7; }
-    .wrong::after { content: "✕"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3d00; font-size: 160px; font-weight: 900; pointer-events: none; opacity: 0.7; }
+    .wrong-item { display: inline-block; background: rgba(255,61,0,0.2); padding: 5px 12px; margin: 5px; border-radius: 20px; border: 1px solid #ff3d00; direction: rtl; font-size: 18px; }
+    .correct::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border: 8px solid #00ff88; border-radius: 50%; opacity: 0.6; }
 </style>
 </head>
 <body>
 
-<h2>Genesis Root Master</h2>
+<div id="statusBoard">
+    <div>LEVEL: <span id="lvDisplay">1</span></div>
+    <div>SCORE: <span id="scoreDisplay" style="color:#00ff88">0</span> P</div>
+    <div>남은 단어: <span id="remainDisplay">0</span></div>
+</div>
 
-<!-- 1. 장 선택 드롭다운 -->
-<select id="chapterSelect" onchange="changeChapter()">
-    <!-- JS에서 자동 생성됨 -->
-</select>
-
-<div id="modeIndicator" style="color: #ffeb3b; font-weight: bold;">[ 전체 학습 모드 ]</div>
+<select id="chapterSelect" onchange="changeChapter()"></select>
 
 <div id="wordContainer">
-    <span id="wordCanvas"></span>
+    <span id="wordCanvas">준비!</span>
 </div>
 
 <div>
-    <input type="text" id="answerInput" placeholder="어근명 뜻 (예: 바라 창조하다)" autocomplete="off">
+    <input type="text" id="answerInput" placeholder="어근 뜻 (예: 바라 창조하다)" autocomplete="off">
     <button id="checkBtn" onclick="checkAnswer()">확인</button>
+    <button id="hintBtn" onclick="buyHint()">💡 힌트 구매 (-5P)</button>
 </div>
 
 <div id="feedback"></div>
+<button id="nextLevelBtn" onclick="levelUp()">🎉 다음 단계로 진출하기! 🎉</button>
 
 <div id="wrongListContainer">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">❌ 오답 리스트</h3>
-        <button id="reviewBtn" onclick="startReviewMode()">오답만 연습하기</button>
-    </div>
-    <div id="wrongItems" style="margin-top: 10px;">틀린 단어가 여기에 표시됩니다.</div>
+    <h3 style="margin: 0;">❌ 오답 리스트</h3>
+    <div id="wrongItems" style="margin-top: 10px;">클리어 시 레벨업 가능!</div>
 </div>
 
 <script>
-// 데이터 구조: 장별로 어근 관리
 const bibleData = {
     1: [
-        {form:"ברא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
-        {form:"ויאמר", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
-        {form:"יהי", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
+        {form:"בר아", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
+        {form:"ויא머", root:"아마르", meaning:["말하다","이르다"], gloss:"그가 말했다"},
+        {form:"יה이", root:"하야", meaning:["있다","되다"], gloss:"있게 되라"},
         {form:"וירא", root:"라아", meaning:["보다"], gloss:"그가 보았다"},
         {form:"ויבדל", root:"바달", meaning:["나누다","구별하다"], gloss:"그가 나누셨다"}
     ],
@@ -67,151 +65,116 @@ const bibleData = {
     ]
 };
 
-let currentChapter = 1;
-let currentVerbs = [];
-let wrongAnswers = [];
-let current = null;
-let timer = null;
-let isReviewMode = false;
-let failCount = 0; // 3회 오답 체크용
+let currentChapter = 1, currentVerbs = [], wrongAnswers = [], current = null;
+let score = 0, failCount = 0, timer = null;
 
-const canvas = document.getElementById("wordCanvas"), 
-      input = document.getElementById("answerInput"), 
-      feedback = document.getElementById("feedback"),
-      wrongItemsDiv = document.getElementById("wrongItems"), 
-      reviewBtn = document.getElementById("reviewBtn"), 
-      modeInd = document.getElementById("modeIndicator"),
-      chSelect = document.getElementById("chapterSelect");
+const canvas = document.getElementById("wordCanvas"), input = document.getElementById("answerInput"), 
+      feedback = document.getElementById("feedback"), scoreDisp = document.getElementById("scoreDisplay"),
+      remainDisp = document.getElementById("remainDisplay"), lvDisp = document.getElementById("lvDisplay"),
+      hintBtn = document.getElementById("hintBtn"), nextBtn = document.getElementById("nextLevelBtn"),
+      wrongItemsDiv = document.getElementById("wrongItems"), chSelect = document.getElementById("chapterSelect");
 
-// 초기 설정
 function init() {
-    // 드롭다운 생성
     chSelect.innerHTML = Object.keys(bibleData).map(ch => `<option value="${ch}">창세기 ${ch}장</option>`).join("");
     loadChapter(1);
 }
 
 function loadChapter(ch) {
-    currentChapter = ch;
+    currentChapter = parseInt(ch);
     currentVerbs = [...bibleData[ch]];
     wrongAnswers = [];
-    isReviewMode = false;
-    updateWrongDisplay();
-    modeInd.innerText = `[ ${ch}장 전체 학습 모드 ]`;
-    modeInd.style.color = "#ffeb3b";
+    failCount = 0;
+    lvDisp.innerText = ch;
+    nextBtn.style.display = "none";
+    updateStatus();
     newQuestion();
 }
 
-function changeChapter() {
-    loadChapter(chSelect.value);
+function changeChapter() { loadChapter(chSelect.value); }
+
+function updateStatus() {
+    scoreDisp.innerText = score;
+    remainDisp.innerText = currentVerbs.length;
+    wrongItemsDiv.innerHTML = wrongAnswers.length === 0 ? "클리어 시 레벨업 가능!" : 
+        wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
 }
 
-function normalize(t){return t.trim().replace(/\s+/g,"");}
-
-function newQuestion(){
-    if(currentVerbs.length === 0) {
-        if(wrongAnswers.length === 0) {
-            feedback.innerHTML = `<b style="color:#00ff88; font-size:24px;">✨ ${currentChapter}장 정복 완료! ✨</b><br>드롭다운에서 다음 장을 선택하세요.`;
-        } else {
-            feedback.innerHTML = "해당 장의 모든 단어를 확인했습니다.<br>오답 노트를 해결해 보세요!";
-        }
-        canvas.innerText = "끝";
+function newQuestion() {
+    if(currentVerbs.length === 0 && wrongAnswers.length === 0) {
+        canvas.innerText = "CLEAR!";
+        feedback.innerHTML = `<b style="color:#00ff88">축하합니다! ${currentChapter}장을 정복했습니다!</b>`;
+        nextBtn.style.display = "block"; // 다음 단계 버튼 노출
         return;
     }
     canvas.className = "";
+    hintBtn.style.display = "none";
     failCount = 0;
-    current = currentVerbs[Math.floor(Math.random()*currentVerbs.length)];
+    // 오답 리스트가 있으면 거기서 먼저 냄, 없으면 전체 리스트
+    let source = wrongAnswers.length > 0 ? wrongAnswers : currentVerbs;
+    current = source[Math.floor(Math.random() * source.length)];
     canvas.innerText = current.form;
-    feedback.innerHTML = "";
-    input.value = "";
-    input.focus();
+    feedback.innerHTML = ""; input.value = ""; input.focus();
 }
 
-// 3회 오답 시 실행되는 힌트 생성 함수
-function getDynamicHint(root, meaning) {
-    // 1. 어근 힌트: 3글자 중 하나만 랜덤으로 보여주기 (예: '아마르' -> '_마_')
-    const rootArr = root.split(""); // ['아', '마', '르']
-    const randomIndex = Math.floor(Math.random() * rootArr.length);
-    const hintRoot = rootArr.map((char, idx) => (idx === randomIndex ? char : "ㅇ")).join("");
-    
-    // 2. 뜻 힌트: 첫 글자만 보여주기
-    const hintMean = meaning[0].charAt(0) + "ㅇㅇ"; 
-
-    return `💡 힌트: 어근 [${hintRoot}] & 뜻 [${hintMean}]`;
-}
-
-    
-    
-    
-function checkAnswer(){
+function checkAnswer() {
     if(timer) clearTimeout(timer);
     const p = input.value.trim().split(/\s+/);
-    const rootOk = normalize(p[0]||"") == normalize(current.root);
-    const meaningOk = current.meaning.some(m => normalize(m) == normalize(p.slice(1).join("")));
-    const isCorrect = rootOk && meaningOk;
+    const isCorrect = (normalize(p[0]||"") == normalize(current.root)) && 
+                      current.meaning.some(m => normalize(m) == normalize(p.slice(1).join("")));
 
     if(isCorrect) {
         canvas.className = "correct";
-        feedback.innerHTML = `<b style="color:#00ff88">정답!</b><br>어근: ${current.root}<br>의미: ${current.meaning.join(", ")}`;
+        score += 10;
+        feedback.innerHTML = `<b style="color:#00ff88">+10P 정답!</b><br>어근: ${current.root} (${current.meaning[0]})`;
         
         currentVerbs = currentVerbs.filter(v => v.form !== current.form);
         wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
-        updateWrongDisplay(); 
-
+        updateStatus();
         timer = setTimeout(newQuestion, 2000);
     } else {
-        canvas.className = "wrong";
         failCount++;
-        addWrongList(current);
-        
-        input.value = ""; 
-        input.focus();
-
-        if(failCount >= 4) {
-            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료!</b><br>정답은 <b style="color:#00d4ff">${current.root} ${current.meaning[0]}</b> 입니다.<br>잠시 후 다음 문제로 넘어갑니다.`;
-            timer = setTimeout(newQuestion, 4000); 
-        } else if(failCount === 3) {
-            // ✨ 랜덤 힌트 적용 부분
-            const hintMsg = getDynamicHint(current.root, current.meaning);
-            feedback.innerHTML = `<b style="color:#ff3d00">오답! (3회)</b><br><div class="hint-box">${hintMsg}</div>`;
-        } else {
-            feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b><br>다시 시도해보세요!`;
+        score = Math.max(0, score - 2); // 틀리면 2점 감점 (긴장감!)
+        input.value = ""; input.focus();
+        feedback.innerHTML = `<b style="color:#ff3d00">오답! (${failCount}회)</b> -2P 감점!`;
+        if(failCount >= 3) hintBtn.style.display = "inline-block";
+        if(failCount >= 5) {
+            feedback.innerHTML = `<b style="color:#ffeb3b">기회 종료! 정답은 [${current.root} ${current.meaning[0]}]</b>`;
+            timer = setTimeout(newQuestion, 4000);
         }
+        addWrong(current);
+        updateStatus();
     }
 }
 
+function addWrong(v) { if(!wrongAnswers.find(w => w.form === v.form)) wrongAnswers.push(v); }
 
-
-
-function addWrongList(item) {
-    if(!wrongAnswers.find(v => v.form === item.form)) {
-        wrongAnswers.push(item);
-        updateWrongDisplay();
-    }
-}
-
-function updateWrongDisplay() {
-    if(wrongAnswers.length === 0) {
-        wrongItemsDiv.innerText = "남은 오답이 없습니다!";
-        reviewBtn.style.display = "none";
-    } else {
-        wrongItemsDiv.innerHTML = wrongAnswers.map(v => `<span class="wrong-item">${v.form}</span>`).join("");
-        reviewBtn.style.display = "inline-block";
-    }
-}
-
-function startReviewMode() {
-    if(wrongAnswers.length === 0) return;
-    isReviewMode = true;
-    currentVerbs = [...wrongAnswers];
-    modeInd.innerText = `[ ${currentChapter}장 오답 복습 모드 ]`;
-    modeInd.style.color = "#ff3d00";
-    newQuestion();
-}
-
+function buyHint() {
+    if(score < 5) { feedback.innerHTML = "점수가 부족합니다! (5P 필요)"; return; }
+    score -= 5;
+    const r = current.root.split("");
+    const rIdx = Math.floor(Math.random() * 3);
+    const hintRoot = r.map((c, i) => i === rIdx ? c : "ㅇ").join("");
+    const hintMean = current.meaning[0].charAt(0) + "ㅇㅇ";
     
+    feedback.innerHTML = `<div class="hint-box">💸 힌트 구매 완료 (-5P)<br>어근: [${hintRoot}] / 뜻: [${hintMean}]</div>`;
+    hintBtn.style.display = "none";
+    scoreDisp.innerText = score;
+}
 
+function levelUp() {
+    const next = currentChapter + 1;
+    if(bibleData[next]) {
+        chSelect.value = next;
+        loadChapter(next);
+    } else {
+        alert("다음 장 데이터가 아직 없습니다! 업데이트를 기다려주세요.");
+    }
+}
+
+function normalize(t){return t.trim().replace(/\s+/g,"");}
 input.addEventListener("keypress", e => { if(e.key==="Enter") checkAnswer(); });
 init();
 </script>
+
 </body>
 </html>
