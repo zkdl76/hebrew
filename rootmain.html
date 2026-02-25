@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -37,128 +36,259 @@
 <script src="data.js"></script>
 
 <script>
-let currentChapter=1;
-let currentVerbs=[];
-let wrongAnswers=[];
-let current=null;
+let currentChapter = 1;
+let currentVerbs = [];
+let wrongAnswers = [];
+let current = null;
 
-let score=10;
-let unlockedStages=JSON.parse(localStorage.getItem("unlocked"))||[1];
+let score = 10;
+let unlockedStages = JSON.parse(localStorage.getItem("unlocked")) || [1];
 
-let timeLeft=10;
-let timer=null;
+let timeLeft = 10;
+let timer = null;
 
-const canvas=wordCanvas;
-const input=answerInput;
-const feedback=feedback;
-const scoreDisp=scoreDisplay;
-const remainDisp=remainDisplay;
-const wrongDiv=wrongItems;
-const hintBtn=hintBtn;
-const timeDisp=timeVal;
-const eventInd=eventIndicator;
+// FIXED element references
+const canvas = document.getElementById("wordCanvas");
+const input = document.getElementById("answerInput");
+const feedbackEl = document.getElementById("feedback");
+const scoreDisp = document.getElementById("scoreDisplay");
+const remainDisp = document.getElementById("remainDisplay");
+const wrongDiv = document.getElementById("wrongItems");
+const hintBtnEl = document.getElementById("hintBtn");
+const timeDisp = document.getElementById("timeVal");
+const eventInd = document.getElementById("eventIndicator");
+const chapterSelect = document.getElementById("chapterSelect");
 
+// Save unlock state
 function saveUnlock(){
-localStorage.setItem("unlocked",JSON.stringify(unlockedStages));
+localStorage.setItem("unlocked", JSON.stringify(unlockedStages));
 }
 
+// Update dropdown
 function updateDropdown(){
 chapterSelect.innerHTML="";
 Object.keys(bibleData).forEach(ch=>{
+
 const opt=document.createElement("option");
+
 opt.value=ch;
-opt.textContent=(unlockedStages.includes(+ch)?"📖 ":"🔒 ")+"Genesis "+ch;
-opt.disabled=!unlockedStages.includes(+ch);
+
+if(unlockedStages.includes(parseInt(ch))){
+opt.textContent="📖 Genesis "+ch;
+}else{
+opt.textContent="🔒 Genesis "+ch;
+opt.disabled=true;
+}
+
 chapterSelect.appendChild(opt);
+
 });
+
 chapterSelect.value=currentChapter;
 }
 
+// Load chapter
 function loadChapter(ch){
-currentChapter=+ch;
+
+currentChapter=parseInt(ch);
+
 currentVerbs=[...bibleData[ch]];
+
 wrongAnswers=[];
+
 updateStatus();
+
 nextQuestion();
+
 }
 
+// Update status
 function updateStatus(){
+
 scoreDisp.textContent=score;
+
 remainDisp.textContent=currentVerbs.length;
-wrongDiv.innerHTML=wrongAnswers.map(w=>"<span class='wrong-item'>"+w.form+"</span>").join("");
+
+wrongDiv.innerHTML=wrongAnswers.length===0
+?"없음"
+:wrongAnswers.map(w=>"<span class='wrong-item'>"+w.form+"</span>").join("");
+
 }
 
+// Timer
 function startTimer(){
+
 clearInterval(timer);
+
 timeLeft=10;
+
 timeDisp.textContent=timeLeft;
+
 timer=setInterval(()=>{
+
 timeLeft--;
+
 timeDisp.textContent=timeLeft;
+
 if(timeLeft<=0){
+
 clearInterval(timer);
+
 timeout();
+
 }
+
 },1000);
+
 }
 
+// Timeout
 function timeout(){
-feedback.innerHTML="TIME OVER! "+current.root;
-if(!wrongAnswers.find(v=>v.form===current.form))wrongAnswers.push(current);
+
+feedbackEl.innerHTML="<span style='color:red;'>TIME OVER!</span> 정답: "+current.root;
+
+if(!wrongAnswers.find(v=>v.form===current.form)){
+
+wrongAnswers.push(current);
+
+}
+
 updateStatus();
+
 setTimeout(nextQuestion,2000);
+
 }
 
+// Next question
 function nextQuestion(){
+
 let pool=[...currentVerbs,...wrongAnswers];
+
 if(pool.length===0){
+
 canvas.textContent="CLEAR!";
+
 const next=currentChapter+1;
-if(bibleData[next]&&!unlockedStages.includes(next)){
+
+if(bibleData[next] && !unlockedStages.includes(next)){
+
 unlockedStages.push(next);
+
 saveUnlock();
+
 updateDropdown();
+
 }
+
 return;
+
 }
-pool=pool.filter(v=>!current||v.form!==current.form);
+
+// prevent same repeat
+pool=pool.filter(v=>!current || v.form!==current.form);
+
+if(pool.length===0){
+
+pool=[...currentVerbs,...wrongAnswers];
+
+}
+
 current=pool[Math.floor(Math.random()*pool.length)];
+
 canvas.textContent=current.form;
-startTimer();
-}
 
-function checkAnswer(){
-const val=input.value.trim();
-if(val.includes(current.root)){
-score+=10;
-feedback.innerHTML="정답! +10P";
-currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
-wrongAnswers=wrongAnswers.filter(v=>v.form!==current.form);
-}else{
-score-=2;
-feedback.innerHTML="오답! "+current.root;
-if(!wrongAnswers.find(v=>v.form===current.form))wrongAnswers.push(current);
-}
 input.value="";
+
+input.focus();
+
+startTimer();
+
+}
+
+// Check answer
+function checkAnswer(){
+
+const val=input.value.trim();
+
+if(!current) return;
+
+if(val.includes(current.root)){
+
+score+=10;
+
+feedbackEl.innerHTML="<span style='color:lightgreen;'>정답! +10P</span>";
+
+currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
+
+wrongAnswers=wrongAnswers.filter(v=>v.form!==current.form);
+
+}else{
+
+score-=2;
+
+feedbackEl.innerHTML="<span style='color:red;'>오답!</span> 정답: "+current.root;
+
+if(!wrongAnswers.find(v=>v.form===current.form)){
+
+wrongAnswers.push(current);
+
+}
+
+}
+
 updateStatus();
+
 setTimeout(nextQuestion,1000);
+
 }
 
+// Hint
 function buyHint(){
-if(score<5)return;
+
+if(score<5) return;
+
 score-=5;
-feedback.innerHTML="<div class='hint-box'>힌트: "+current.root.charAt(0)+"...</div>";
+
+feedbackEl.innerHTML="<div class='hint-box'>힌트: "+current.root.charAt(0)+"...</div>";
+
 updateStatus();
+
 }
 
+// Go study
 function goStudy(){
+
 location.href="study.html?ch="+currentChapter;
+
 }
 
-chapterSelect.onchange=()=>loadChapter(chapterSelect.value);
+// Dropdown change
+chapterSelect.addEventListener("change", function(){
+
+loadChapter(this.value);
+
+});
+
+// Enter key support
+input.addEventListener("keypress", function(e){
+
+if(e.key==="Enter"){
+
+checkAnswer();
+
+}
+
+});
+
+// Init safely
+window.onload=function(){
 
 updateDropdown();
+
 loadChapter(1);
+
+};
+
 </script>
 
 </body>
