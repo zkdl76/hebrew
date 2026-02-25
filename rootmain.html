@@ -239,9 +239,12 @@ const val=input.value.trim();
 if(!current) return;
 
 if(val.includes(current.root)){
+
 canvas.classList.remove("wrong");
 canvas.classList.add("correct");
+
 score+=10;
+
 feedbackEl.innerHTML="<span style='color:lightgreen;'>정답! +10P</span>";
 
 currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
@@ -249,15 +252,16 @@ currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
 wrongAnswers=wrongAnswers.filter(v=>v.form!==current.form);
 
 }else{
-canvas.classList.remove("wrong");
-canvas.classList.add("correct");
+
+canvas.classList.remove("correct");
+canvas.classList.add("wrong");
+
 score-=2;
+
 feedbackEl.innerHTML="<span style='color:red;'>오답!</span> 정답: "+current.root;
 
 if(!wrongAnswers.find(v=>v.form===current.form)){
-
 wrongAnswers.push(current);
-
 }
 
 }
