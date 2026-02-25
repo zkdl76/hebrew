@@ -3,95 +3,162 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Genesis Root Game</title>
+<title>Genesis Root Master</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<h2>Genesis Root Game</h2>
+<div id="statusBoard">
+<div>STAGE: <span id="lvDisplay">1</span></div>
+<div>POINTS: <span id="scoreDisplay">10</span></div>
+<div>REMAIN: <span id="remainDisplay">0</span></div>
+</div>
+
+<div id="timerContainer">TIME: <span id="timeVal">10</span></div>
+<div id="eventIndicator"></div>
 
 <select id="chapterSelect"></select>
 <button onclick="goStudy()">📘 학습하기</button>
-
-<div id="statusBoard">
-<div>점수: <span id="score">0</span></div>
-<div>남은 문제: <span id="remain">0</span></div>
-</div>
 
 <div id="wordCanvas"></div>
 
 <input id="answerInput" placeholder="어근 뜻 입력">
 <br>
 <button onclick="checkAnswer()">확인</button>
+<button onclick="buyHint()" id="hintBtn" style="display:none;">힌트 구매 (-5P)</button>
 
 <div id="feedback"></div>
+
+<div>
+<h3>오답 보관소</h3>
+<div id="wrongItems"></div>
+</div>
 
 <script src="data.js"></script>
 
 <script>
-let currentChapter = 1;
-let current = null;
-let verbs = [];
-let score = 0;
+let currentChapter=1;
+let currentVerbs=[];
+let wrongAnswers=[];
+let current=null;
 
-const canvas = document.getElementById("wordCanvas");
-const feedback = document.getElementById("feedback");
-const scoreEl = document.getElementById("score");
-const remainEl = document.getElementById("remain");
+let score=10;
+let unlockedStages=JSON.parse(localStorage.getItem("unlocked"))||[1];
 
-function init(){
-    const select = document.getElementById("chapterSelect");
+let timeLeft=10;
+let timer=null;
 
-    Object.keys(bibleData).forEach(ch=>{
-        const opt = document.createElement("option");
-        opt.value = ch;
-        opt.textContent = "Genesis " + ch;
-        select.appendChild(opt);
-    });
+const canvas=wordCanvas;
+const input=answerInput;
+const feedback=feedback;
+const scoreDisp=scoreDisplay;
+const remainDisp=remainDisplay;
+const wrongDiv=wrongItems;
+const hintBtn=hintBtn;
+const timeDisp=timeVal;
+const eventInd=eventIndicator;
 
-    select.onchange = ()=>loadChapter(select.value);
+function saveUnlock(){
+localStorage.setItem("unlocked",JSON.stringify(unlockedStages));
+}
 
-    loadChapter(1);
+function updateDropdown(){
+chapterSelect.innerHTML="";
+Object.keys(bibleData).forEach(ch=>{
+const opt=document.createElement("option");
+opt.value=ch;
+opt.textContent=(unlockedStages.includes(+ch)?"📖 ":"🔒 ")+"Genesis "+ch;
+opt.disabled=!unlockedStages.includes(+ch);
+chapterSelect.appendChild(opt);
+});
+chapterSelect.value=currentChapter;
 }
 
 function loadChapter(ch){
-    currentChapter = ch;
-    verbs = [...bibleData[ch]];
-    score = 0;
-    nextQuestion();
+currentChapter=+ch;
+currentVerbs=[...bibleData[ch]];
+wrongAnswers=[];
+updateStatus();
+nextQuestion();
+}
+
+function updateStatus(){
+scoreDisp.textContent=score;
+remainDisp.textContent=currentVerbs.length;
+wrongDiv.innerHTML=wrongAnswers.map(w=>"<span class='wrong-item'>"+w.form+"</span>").join("");
+}
+
+function startTimer(){
+clearInterval(timer);
+timeLeft=10;
+timeDisp.textContent=timeLeft;
+timer=setInterval(()=>{
+timeLeft--;
+timeDisp.textContent=timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+timeout();
+}
+},1000);
+}
+
+function timeout(){
+feedback.innerHTML="TIME OVER! "+current.root;
+if(!wrongAnswers.find(v=>v.form===current.form))wrongAnswers.push(current);
+updateStatus();
+setTimeout(nextQuestion,2000);
 }
 
 function nextQuestion(){
-    if(verbs.length === 0){
-        canvas.textContent = "CLEAR!";
-        return;
-    }
-
-    current = verbs[Math.floor(Math.random()*verbs.length)];
-    canvas.textContent = current.form;
-    remainEl.textContent = verbs.length;
+let pool=[...currentVerbs,...wrongAnswers];
+if(pool.length===0){
+canvas.textContent="CLEAR!";
+const next=currentChapter+1;
+if(bibleData[next]&&!unlockedStages.includes(next)){
+unlockedStages.push(next);
+saveUnlock();
+updateDropdown();
+}
+return;
+}
+pool=pool.filter(v=>!current||v.form!==current.form);
+current=pool[Math.floor(Math.random()*pool.length)];
+canvas.textContent=current.form;
+startTimer();
 }
 
 function checkAnswer(){
-    const val = document.getElementById("answerInput").value.trim();
+const val=input.value.trim();
+if(val.includes(current.root)){
+score+=10;
+feedback.innerHTML="정답! +10P";
+currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
+wrongAnswers=wrongAnswers.filter(v=>v.form!==current.form);
+}else{
+score-=2;
+feedback.innerHTML="오답! "+current.root;
+if(!wrongAnswers.find(v=>v.form===current.form))wrongAnswers.push(current);
+}
+input.value="";
+updateStatus();
+setTimeout(nextQuestion,1000);
+}
 
-    if(val.includes(current.root)){
-        feedback.textContent = "정답!";
-        score += 10;
-        verbs = verbs.filter(v=>v.form!==current.form);
-    }else{
-        feedback.textContent = "오답! 정답: " + current.root;
-    }
-
-    scoreEl.textContent = score;
-    nextQuestion();
+function buyHint(){
+if(score<5)return;
+score-=5;
+feedback.innerHTML="<div class='hint-box'>힌트: "+current.root.charAt(0)+"...</div>";
+updateStatus();
 }
 
 function goStudy(){
-    location.href = "study.html?ch=" + currentChapter;
+location.href="study.html?ch="+currentChapter;
 }
 
-init();
+chapterSelect.onchange=()=>loadChapter(chapterSelect.value);
+
+updateDropdown();
+loadChapter(1);
 </script>
 
 </body>

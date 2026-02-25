@@ -1,5 +1,5 @@
 
-// Common Bible Data
+// Bible Data (shared)
 const bibleData = {
     1: [
         {form:"בָּרָא", root:"바라", meaning:["창조하다"], gloss:"그가 창조했다"},
