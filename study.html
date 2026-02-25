@@ -1,49 +1,137 @@
-<!DOCTYPE html> <html lang="ko"> <head> <meta charset="UTF-8"> 
-  <title>Genesis Study</title> 
-  <link rel="stylesheet" href="css/style.css"> 
-  <style> /* 전체 중앙 정렬 */ 
-    body{ margin:0; background:linear-gradient(135deg,#0f2027,#203a43,#2c5364); 
-         font-family:'Segoe UI',sans-serif; color:white; display:flex; flex-direction:column; align-items:center; 
-         justify-content:center; height:100vh; } /* 카드 */ 
-    #card{ background:rgba(255,255,255,0.05); border-radius:20px; padding:40px; 
-          width:90%; max-width:600px; text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); } 
-    /* 히브리어 단어 */ 
-    #hebrew{ font-size:90px; direction:rtl; margin-bottom:30px; font-weight:bold; } 
-    /* 설명 텍스트 */ 
-    .info{ font-size:24px; margin:10px 0; } 
-    /* 버튼 영역 */ 
-    #nav{ margin-top:30px; } 
-    button{ font-size:20px; padding:12px 25px; margin:10px; border-radius:10px; border:none; cursor:pointer; } 
-    button:disabled{ opacity:0.3; cursor:default; } 
-    #backBtn{ background:#888; } 
-    #nextBtn{ background:#4CAF50; color:white; } 
-  </style> </head> 
-  <body> <div id="card"> 
-    <div id="chapterTitle"></div> 
-    <div id="hebrew"></div> 
-    <div class="info" id="root"></div> 
-    <div class="info" id="meaning"></div> 
-    <div class="info" id="gloss"></div> 
-    <div id="nav"> 
-      <button id="backBtn">< 이전</button> <button id="nextBtn">다음 ></button> 
-      </div> 
-      </div> 
-        <script src="data.js"></script> 
-        <script> 
-          const params = new URLSearchParams(location.search); 
-          const ch = params.get("ch") || 1; 
-          const words = bibleData[ch]; let index = 0; 
-          const hebrewEl = document.getElementById("hebrew");
-          const rootEl = document.getElementById("root"); 
-          const meaningEl = document.getElementById("meaning"); 
-          const glossEl = document.getElementById("gloss"); 
-          const backBtn = document.getElementById("backBtn"); 
-          const nextBtn = document.getElementById("nextBtn"); 
-          const titleEl = document.getElementById("chapterTitle"); 
-          titleEl.innerHTML = "<h2>Genesis "+ch+" 학습</h2>"; function render(){ 
-            const w = words[index]; hebrewEl.textContent = w.form; 
-            rootEl.textContent = "어근: " + w.root; meaningEl.textContent = "뜻: " + w.meaning.join(", "); 
-            glossEl.textContent = "gloss: " + w.gloss; backBtn.disabled = index===0; nextBtn.disabled = index===words.length-1; } 
-          backBtn.onclick = ()=>{ if(index>0){ index--; render(); } } 
-            nextBtn.onclick = ()=>{ if(index<words.length-1){ index++; render(); } } render(); </script> </body> 
-      </html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Genesis Study</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 전체 중앙 정렬 */
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        /* 카드 */
+        #card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        /* 히브리어 단어 */
+        #hebrew {
+            font-size: 90px;
+            direction: rtl;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        /* 설명 텍스트 */
+        .info {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        /* 버튼 영역 */
+        #nav {
+            margin-top: 30px;
+        }
+        button {
+            font-size: 20px;
+            padding: 12px 25px;
+            margin: 10px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+        #backBtn { background: #888; color: white; }
+        #nextBtn { background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div id="card">
+        <div id="chapterTitle"></div>
+        <div id="hebrew"></div>
+        <div class="info" id="root"></div>
+        <div class="info" id="meaning"></div>
+        <div class="info" id="gloss"></div>
+        <div id="nav">
+            <button id="backBtn">< 이전</button>
+            <button id="nextBtn">다음 ></button>
+        </div>
+    </div>
+
+    <!-- data.js 로드 -->
+    <script src="data.js"></script>
+    <script>
+        // 1. URL에서 ch 파라미터 가져오기 (기본값 "1")
+        const params = new URLSearchParams(location.search);
+        let ch = params.get("ch") || "1";
+
+        // 2. 데이터 유효성 검사 및 할당
+        const words = bibleData[ch];
+        let index = 0;
+
+        // 엘리먼트 참조
+        const hebrewEl = document.getElementById("hebrew");
+        const rootEl = document.getElementById("root");
+        const meaningEl = document.getElementById("meaning");
+        const glossEl = document.getElementById("gloss");
+        const backBtn = document.getElementById("backBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const titleEl = document.getElementById("chapterTitle");
+
+        // 초기 제목 설정
+        titleEl.innerHTML = `<h2>Genesis ${ch} 학습</h2>`;
+
+        // 3. 화면 렌더링 함수
+        function render() {
+            if (!words || words.length === 0) {
+                hebrewEl.textContent = "데이터 없음";
+                return;
+            }
+
+            const w = words[index];
+            hebrewEl.textContent = w.form;
+            rootEl.textContent = "어근: " + w.root;
+            meaningEl.textContent = "뜻: " + w.meaning.join(", ");
+            glossEl.textContent = "gloss: " + w.gloss;
+
+            // 버튼 상태 업데이트
+            backBtn.disabled = (index === 0);
+            nextBtn.disabled = (index === words.length - 1);
+        }
+
+        // 4. 이벤트 리스너
+        backBtn.onclick = () => {
+            if (index > 0) {
+                index--;
+                render();
+            }
+        };
+
+        nextBtn.onclick = () => {
+            if (index < words.length - 1) {
+                index++;
+                render();
+            }
+        };
+
+        // 5. 초기 실행
+        window.onload = () => {
+            render();
+        };
+    </script>
+</body>
+</html>
