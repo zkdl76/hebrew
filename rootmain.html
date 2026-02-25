@@ -1,325 +1,216 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Genesis Root Master</title>
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <title>Genesis Root Master</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 간단한 레이아웃 보정 */
+        body { background: #1a1a1a; color: white; text-align: center; font-family: sans-serif; }
+        #wordCanvas { font-size: 80px; margin: 40px 0; min-height: 120px; transition: 0.3s; }
+        .correct { color: #4CAF50; transform: scale(1.1); }
+        .wrong { color: #f44336; animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        #statusBoard { display: flex; justify-content: space-around; padding: 20px; background: rgba(0,0,0,0.3); }
+        .wrong-item { display: inline-block; margin: 5px; padding: 5px 10px; background: #444; border-radius: 5px; font-size: 14px; }
+        #answerInput { font-size: 20px; padding: 10px; border-radius: 5px; border: none; width: 250px; text-align: center; }
+        button { padding: 10px 20px; font-size: 18px; cursor: pointer; border-radius: 5px; border: none; margin: 5px; }
+        .btn-main { background: #4CAF50; color: white; }
+        .btn-hint { background: #ff9800; color: white; }
+    </style>
 </head>
 <body>
 
 <div id="statusBoard">
-<div>STAGE: <span id="lvDisplay">1</span></div>
-<div>POINTS: <span id="scoreDisplay">10</span></div>
-<div>REMAIN: <span id="remainDisplay">0</span></div>
+    <div>STAGE: <span id="lvDisplay">1</span></div>
+    <div>POINTS: <span id="scoreDisplay">10</span></div>
+    <div>REMAIN: <span id="remainDisplay">0</span></div>
 </div>
 
-<div id="timerContainer">TIME: <span id="timeVal">10</span></div>
-<div id="eventIndicator"></div>
+<div id="timerContainer" style="font-size: 24px; margin-top: 10px;">
+    TIME: <span id="timeVal" style="color: #ffeb3b;">10</span>
+</div>
 
-<select id="chapterSelect"></select>
-<button onclick="goStudy()">📘 학습하기</button>
+<div id="wordCanvas">준비...</div>
 
-<div id="wordCanvas"></div>
+<div style="margin-bottom: 20px;">
+    <select id="chapterSelect" style="font-size: 18px; padding: 5px;"></select>
+    <button onclick="goStudy()" class="btn-main">📘 학습하기</button>
+</div>
 
-<input id="answerInput" placeholder="어근 뜻 입력">
+<input id="answerInput" placeholder="어근(한글) 입력" autocomplete="off">
 <br>
-<button onclick="checkAnswer()">확인</button>
-<button onclick="buyHint()" id="hintBtn" style="display:none;">힌트 구매 (-5P)</button>
+<button onclick="checkAnswer()" class="btn-main">확인 (Enter)</button>
+<button onclick="buyHint()" id="hintBtn" class="btn-hint" style="display:none;">힌트 구매 (-5P)</button>
 
-<div id="feedback"></div>
+<div id="feedback" style="height: 50px; margin-top: 10px; font-size: 20px;"></div>
 
-<div>
-<h3>오답 보관소</h3>
-<div id="wrongItems"></div>
+<div style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
+    <h3>오답 보관소</h3>
+    <div id="wrongItems">없음</div>
 </div>
 
 <script src="data.js"></script>
-
 <script>
-let currentChapter = 1;
-let currentVerbs = [];
-let wrongAnswers = [];
-let current = null;
-
-let score = 10;
-let unlockedStages = JSON.parse(localStorage.getItem("unlocked")) || [1];
-
-let timeLeft = 10;
-let timer = null;
-
-// FIXED element references
-const canvas = document.getElementById("wordCanvas");
-const input = document.getElementById("answerInput");
-const feedbackEl = document.getElementById("feedback");
-const scoreDisp = document.getElementById("scoreDisplay");
-const remainDisp = document.getElementById("remainDisplay");
-const wrongDiv = document.getElementById("wrongItems");
-const hintBtnEl = document.getElementById("hintBtn");
-const timeDisp = document.getElementById("timeVal");
-const eventInd = document.getElementById("eventIndicator");
-const chapterSelect = document.getElementById("chapterSelect");
-
-// Save unlock state
-function saveUnlock(){
-localStorage.setItem("unlocked", JSON.stringify(unlockedStages));
-}
-
-// Update dropdown
-function updateDropdown(){
-chapterSelect.innerHTML="";
-Object.keys(bibleData).forEach(ch=>{
-
-const opt=document.createElement("option");
-
-opt.value=ch;
-
-if(unlockedStages.includes(parseInt(ch))){
-opt.textContent="📖 Genesis "+ch;
-}else{
-opt.textContent="🔒 Genesis "+ch;
-opt.disabled=true;
-}
-
-chapterSelect.appendChild(opt);
-
-});
-
-chapterSelect.value=currentChapter;
-}
-
-// Load chapter
-function loadChapter(ch){
-
-currentChapter=parseInt(ch);
-
-currentVerbs=[...bibleData[ch]];
-
-wrongAnswers=[];
-
-updateStatus();
-
-nextQuestion();
-
-}
-
-// Update status
-function updateStatus(){
-
-scoreDisp.textContent=score;
-
-remainDisp.textContent=currentVerbs.length;
-
-wrongDiv.innerHTML=wrongAnswers.length===0
-?"없음"
-:wrongAnswers.map(w=>"<span class='wrong-item'>"+w.form+"</span>").join("");
-
-}
-
-// Timer
-function startTimer(){
-
-clearInterval(timer);
-
-timeLeft=10;
-
-timeDisp.textContent=timeLeft;
-
-timer=setInterval(()=>{
-
-timeLeft--;
-
-timeDisp.textContent=timeLeft;
-
-if(timeLeft<=0){
-
-clearInterval(timer);
-
-timeout();
-
-}
-
-},1000);
-
-}
-
-// Timeout
-function timeout(){
-canvas.classList.remove("correct");
-canvas.classList.add("wrong");
-score -= 2;
-
-if(score < 0){
-
-alert("GAME OVER");
-
-score = 10;
-
-currentChapter = 1;
-
-unlockedStages = [1];
-
-saveUnlock();
-
-updateDropdown();
-
-loadChapter(1);
-
-return;
-
-}
-
-feedbackEl.innerHTML =
-"<span style='color:red;'>TIME OVER! -2P</span><br>정답: "+current.root;
-
-if(!wrongAnswers.find(v=>v.form===current.form)){
-
-wrongAnswers.push(current);
-
-}
-
-updateStatus();
-
-setTimeout(nextQuestion,2000);
-
-}
-
-// Next question
-function nextQuestion(){
-canvas.classList.remove("correct");
-canvas.classList.remove("wrong");
-
-let pool=[...currentVerbs,...wrongAnswers];
-
-if(pool.length===0){
-clearInterval(timer);   // ✅ 이 줄 추가
-canvas.textContent="CLEAR!";
-
-const next=currentChapter+1;
-
-if(bibleData[next] && !unlockedStages.includes(next)){
-
-unlockedStages.push(next);
-
-saveUnlock();
-
-updateDropdown();
-
-}
-
-return;
-
-}
-
-// prevent same repeat
-pool=pool.filter(v=>!current || v.form!==current.form);
-
-if(pool.length===0){
-
-pool=[...currentVerbs,...wrongAnswers];
-
-}
-
-current=pool[Math.floor(Math.random()*pool.length)];
-
-canvas.textContent=current.form;
-
-input.value="";
-
-input.focus();
-
-startTimer();
-
-}
-
-// Check answer
-function checkAnswer(){
-
-const val=input.value.trim();
-
-if(!current) return;
-
-if(val.includes(current.root)){
-
-canvas.classList.remove("wrong");
-canvas.classList.add("correct");
-
-score+=10;
-
-feedbackEl.innerHTML="<span style='color:lightgreen;'>정답! +10P</span>";
-
-currentVerbs=currentVerbs.filter(v=>v.form!==current.form);
-
-wrongAnswers=wrongAnswers.filter(v=>v.form!==current.form);
-
-}else{
-
-canvas.classList.remove("correct");
-canvas.classList.add("wrong");
-
-score-=2;
-
-feedbackEl.innerHTML="<span style='color:red;'>오답!</span> 정답: "+current.root;
-
-if(!wrongAnswers.find(v=>v.form===current.form)){
-wrongAnswers.push(current);
-}
-
-}
-
-updateStatus();
-
-setTimeout(nextQuestion,1000);
-
-}
-
-// Hint
-function buyHint(){
-
-if(score<5) return;
-
-score-=5;
-
-feedbackEl.innerHTML="<div class='hint-box'>힌트: "+current.root.charAt(0)+"...</div>";
-
-updateStatus();
-
-}
-
-// Go study
-function goStudy(){
-
-location.href="study.html?ch="+currentChapter;
-
-}
-
-// Dropdown change
-chapterSelect.addEventListener("change", function(){
-
-loadChapter(this.value);
-
-});
-
-// Enter key support
-input.addEventListener("keypress", function(e){
-
-if(e.key==="Enter"){
-
-checkAnswer();
-
-}
-
-});
-
-// Init safely
-window.onload=function(){
-
-updateDropdown();
-
-loadChapter(1);
-
-};
-
+    let currentChapter = 1;
+    let currentVerbs = [];
+    let wrongAnswers = [];
+    let current = null;
+    let score = 10;
+    let unlockedStages = JSON.parse(localStorage.getItem("unlocked")) || [1];
+    let timeLeft = 10;
+    let timer = null;
+    let isProcessing = false; // 중복 정답 방지용
+
+    const canvas = document.getElementById("wordCanvas");
+    const input = document.getElementById("answerInput");
+    const feedbackEl = document.getElementById("feedback");
+    const scoreDisp = document.getElementById("scoreDisplay");
+    const remainDisp = document.getElementById("remainDisplay");
+    const wrongDiv = document.getElementById("wrongItems");
+    const hintBtnEl = document.getElementById("hintBtn");
+    const timeDisp = document.getElementById("timeVal");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const lvDisplay = document.getElementById("lvDisplay");
+
+    function saveUnlock() { localStorage.setItem("unlocked", JSON.stringify(unlockedStages)); }
+
+    function updateDropdown() {
+        chapterSelect.innerHTML = "";
+        Object.keys(bibleData).forEach(ch => {
+            const opt = document.createElement("option");
+            opt.value = ch;
+            const isUnlocked = unlockedStages.includes(parseInt(ch));
+            opt.textContent = (isUnlocked ? "📖" : "🔒") + " Genesis " + ch;
+            opt.disabled = !isUnlocked;
+            chapterSelect.appendChild(opt);
+        });
+        chapterSelect.value = currentChapter;
+    }
+
+    function loadChapter(ch) {
+        currentChapter = parseInt(ch);
+        lvDisplay.textContent = currentChapter;
+        currentVerbs = [...bibleData[ch]];
+        wrongAnswers = [];
+        isProcessing = false;
+        updateStatus();
+        nextQuestion();
+    }
+
+    function updateStatus() {
+        scoreDisp.textContent = score;
+        remainDisp.textContent = currentVerbs.length;
+        hintBtnEl.style.display = score >= 5 ? "inline-block" : "none";
+        wrongDiv.innerHTML = wrongAnswers.length === 0 
+            ? "없음" 
+            : wrongAnswers.map(w => `<span class='wrong-item'>${w.form}</span>`).join("");
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timeLeft = 10;
+        timeDisp.textContent = timeLeft;
+        timer = setInterval(() => {
+            timeLeft--;
+            timeDisp.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                handleWrong("TIME OVER! -2P");
+            }
+        }, 1000);
+    }
+
+    function nextQuestion() {
+        if (currentVerbs.length === 0 && wrongAnswers.length === 0) {
+            clearInterval(timer);
+            canvas.innerHTML = "<span style='color:#FFD700;'>STAGE CLEAR!</span>";
+            const next = currentChapter + 1;
+            if (bibleData[next] && !unlockedStages.includes(next)) {
+                unlockedStages.push(next);
+                saveUnlock();
+                updateDropdown();
+            }
+            return;
+        }
+
+        isProcessing = false;
+        canvas.className = "";
+        
+        // 오답 리스트와 현재 리스트 통합 추출
+        let pool = currentVerbs.length > 0 ? currentVerbs : wrongAnswers;
+        current = pool[Math.floor(Math.random() * pool.length)];
+
+        canvas.textContent = current.form;
+        input.value = "";
+        input.focus();
+        feedbackEl.innerHTML = "";
+        startTimer();
+    }
+
+    function checkAnswer() {
+        if (isProcessing || !current) return;
+        const val = input.value.trim();
+
+        if (val === current.root) { // .includes보다 정확한 매칭 권장
+            isProcessing = true;
+            clearInterval(timer);
+            score += 10;
+            canvas.className = "correct";
+            feedbackEl.innerHTML = "<span style='color:lightgreen;'>정답! +10P</span>";
+            
+            // 데이터 제거
+            currentVerbs = currentVerbs.filter(v => v.form !== current.form);
+            wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
+            
+            updateStatus();
+            setTimeout(nextQuestion, 1000);
+        } else {
+            handleWrong("오답! -2P");
+        }
+    }
+
+    function handleWrong(msg) {
+        isProcessing = true;
+        clearInterval(timer);
+        score -= 2;
+        canvas.className = "wrong";
+        feedbackEl.innerHTML = `<span style='color:red;'>${msg}</span><br>정답: ${current.root}`;
+
+        if (!wrongAnswers.find(v => v.form === current.form)) {
+            wrongAnswers.push(current);
+        }
+
+        if (score < 0) {
+            alert("GAME OVER! 점수가 초기화됩니다.");
+            score = 10;
+            loadChapter(currentChapter);
+            return;
+        }
+
+        updateStatus();
+        setTimeout(nextQuestion, 2000);
+    }
+
+    function buyHint() {
+        if (score < 5) return;
+        score -= 5;
+        feedbackEl.innerHTML = `<div style='color:#ff9800;'>힌트: ${current.root[0]}...</div>`;
+        updateStatus();
+        input.focus();
+    }
+
+    function goStudy() {
+        location.href = "study.html?ch=" + currentChapter;
+    }
+
+    chapterSelect.onchange = (e) => loadChapter(e.target.value);
+    input.onkeypress = (e) => { if (e.key === "Enter") checkAnswer(); };
+
+    window.onload = () => {
+        updateDropdown();
+        loadChapter(1);
+    };
 </script>
-
 </body>
 </html>
