@@ -145,7 +145,30 @@ timeout();
 // Timeout
 function timeout(){
 
-feedbackEl.innerHTML="<span style='color:red;'>TIME OVER!</span> 정답: "+current.root;
+score -= 2;
+
+if(score < 0){
+
+alert("GAME OVER");
+
+score = 10;
+
+currentChapter = 1;
+
+unlockedStages = [1];
+
+saveUnlock();
+
+updateDropdown();
+
+loadChapter(1);
+
+return;
+
+}
+
+feedbackEl.innerHTML =
+"<span style='color:red;'>TIME OVER! -2P</span><br>정답: "+current.root;
 
 if(!wrongAnswers.find(v=>v.form===current.form)){
 
