@@ -1,4 +1,3 @@
-
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -12,9 +11,7 @@ body {
 
 #statusBoard {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
+    justify-content: space-around;
     background: rgba(0,0,0,0.7);
     padding: 15px;
     border-radius: 12px;
@@ -24,30 +21,48 @@ body {
 }
 
 #timerContainer {
-    font-size: clamp(20px, 5vw, 35px);
+    font-size: 35px;
     font-weight: 900;
+    margin-bottom: 5px;
+    height: 45px;
+    text-shadow: 0 0 10px rgba(255,61,0,0.5);
 }
 
 #eventIndicator {
-    font-size: clamp(16px, 4vw, 22px);
-    min-height: 30px;
+    font-size: 22px;
+    height: 35px;
+    margin-bottom: 10px;
+    font-weight: bold;
 }
 
 #wordCanvas {
-    font-size: clamp(40px, 8vw, 85px);
+    font-size: 85px;
     direction: rtl;
     font-weight: bold;
-    margin: 20px;
+    text-shadow: 0 0 15px rgba(255,255,255,0.3);
+    height: 160px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+select {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    background: #2c003e;
+    color: white;
+    border: 1px solid #ff3d00;
 }
 
 input {
     padding: 15px;
     font-size: 18px;
-    width: 90%;
-    max-width: 300px;
+    width: 300px;
     border-radius: 10px;
     border: none;
     text-align: center;
+    background: #eee;
 }
 
 button {
@@ -61,35 +76,93 @@ button {
 }
 
 #feedback {
-    min-height: 60px;
-    margin-top: 10px;
+    margin-top: 15px;
+    font-size: 19px;
+    min-height: 80px;
 }
 
 .hint-box {
-    color: yellow;
+    color: #ffeb3b;
 }
 
 .wrong-item {
     display: inline-block;
-    padding: 5px 10px;
-    margin: 3px;
-    background: rgba(255,0,0,0.2);
-    border-radius: 10px;
+    background: rgba(255,61,0,0.2);
+    padding: 5px 12px;
+    margin: 5px;
+    border-radius: 20px;
+    border: 1px solid #ff3d00;
+    direction: rtl;
+    font-size: 18px;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
-    background: white;
-    color: black;
+/* ===== 반응형 추가 (기존 디자인 유지) ===== */
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
-th, td {
-    border: 1px solid #ccc;
+/* 상태보드 */
+#statusBoard {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 히브리어 */
+#wordCanvas {
+    font-size: clamp(40px, 10vw, 85px);
+    height: auto;
+    min-height: 100px;
     padding: 10px;
 }
 
-th {
-    background: black;
-    color: white;
+/* 입력창 */
+input {
+    width: 90%;
+    max-width: 300px;
+}
+
+/* 버튼 */
+button {
+    max-width: 300px;
+    width: auto;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+
+    #timerContainer {
+        font-size: 26px;
+    }
+
+    #eventIndicator {
+        font-size: 18px;
+    }
+
+    #statusBoard {
+        font-size: 14px;
+    }
+
+    input {
+        font-size: 16px;
+    }
+
+}
+
+/* 작은 모바일 */
+@media (max-width: 480px) {
+
+    #timerContainer {
+        font-size: 22px;
+    }
+
+    #eventIndicator {
+        font-size: 16px;
+    }
+
+    button {
+        width: 90%;
+    }
+
 }
