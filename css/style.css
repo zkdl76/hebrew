@@ -166,3 +166,39 @@ button {
     }
 
 }
+
+/* ===== 정답 / 오답 오버레이 ===== */
+
+/* wordCanvas 부모 기준점 */
+#wordCanvas {
+    position: relative;
+}
+
+/* 공통 overlay */
+#wordCanvas.correct::after,
+#wordCanvas.wrong::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* 정답: 빨간 원 */
+#wordCanvas.correct::after {
+    content: "";
+    width: clamp(100px, 15vw, 160px);
+    height: clamp(100px, 15vw, 160px);
+    border: 10px solid #FF0000;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* 오답: X 표시 */
+#wordCanvas.wrong::after {
+    content: "✕";
+    color: #FF0000;
+    font-size: clamp(80px, 15vw, 160px);
+    font-weight: 900;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
