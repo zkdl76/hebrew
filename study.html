@@ -5,7 +5,7 @@
     <title>Genesis Study - TTS Version</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* 전체 중앙 정렬 */
+        /* 전체 배경 및 중앙 정렬 */
         body {
             margin: 0;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -16,72 +16,103 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            overflow: hidden;
         }
-        /* 카드 */
+
+        /* 🏠 홈 버튼 (상단 왼쪽) */
+        #homeBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+        }
+        #homeBtn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        /* 🃏 학습 카드 */
         #card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 25px;
+            padding: 50px;
             width: 90%;
             max-width: 600px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
         }
+
+        #chapterTitle { font-size: 18px; color: #aaa; margin-bottom: 10px; }
+        
         /* 히브리어 단어 */
         #hebrew {
-            font-size: 90px;
+            font-size: 100px;
             direction: rtl;
             margin-bottom: 30px;
             font-weight: bold;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
         }
-        /* 설명 텍스트 */
-        .info {
-            font-size: 24px;
-            margin: 10px 0;
-        }
+
+        .info { font-size: 26px; margin: 12px 0; color: #e0e0e0; }
+        
         /* 버튼 영역 */
-        #nav {
-            margin-top: 30px;
-        }
+        #nav { margin-top: 40px; }
         button {
             font-size: 20px;
-            padding: 12px 25px;
+            padding: 15px 30px;
             margin: 10px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
-            transition: transform 0.1s;
+            font-weight: bold;
+            transition: all 0.2s;
         }
-        button:active {
-            transform: scale(0.95);
-        }
-        button:disabled {
-            opacity: 0.3;
-            cursor: default;
-        }
-        #backBtn { background: #888; color: white; }
+        button:active { transform: scale(0.95); }
+        button:disabled { opacity: 0.2; cursor: default; }
+
+        #backBtn { background: #555; color: white; }
         #nextBtn { background: #4CAF50; color: white; }
+        
+        /* 🔊 음성 제어 버튼 */
+        #audioControl {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
+
+    <!-- 홈으로 이동 버튼 -->
+    <a href="rootmain.html" id="homeBtn">🏠 메인 메뉴</a>
+
     <div id="card">
         <div id="chapterTitle"></div>
         <div id="hebrew"></div>
         <div class="info" id="root"></div>
         <div class="info" id="meaning"></div>
         <div class="info" id="gloss"></div>
+        
         <div id="nav">
-            <button id="backBtn">< 이전</button>
-            <button id="nextBtn">다음 ></button>
+            <button id="backBtn">◀ 이전</button>
+            <button id="nextBtn">다음 ▶</button>
         </div>
+
+        <div id="audioControl" onclick="toggleAudio()">🔊 음성 자동 재생 중 (클릭 시 중지)</div>
     </div>
 
-    <!-- data.js 로드 -->
     <script src="data.js"></script>
     <script>
         const params = new URLSearchParams(location.search);
         let ch = params.get("ch") || "1";
-        const words = bibleData[ch];
+        const words = bibleData[ch] || [];
         let index = 0;
 
         const hebrewEl = document.getElementById("hebrew");
@@ -91,35 +122,44 @@
         const backBtn = document.getElementById("backBtn");
         const nextBtn = document.getElementById("nextBtn");
         const titleEl = document.getElementById("chapterTitle");
+        const audioControl = document.getElementById("audioControl");
 
-        titleEl.innerHTML = `<h2>Genesis ${ch} 학습</h2>`;
+        titleEl.textContent = `Genesis ${ch} 학습`;
 
-        // 🔊 TTS 재생 상태 관리 변수
-        let isTtsActive = true; 
+        let isAudioOn = true;
 
-        // 🔊 히브리어 재생 함수
+        // 🔊 TTS 재생 함수
         function speakHebrew(text) {
-            // 기존 재생 중인 음성 모두 취소
-            window.speechSynthesis.cancel();
-
-            if (!isTtsActive) return;
+            window.speechSynthesis.cancel(); // 이전 음성 즉시 중단
+            
+            if (!isAudioOn || !text) return;
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'he-IL'; // 히브리어 설정
-            utterance.rate = 0.7;    // 학습을 위해 약간 천천히
+            utterance.lang = 'he-IL';
+            utterance.rate = 0.7; // 느린 속도
 
-            // 재생이 끝나면 다시 재생 (무한 반복)
+            // 무한 반복 설정
             utterance.onend = () => {
-                if (isTtsActive) {
-                    window.speechSynthesis.speak(utterance);
-                }
+                if (isAudioOn) window.speechSynthesis.speak(utterance);
             };
 
             window.speechSynthesis.speak(utterance);
         }
 
+        // 🔇 음성 ON/OFF 토글
+        function toggleAudio() {
+            isAudioOn = !isAudioOn;
+            if (!isAudioOn) {
+                window.speechSynthesis.cancel();
+                audioControl.textContent = "🔇 음성 일시 중지됨 (클릭 시 재생)";
+            } else {
+                audioControl.textContent = "🔊 음성 자동 재생 중 (클릭 시 중지)";
+                speakHebrew(words[index].form);
+            }
+        }
+
         function render() {
-            if (!words || words.length === 0) {
+            if (words.length === 0) {
                 hebrewEl.textContent = "데이터 없음";
                 return;
             }
@@ -133,37 +173,22 @@
             backBtn.disabled = (index === 0);
             nextBtn.disabled = (index === words.length - 1);
 
-            // 단어 렌더링 시 음성 재생 시작
+            // 단어 변경 시 음성 재생
             speakHebrew(w.form);
         }
 
-        backBtn.onclick = () => {
-            if (index > 0) {
-                index--;
-                render();
-            }
-        };
+        backBtn.onclick = () => { if (index > 0) { index--; render(); } };
+        nextBtn.onclick = () => { if (index < words.length - 1) { index++; render(); } };
 
-        nextBtn.onclick = () => {
-            if (index < words.length - 1) {
-                index++;
-                render();
-            }
-        };
-
-        // 초기 실행 (데이터 로드 확인 후)
+        // 초기 실행
         window.onload = () => {
-            if (typeof bibleData !== 'undefined') {
-                render();
-            } else {
-                console.error("data.js를 찾을 수 없습니다.");
-            }
+            render();
+            // 브라우저 정책상 첫 클릭 전까지 소리가 안 날 수 있음을 알림
+            console.log("화면을 클릭하면 음성 재생이 시작됩니다.");
         };
 
-        // 페이지를 떠날 때 음성 중지
-        window.onbeforeunload = () => {
-            window.speechSynthesis.cancel();
-        };
+        // 페이지 이동 시 음성 완전 중단
+        window.onbeforeunload = () => { window.speechSynthesis.cancel(); };
     </script>
 </body>
 </html>
