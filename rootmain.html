@@ -2,21 +2,46 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Genesis Root Master</title>
+    <title>Genesis Root Master - 어근+뜻 학습</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* 간단한 레이아웃 보정 */
-        body { background: #1a1a1a; color: white; text-align: center; font-family: sans-serif; }
-        #wordCanvas { font-size: 80px; margin: 40px 0; min-height: 120px; transition: 0.3s; }
-        .correct { color: #4CAF50; transform: scale(1.1); }
-        .wrong { color: #f44336; animation: shake 0.3s; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        #statusBoard { display: flex; justify-content: space-around; padding: 20px; background: rgba(0,0,0,0.3); }
-        .wrong-item { display: inline-block; margin: 5px; padding: 5px 10px; background: #444; border-radius: 5px; font-size: 14px; }
-        #answerInput { font-size: 20px; padding: 10px; border-radius: 5px; border: none; width: 250px; text-align: center; }
-        button { padding: 10px 20px; font-size: 18px; cursor: pointer; border-radius: 5px; border: none; margin: 5px; }
-        .btn-main { background: #4CAF50; color: white; }
-        .btn-hint { background: #ff9800; color: white; }
+        /* 전체 배경 및 레이아웃 */
+        body { background: #0f172a; color: white; text-align: center; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        
+        #statusBoard { 
+            display: flex; justify-content: space-around; padding: 15px; 
+            background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 20px;
+        }
+
+        #wordCanvas { 
+            font-size: 90px; margin: 40px 0; min-height: 140px; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        /* 정오답 애니메이션 */
+        .correct { color: #4ade80; transform: scale(1.1); text-shadow: 0 0 30px rgba(74, 222, 128, 0.4); }
+        .wrong { color: #f87171; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+
+        /* 입력창 및 버튼 */
+        #answerInput { 
+            font-size: 22px; padding: 12px 20px; border-radius: 10px; border: 2px solid #334155; 
+            width: 300px; text-align: center; background: #1e293b; color: white; outline: none;
+        }
+        #answerInput:focus { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+
+        button { 
+            padding: 12px 25px; font-size: 18px; cursor: pointer; border-radius: 10px; border: none; 
+            margin: 8px; font-weight: bold; transition: 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-main { background: #3b82f6; color: white; }
+        .btn-study { background: #8b5cf6; color: white; }
+        .btn-hint { background: #f59e0b; color: white; }
+
+        #feedback { height: 60px; margin-top: 15px; font-size: 22px; font-weight: 500; }
+        .wrong-item { display: inline-block; margin: 5px; padding: 6px 12px; background: #334155; border-radius: 6px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -27,26 +52,26 @@
     <div>REMAIN: <span id="remainDisplay">0</span></div>
 </div>
 
-<div id="timerContainer" style="font-size: 24px; margin-top: 10px;">
-    TIME: <span id="timeVal" style="color: #ffeb3b;">10</span>
+<div id="timerContainer" style="font-size: 26px;">
+    TIME: <span id="timeVal" style="color: #fbbf24;">10</span>
 </div>
 
-<div id="wordCanvas">준비...</div>
+<div id="wordCanvas">로딩 중...</div>
 
-<div style="margin-bottom: 20px;">
-    <select id="chapterSelect" style="font-size: 18px; padding: 5px;"></select>
-    <button onclick="goStudy()" class="btn-main">📘 학습하기</button>
+<div style="margin-bottom: 25px;">
+    <select id="chapterSelect" style="font-size: 18px; padding: 8px; border-radius: 8px; background: #1e293b; color: white;"></select>
+    <button onclick="goStudy()" class="btn-study">📘 학습하기</button>
 </div>
 
-<input id="answerInput" placeholder="어근(한글) 입력" autocomplete="off">
+<input id="answerInput" placeholder="예: 아마르 말하다" autocomplete="off">
 <br>
 <button onclick="checkAnswer()" class="btn-main">확인 (Enter)</button>
 <button onclick="buyHint()" id="hintBtn" class="btn-hint" style="display:none;">힌트 구매 (-5P)</button>
 
-<div id="feedback" style="height: 50px; margin-top: 10px; font-size: 20px;"></div>
+<div id="feedback"></div>
 
-<div style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
-    <h3>오답 보관소</h3>
+<div style="margin-top: 40px; border-top: 1px solid #334155; padding-top: 20px;">
+    <h3 style="color: #94a3b8;">오답 보관소</h3>
     <div id="wrongItems">없음</div>
 </div>
 
@@ -60,7 +85,7 @@
     let unlockedStages = JSON.parse(localStorage.getItem("unlocked")) || [1];
     let timeLeft = 10;
     let timer = null;
-    let isProcessing = false; // 중복 정답 방지용
+    let isProcessing = false;
 
     const canvas = document.getElementById("wordCanvas");
     const input = document.getElementById("answerInput");
@@ -93,7 +118,6 @@
         lvDisplay.textContent = currentChapter;
         currentVerbs = [...bibleData[ch]];
         wrongAnswers = [];
-        isProcessing = false;
         updateStatus();
         nextQuestion();
     }
@@ -116,7 +140,7 @@
             timeDisp.textContent = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(timer);
-                handleWrong("TIME OVER! -2P");
+                handleWrong("⌛ 시간 초과! -2P");
             }
         }, 1000);
     }
@@ -124,7 +148,7 @@
     function nextQuestion() {
         if (currentVerbs.length === 0 && wrongAnswers.length === 0) {
             clearInterval(timer);
-            canvas.innerHTML = "<span style='color:#FFD700;'>STAGE CLEAR!</span>";
+            canvas.innerHTML = "<span style='color:#fbbf24;'>STAGE CLEAR! ✨</span>";
             const next = currentChapter + 1;
             if (bibleData[next] && !unlockedStages.includes(next)) {
                 unlockedStages.push(next);
@@ -136,8 +160,6 @@
 
         isProcessing = false;
         canvas.className = "";
-        
-        // 오답 리스트와 현재 리스트 통합 추출
         let pool = currentVerbs.length > 0 ? currentVerbs : wrongAnswers;
         current = pool[Math.floor(Math.random() * pool.length)];
 
@@ -151,22 +173,29 @@
     function checkAnswer() {
         if (isProcessing || !current) return;
         const val = input.value.trim();
+        
+        // 데이터에서 어근과 첫 번째 뜻 추출
+        const rootName = current.root; 
+        const primaryMeaning = current.meaning[0]; 
 
-        if (val === current.root) { // .includes보다 정확한 매칭 권장
+        // ✅ 어근과 첫 번째 뜻이 모두 포함되어야 정답 (공백 상관없이 체크)
+        const combinedInput = val.replace(/\s/g, '');
+        const isCorrect = combinedInput.includes(rootName) && combinedInput.includes(primaryMeaning);
+
+        if (isCorrect) {
             isProcessing = true;
             clearInterval(timer);
             score += 10;
             canvas.className = "correct";
-            feedbackEl.innerHTML = "<span style='color:lightgreen;'>정답! +10P</span>";
+            feedbackEl.innerHTML = `<span style='color:#4ade80;'>정답! +10P</span><br><small>${rootName} ${current.meaning.join(', ')}</small>`;
             
-            // 데이터 제거
             currentVerbs = currentVerbs.filter(v => v.form !== current.form);
             wrongAnswers = wrongAnswers.filter(v => v.form !== current.form);
             
             updateStatus();
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, 1500);
         } else {
-            handleWrong("오답! -2P");
+            handleWrong("❌ 틀렸습니다! -2P");
         }
     }
 
@@ -175,7 +204,10 @@
         clearInterval(timer);
         score -= 2;
         canvas.className = "wrong";
-        feedbackEl.innerHTML = `<span style='color:red;'>${msg}</span><br>정답: ${current.root}`;
+        
+        // ✅ 정답 노출: 어근 + 전체 뜻
+        const correctAnswer = `${current.root} ${current.meaning.join(', ')}`;
+        feedbackEl.innerHTML = `<span style='color:#f87171;'>${msg}</span><br>정답: <strong>${correctAnswer}</strong>`;
 
         if (!wrongAnswers.find(v => v.form === current.form)) {
             wrongAnswers.push(current);
@@ -189,13 +221,15 @@
         }
 
         updateStatus();
-        setTimeout(nextQuestion, 2000);
+        setTimeout(nextQuestion, 2500);
     }
 
     function buyHint() {
         if (score < 5) return;
         score -= 5;
-        feedbackEl.innerHTML = `<div style='color:#ff9800;'>힌트: ${current.root[0]}...</div>`;
+        // 어근 첫 글자와 뜻 첫 글자 힌트 제공
+        const hintText = `${current.root[0]}... ${current.meaning[0][0]}...`;
+        feedbackEl.innerHTML = `<div style='color:#f59e0b;'>힌트: ${hintText}</div>`;
         updateStatus();
         input.focus();
     }
