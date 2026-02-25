@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Genesis Study</title>
+    <title>Genesis Study - TTS Version</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* 전체 중앙 정렬 */
@@ -50,6 +50,10 @@
             border-radius: 10px;
             border: none;
             cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active {
+            transform: scale(0.95);
         }
         button:disabled {
             opacity: 0.3;
@@ -75,15 +79,11 @@
     <!-- data.js 로드 -->
     <script src="data.js"></script>
     <script>
-        // 1. URL에서 ch 파라미터 가져오기 (기본값 "1")
         const params = new URLSearchParams(location.search);
         let ch = params.get("ch") || "1";
-
-        // 2. 데이터 유효성 검사 및 할당
         const words = bibleData[ch];
         let index = 0;
 
-        // 엘리먼트 참조
         const hebrewEl = document.getElementById("hebrew");
         const rootEl = document.getElementById("root");
         const meaningEl = document.getElementById("meaning");
@@ -92,10 +92,32 @@
         const nextBtn = document.getElementById("nextBtn");
         const titleEl = document.getElementById("chapterTitle");
 
-        // 초기 제목 설정
         titleEl.innerHTML = `<h2>Genesis ${ch} 학습</h2>`;
 
-        // 3. 화면 렌더링 함수
+        // 🔊 TTS 재생 상태 관리 변수
+        let isTtsActive = true; 
+
+        // 🔊 히브리어 재생 함수
+        function speakHebrew(text) {
+            // 기존 재생 중인 음성 모두 취소
+            window.speechSynthesis.cancel();
+
+            if (!isTtsActive) return;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'he-IL'; // 히브리어 설정
+            utterance.rate = 0.7;    // 학습을 위해 약간 천천히
+
+            // 재생이 끝나면 다시 재생 (무한 반복)
+            utterance.onend = () => {
+                if (isTtsActive) {
+                    window.speechSynthesis.speak(utterance);
+                }
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
         function render() {
             if (!words || words.length === 0) {
                 hebrewEl.textContent = "데이터 없음";
@@ -108,12 +130,13 @@
             meaningEl.textContent = "뜻: " + w.meaning.join(", ");
             glossEl.textContent = "gloss: " + w.gloss;
 
-            // 버튼 상태 업데이트
             backBtn.disabled = (index === 0);
             nextBtn.disabled = (index === words.length - 1);
+
+            // 단어 렌더링 시 음성 재생 시작
+            speakHebrew(w.form);
         }
 
-        // 4. 이벤트 리스너
         backBtn.onclick = () => {
             if (index > 0) {
                 index--;
@@ -128,9 +151,18 @@
             }
         };
 
-        // 5. 초기 실행
+        // 초기 실행 (데이터 로드 확인 후)
         window.onload = () => {
-            render();
+            if (typeof bibleData !== 'undefined') {
+                render();
+            } else {
+                console.error("data.js를 찾을 수 없습니다.");
+            }
+        };
+
+        // 페이지를 떠날 때 음성 중지
+        window.onbeforeunload = () => {
+            window.speechSynthesis.cancel();
         };
     </script>
 </body>
