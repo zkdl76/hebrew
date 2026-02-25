@@ -200,29 +200,43 @@
     }
 
     function handleWrong(msg) {
-        isProcessing = true;
-        clearInterval(timer);
-        score -= 2;
-        canvas.className = "wrong";
-        
-        // ✅ 정답 노출: 어근 + 전체 뜻
-        const correctAnswer = `${current.root} ${current.meaning.join(', ')}`;
-        feedbackEl.innerHTML = `<span style='color:#f87171;'>${msg}</span><br>정답: <strong>${correctAnswer}</strong>`;
+    isProcessing = true;
+    clearInterval(timer);
+    score -= 2;
+    canvas.className = "wrong";
+    
+    // ✅ 정답 노출: 어근과 뜻을 결합하여 크게 보여줌
+    // 예: "아마르 말하다, 이르다"
+    const correctRoot = current.root;
+    const correctMeaning = current.meaning.join(', '); // 배열인 뜻을 쉼표로 연결
+    
+    feedbackEl.innerHTML = `
+        <span style='color:#f87171; font-weight:bold;'>${msg}</span><br>
+        <div style='margin-top:10px; color:#fff; font-size:24px;'>
+            정답: <span style='color:#fbbf24;'>${correctRoot}</span> 
+            <span style='color:#4ade80;'>${correctMeaning}</span>
+        </div>
+    `;
 
-        if (!wrongAnswers.find(v => v.form === current.form)) {
-            wrongAnswers.push(current);
-        }
-
-        if (score < 0) {
-            alert("GAME OVER! 점수가 초기화됩니다.");
-            score = 10;
-            loadChapter(currentChapter);
-            return;
-        }
-
-        updateStatus();
-        setTimeout(nextQuestion, 2500);
+    // 오답 리스트에 추가 (중복 방지)
+    if (!wrongAnswers.find(v => v.form === current.form)) {
+        wrongAnswers.push(current);
     }
+
+    // 게임 오버 체크
+    if (score < 0) {
+        alert("GAME OVER! 점수가 초기화됩니다.");
+        score = 10;
+        loadChapter(currentChapter);
+        return;
+    }
+
+    updateStatus();
+    
+    // 오답을 확인하고 외울 시간을 2.5초로 넉넉히 설정
+    setTimeout(nextQuestion, 2500); 
+}
+
 
     function buyHint() {
         if (score < 5) return;
