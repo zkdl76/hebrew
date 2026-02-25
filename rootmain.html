@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Genesis Root Game</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h2>Genesis Root Game</h2>
+
+<select id="chapterSelect"></select>
+<button onclick="goStudy()">📘 학습하기</button>
+
+<div id="statusBoard">
+<div>점수: <span id="score">0</span></div>
+<div>남은 문제: <span id="remain">0</span></div>
+</div>
+
+<div id="wordCanvas"></div>
+
+<input id="answerInput" placeholder="어근 뜻 입력">
+<br>
+<button onclick="checkAnswer()">확인</button>
+
+<div id="feedback"></div>
+
+<script src="data.js"></script>
+
+<script>
+let currentChapter = 1;
+let current = null;
+let verbs = [];
+let score = 0;
+
+const canvas = document.getElementById("wordCanvas");
+const feedback = document.getElementById("feedback");
+const scoreEl = document.getElementById("score");
+const remainEl = document.getElementById("remain");
+
+function init(){
+    const select = document.getElementById("chapterSelect");
+
+    Object.keys(bibleData).forEach(ch=>{
+        const opt = document.createElement("option");
+        opt.value = ch;
+        opt.textContent = "Genesis " + ch;
+        select.appendChild(opt);
+    });
+
+    select.onchange = ()=>loadChapter(select.value);
+
+    loadChapter(1);
+}
+
+function loadChapter(ch){
+    currentChapter = ch;
+    verbs = [...bibleData[ch]];
+    score = 0;
+    nextQuestion();
+}
+
+function nextQuestion(){
+    if(verbs.length === 0){
+        canvas.textContent = "CLEAR!";
+        return;
+    }
+
+    current = verbs[Math.floor(Math.random()*verbs.length)];
+    canvas.textContent = current.form;
+    remainEl.textContent = verbs.length;
+}
+
+function checkAnswer(){
+    const val = document.getElementById("answerInput").value.trim();
+
+    if(val.includes(current.root)){
+        feedback.textContent = "정답!";
+        score += 10;
+        verbs = verbs.filter(v=>v.form!==current.form);
+    }else{
+        feedback.textContent = "오답! 정답: " + current.root;
+    }
+
+    scoreEl.textContent = score;
+    nextQuestion();
+}
+
+function goStudy(){
+    location.href = "study.html?ch=" + currentChapter;
+}
+
+init();
+</script>
+
+</body>
+</html>

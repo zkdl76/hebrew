@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Study Page</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<button onclick="location.href='index.html'">⬅ 게임으로</button>
+
+<h2 id="title"></h2>
+
+<table id="table">
+<tr>
+<th>히브리어</th>
+<th>어근</th>
+<th>뜻</th>
+<th>Gloss</th>
+</tr>
+</table>
+
+<script src="data.js"></script>
+
+<script>
+const params = new URLSearchParams(location.search);
+const ch = params.get("ch") || 1;
+
+document.getElementById("title").textContent = "Genesis " + ch + " Study";
+
+const table = document.getElementById("table");
+
+bibleData[ch].forEach(v=>{
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${v.form}</td>
+        <td>${v.root}</td>
+        <td>${v.meaning.join(",")}</td>
+        <td>${v.gloss}</td>
+    `;
+    table.appendChild(row);
+});
+</script>
+
+</body>
+</html>
