@@ -191,7 +191,7 @@ canvas.classList.remove("wrong");
 let pool=[...currentVerbs,...wrongAnswers];
 
 if(pool.length===0){
-
+clearInterval(timer);   // ✅ 이 줄 추가
 canvas.textContent="CLEAR!";
 
 const next=currentChapter+1;
