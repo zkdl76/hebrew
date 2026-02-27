@@ -681,17 +681,16 @@ fontSizeSelect.addEventListener("change", ()=>{
   applyFontSize(parseInt(fontSizeSelect.value));
 });
 
-    // ===== font family control =====
+// ===== font family control =====
 const fontFamilySelect = document.getElementById("fontFamilySelect");
 const fontFamilies = [
-  { name: "세리프(기본)", value: "Noto Serif Hebrew, serif" },
-  { name: "고딕(Heebo)", value: "Heebo, sans-serif" },
-  { name: "현대적(Alef)", value: "Alef, sans-serif" }
+  { name: "세리프(기본)", value: "'Noto Serif Hebrew', serif" },
+  { name: "고딕(Heebo)", value: "'Heebo', sans-serif" },
+  { name: "현대적(Alef)", value: "'Alef', sans-serif" }
 ];
 
-
 function applyFontFamily(family) {
-  // .style.fontFamily 대신 .style.setProperty를 사용해야 CSS 변수가 바뀝니다!
+  // CSS의 --hebrew-font 변수를 직접 변경합니다.
   document.documentElement.style.setProperty('--hebrew-font', family);
   localStorage.setItem("bibleFontFamily", family);
 }
@@ -707,12 +706,14 @@ function applyFontFamily(family) {
     fontFamilySelect.appendChild(opt);
   });
 
+  // 초기 로딩 시 적용
   applyFontFamily(saved);
 })();
 
 fontFamilySelect.addEventListener("change", () => {
   applyFontFamily(fontFamilySelect.value);
 });
+
 
   </script>
 </body>
