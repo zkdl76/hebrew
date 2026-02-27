@@ -10,13 +10,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{--gap:14px;--border:#e5e5e5;--muted:#666;--on:#0b5;--playing:#08f;}
-    body{margin:0; padding:18px; font-family:"Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fff; color:#111;}
+    :root{
+      --gap:14px;
+      --border:#e5e5e5;
+      --muted:#666;
+      --on:#0b5;
+      --playing:#08f;
+    }
+
+    html{
+      font-size:18px;
+    }
+
+    body{
+      margin:0;
+      padding:18px;
+      font-family:"Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:#fff;
+      color:#111;
+    }
+
+    /* ===== font size control ===== */
+    #fontSizeControl{
+      position:fixed;
+      top:10px;
+      right:14px;
+      z-index:3000;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:6px 10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.15);
+      font-size:13px;
+    }
+
+    #fontSizeSelect{
+      font-size:13px;
+      padding:2px 6px;
+    }
+
     .wrap{max-width:980px; margin:0 auto;}
     .verse{border:1px solid var(--border); border-radius:14px; padding:14px; margin:0 0 var(--gap) 0;}
     .ref{font-weight:700; margin:0 0 8px 0;}
-    h1.he{margin:0 0 10px 0; font-size:34px; line-height:1.25; direction:rtl; unicode-bidi:plaintext; text-align:left; font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;}
-    .kor{margin:0 0 10px 0; font-size:16px; color:#111;}
+    h1.he{
+      margin:0 0 10px 0;
+      font-size:2rem;
+      line-height:1.25;
+      direction:rtl;
+      unicode-bidi:plaintext;
+      text-align:left;
+      font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;
+    }
+    .kor{margin:0 0 10px 0; font-size:1rem; color:#111;}
     .btnrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     button{border:1px solid var(--border); background:#f7f7f7; padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
     button:hover{background:#f0f0f0;}
@@ -33,582 +78,133 @@
       border-bottom: 1px solid var(--border);
     }
 
-    /* centered selector cluster */
     .navcenter{
       display:flex;
       align-items:center;
       justify-content:center;
       gap:10px;
       flex-wrap:wrap;
-      font-size:13px;
+      font-size:0.85rem;
       color:var(--muted);
     }
+
     .navcenter select{
       padding:8px 10px;
       border:1px solid var(--border);
       border-radius:12px;
       background:#fff;
       font-weight:700;
+      font-size:0.9rem;
     }
 
-    /* word clickable */
     .w{cursor:pointer; padding:0 2px; border-radius:6px;}
     .w:hover{background:#f3f6ff;}
 
-    /* modal */
     .modalBg{
-      position:fixed; inset:0; background:rgba(0,0,0,.45);
-      display:none; align-items:center; justify-content:center;
-      padding:18px; z-index:2000;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:2000;
     }
     .modalBg.on{display:flex;}
+
     .modal{
-  width:min(1000px, 90vw);
-  height:60vh;                     /* 화면 높이의 60% */
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,.25);
-  padding:40px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
+      width:min(1000px, 90vw);
+      height:60vh;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:0 20px 50px rgba(0,0,0,.25);
+      padding:40px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
 
-    .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
-    .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
+    .modalTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .closeBtn{
+      border:1px solid var(--border);
+      background:#f7f7f7;
+      padding:8px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
     .wordHead{
-  margin:20px 0;
-  font-size:clamp(70px, 9vw, 140px);  /* 반응형 초대형 */
-  line-height:1.1;
-  direction:rtl;
-  unicode-bidi:plaintext;
-  text-align:center;                 /* 가운데 정렬 */
-  font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;
-}
-
-    .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
-
-    .error{color:#c00; font-weight:700; margin:10px 0;}
-    button:disabled {
-      opacity:0.4;
-      cursor:default;
+      margin:20px 0;
+      font-size:clamp(4rem, 9vw, 8rem);
+      line-height:1.1;
+      direction:rtl;
+      unicode-bidi:plaintext;
+      text-align:center;
+      font-family:"SBL Hebrew","Ezra SIL SR","Times New Roman",serif;
     }
 
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="navcenter">
-        
-        <select id="bookSelect" aria-label="성경 선택"></select>
-        <select id="chapterSelect" aria-label="장 선택"></select>
-        <span>장</span>
-      <button id="prevVerseBtn" style="padding:6px 10px;">&lt;</button>
-        <select id="verseSelect" aria-label="절 이동"></select>
-        <span>절</span>
-      <button id="nextVerseBtn" style="padding:6px 10px;">&gt;</button>
 
-      </div>
-    </div>
+<div id="fontSizeControl">
+  글자 크기
+  <select id="fontSizeSelect"></select>
+</div>
 
-    <div id="error" class="error" style="display:none;"></div>
-    <div id="verses"></div>
-  </div>
-
-  <!-- Word Modal -->
-  <div class="modalBg" id="modalBg" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modalTop">
-        <div style="font-weight:700; color:var(--muted); font-size:13px;">단어</div>
-        <button class="closeBtn" id="closeModal">닫기</button>
-      </div>
-      <h1 class="wordHead" id="modalWord"></h1>
-      <div class="modalBtns">
-        <button class="playBtn" id="wordPlay">🔊</button>
-        <button class="loopBtn" id="wordLoop">∞</button>
-      </div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="navcenter">
+      <select id="bookSelect"></select>
+      <select id="chapterSelect"></select>
+      <span>장</span>
+      <button id="prevVerseBtn">&lt;</button>
+      <select id="verseSelect"></select>
+      <span>절</span>
+      <button id="nextVerseBtn">&gt;</button>
     </div>
   </div>
 
-  <script>
-    // 절 < > 이동 변수
-    const prevVerseBtn = document.getElementById("prevVerseBtn");
-    const nextVerseBtn = document.getElementById("nextVerseBtn");
+  <div id="error" style="display:none;"></div>
+  <div id="verses"></div>
+</div>
+
+<script>
+/* ===== font size system ===== */
+const fontSizeSelect = document.getElementById("fontSizeSelect");
+const sizes = [14,16,18,20,22,24,26,28,32,36,40];
+
+function applyFontSize(px){
+  document.documentElement.style.fontSize = px + "px";
+  localStorage.setItem("bibleFontSize", px);
+}
+
+(function initFontSize(){
+  const saved = parseInt(localStorage.getItem("bibleFontSize")) || 18;
+  sizes.forEach(s=>{
+    const opt=document.createElement("option");
+    opt.value=s;
+    opt.textContent=s+"px";
+    if(s===saved) opt.selected=true;
+    fontSizeSelect.appendChild(opt);
+  });
+  applyFontSize(saved);
+})();
+
+fontSizeSelect.addEventListener("change", e=>{
+  applyFontSize(parseInt(e.target.value));
+});
+</script>
 
-    // ========= Data + routing =========
-    const BOOKS = [
-      { id:"genesis", label:"창세기", maxCh:50, refPrefix:"창세기" }
-    ];
-
-    const bookSelect = document.getElementById("bookSelect");
-    const chapterSelect = document.getElementById("chapterSelect");
-    const verseSelect = document.getElementById("verseSelect");
-    const versesEl = document.getElementById("verses");
-    const errorEl = document.getElementById("error");
-
-    function qs(){
-      const p = new URLSearchParams(location.search);
-      return {
-        b: p.get("b") || "genesis",
-        c: Number(p.get("c") || "1"),
-        v: Number(p.get("v") || "1"),
-      };
-    }
-    function setQS(b,c,v){
-      const p = new URLSearchParams(location.search);
-      p.set("b", b);
-      p.set("c", String(c));
-      if (v) p.set("v", String(v));
-      history.replaceState(null, "", `${location.pathname}?${p.toString()}${location.hash||""}`);
-    }
-
-    function cleanForTTS(text){
-      return String(text)
-        .replace(/[\/]/g, " ")
-        .replace(/[־–—]/g, " ")
-        .replace(/[.,;:!?״״'"]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    // ========= TTS (same behavior as g1.html) =========
-    let voicesReady = false;
-    let heVoice = null;
-
-    function pickHebrewVoice(){
-      const voices = window.speechSynthesis.getVoices() || [];
-      heVoice = voices.find(v => (v.lang || "").toLowerCase().startsWith("he")) || null;
-      voicesReady = true;
-    }
-
-    let playingV = null;     // verse number playing
-    let repeatV = null;      // verse number repeating
-    let VERSE_TEXTS = {};    // { [v:number]: hebrew string }
-
-    function setBtnState(v){
-      document.querySelectorAll(".playBtn[data-v]").forEach(b => b.classList.toggle("playing", Number(b.dataset.v) === v));
-      document.querySelectorAll(".loopBtn[data-v]").forEach(b => b.classList.toggle("repeatOn", Number(b.dataset.v) === repeatV));
-    }
-
-    function stopAll(){
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      playingV = null;
-      setBtnState(null);
-    }
-
-    function speakVerse(v, fromRepeat=false){
-      v = Number(v);
-      const text = VERSE_TEXTS[v];
-      if (!text) return;
-
-      if (playingV !== null && playingV !== v){
-        stopAll();
-      }
-      if (repeatV !== null && repeatV !== v && !fromRepeat){
-        repeatV = null;
-      }
-
-      const u = new SpeechSynthesisUtterance(cleanForTTS(text));
-      if (!voicesReady) pickHebrewVoice();
-      if (heVoice) u.voice = heVoice;
-      u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
-      u.rate = 1.0;
-
-      playingV = v;
-      setBtnState(v);
-
-      u.onend = () => {
-        playingV = null;
-        setBtnState(null);
-        if (repeatV === v){
-          setTimeout(() => speakVerse(v, true), 350);
-        }
-      };
-
-      u.onerror = () => {
-        playingV = null;
-        setBtnState(null);
-      };
-
-      window.speechSynthesis.speak(u);
-    }
-
-    if ("speechSynthesis" in window){
-      window.speechSynthesis.onvoiceschanged = () => pickHebrewVoice();
-      pickHebrewVoice();
-    }
-
-    // Verse play/loop buttons (event delegation)
-    document.addEventListener("click", (e) => {
-      const p = e.target.closest(".playBtn[data-v]");
-      const l = e.target.closest(".loopBtn[data-v]");
-
-      if (p){
-        const v = Number(p.dataset.v);
-        if (repeatV !== null && repeatV !== v) repeatV = null;
-        speakVerse(v);
-        return;
-      }
-
-      if (l){
-        const v = Number(l.dataset.v);
-        if (repeatV === v){
-          repeatV = null;
-          setBtnState(playingV);
-          return;
-        }
-        repeatV = v;
-        setBtnState(playingV);
-        speakVerse(v);
-        return;
-      }
-    });
-
-    // ========= Word popup (same UX as g1.html) =========
-    const modalBg = document.getElementById("modalBg");
-    const modalWord = document.getElementById("modalWord");
-    const closeModalBtn = document.getElementById("closeModal");
-    const wordPlay = document.getElementById("wordPlay");
-    const wordLoop = document.getElementById("wordLoop");
-
-    let currentWord = "";
-    let wordRepeat = false;
-    let wordAutoCount = 0;     // 현재 재생 횟수
-    let wordAutoMax = 3;      // 자동 재생 횟수 10을 5/10/20으로 변경하면 숫자만큼 반복함, Infinity = 무한대 재생
-
-
-    function openWordModal(word){
-      currentWord = word || "";
-      if (!currentWord) return;
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      // 단어 재생은 절 반복을 끈다
-      repeatV = null;
-      setBtnState(playingV);
-      modalWord.textContent = currentWord;
-      modalBg.classList.add("on");
-
-      wordAutoCount = 0;
-      wordRepeat = false; // 무한반복 끔
-      speakWord();        // 자동 시작
-
-      
-      // 🔊 팝업 열리면 자동 1회 재생
-      //wordRepeat = false;
-      //wordLoop.classList.remove("repeatOn");
-      //speakWord();
-    }
-
-    function closeWordModal(){
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      wordRepeat = false;
-      wordPlay.classList.remove("playing");
-      wordLoop.classList.remove("repeatOn");
-      modalBg.classList.remove("on");
-    }
-
-    function speakWord(){
-      if (!currentWord) return;
-      const u = new SpeechSynthesisUtterance(cleanForTTS(currentWord));
-      if (!voicesReady) pickHebrewVoice();
-      if (heVoice) u.voice = heVoice;
-      u.lang = (heVoice && heVoice.lang) ? heVoice.lang : "he-IL";
-      u.rate = 1.0;
-
-      wordPlay.classList.add("playing");
-
-      u.onend = () => {
-  	wordPlay.classList.remove("playing");
-
-  	// 무한 반복 모드면 계속
-  	if (wordRepeat){
-    	setTimeout(() => speakWord(), 300);
-    	return;
-  	}
-
-  	// 자동 반복 카운트 증가
-  	wordAutoCount++;
-
-  	if (wordAutoCount < wordAutoMax){
-    	setTimeout(() => speakWord(), 300);
-  	} else {
-    	// 자동 반복 종료 → 팝업 닫기
-    	setTimeout(() => {
-      	closeWordModal();
-    	}, 300);
-  }
-};
-
-
-      u.onerror = () => {
-        wordPlay.classList.remove("playing");
-      };
-
-      window.speechSynthesis.speak(u);
-    }
-
-    document.addEventListener("click", (e) => {
-      const w = e.target.closest(".w");
-      if (w && w.dataset.w){
-        openWordModal(w.dataset.w);
-      }
-    });
-
-    closeModalBtn.addEventListener("click", closeWordModal);
-    modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) 
-        closeWordModal(); 
-        wordAutoCount = 0;
-
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalBg.classList.contains("on")) closeWordModal();
-    });
-
-    wordPlay.addEventListener("click", () => {
-      wordRepeat = false;
-      wordLoop.classList.remove("repeatOn");
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      speakWord();
-    });
-
-    wordLoop.addEventListener("click", () => {
-      wordRepeat = !wordRepeat;
-      wordLoop.classList.toggle("repeatOn", wordRepeat);
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      if (wordRepeat) speakWord();
-    });
-
-    // ========= Render =========
-    function escapeHTML(s){
-      return String(s)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#39;");
-    }
-
-    function makeHebrewLineFromWords(words){
-      // word.text is already tokenized (maqaf kept), make clickable spans
-      return (words || []).map(w => {
-        const t = w && w.text ? String(w.text) : "";
-        if (!t) return "";
-        const clean = t.replace(/[.,;:!?״׳'"]/g, "");
-        return `<span class="w" data-w="${escapeHTML(clean)}">${escapeHTML(t)}</span>`;
-      }).join(" ");
-    }
-
-    function buildBookOptions(){
-      bookSelect.innerHTML = "";
-      for (const b of BOOKS){
-        const opt = document.createElement("option");
-        opt.value = b.id;
-        opt.textContent = b.label;
-        bookSelect.appendChild(opt);
-      }
-    }
-
-    async function buildChapterOptions(bookId, current){
-      chapterSelect.innerHTML = "";
-
-      let existingChapters = [];
-
-      for (let i = 1; i <= 50; i++){
-        try{
-          const res = await fetch(`./data/${bookId}/${i}.json`, { method:"HEAD", cache:"no-cache" });
-          if (res.ok) existingChapters.push(i);
-        }catch(e){}
-      }
-
-      if (!existingChapters.length) existingChapters = [1];
-
-      for (const ch of existingChapters){
-        const opt = document.createElement("option");
-        opt.value = ch;
-        opt.textContent = `${ch}`;
-        chapterSelect.appendChild(opt);
-      }
-
-      chapterSelect.value = existingChapters.includes(current) ? String(current) : String(existingChapters[0]);
-      return Number(chapterSelect.value);
-    }
-
-    function buildVerseOptions(versesObj, bookId, ch, currentV){
-      verseSelect.innerHTML = "";
-      const keys = Object.keys(versesObj || {}).map(Number).sort((a,b)=>a-b);
-      const b = BOOKS.find(x => x.id === bookId) || BOOKS[0];
-
-      for(const v of keys){
-        const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = `${v}`;
-        verseSelect.appendChild(opt);
-      }
-      const setV = keys.includes(currentV) ? currentV : (keys[0] || 1);
-      verseSelect.value = String(setV);
-      updateVerseNavButtons();
-      return setV;
-    }
-
-    function updateVerseNavButtons(){
-      const current = Number(verseSelect.value);
-      const options = Array.from(verseSelect.options).map(o => Number(o.value));
-      const min = Math.min(...options);
-      const max = Math.max(...options);
-    
-      prevVerseBtn.disabled = (current === min);
-      nextVerseBtn.disabled = (current === max);
-    }
-
-
-    function jumpToVerse(v){
-      const el = document.getElementById(`v${v}`);
-      if (!el) return;
-
-      const y = el.getBoundingClientRect().top + window.pageYOffset;
-      const barH = document.querySelector(".topbar")?.offsetHeight || 0;
-
-      window.scrollTo({
-        top: y - barH - 12,
-        behavior: "smooth"
-      });
-
-      history.replaceState(null, "", `${location.pathname}${location.search}#v${v}`);
-    }
-
-    async function loadChapter(bookId, ch, focusV){
-      errorEl.style.display = "none";
-      errorEl.textContent = "";
-
-      stopAll(); // stop any TTS when changing chapter
-      repeatV = null;
-      setBtnState(null);
-
-      const url = `./data/${bookId}/${ch}.json`;
-
-      let data;
-      try{
-        const res = await fetch(url, { cache: "no-cache" });
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        data = await res.json();
-      }catch(err){
-        versesEl.innerHTML = "";
-        errorEl.textContent = `데이터를 불러오지 못했어요: ${err && err.message ? err.message : err}`;
-        errorEl.style.display = "block";
-        return;
-      }
-
-      // render
-      const versesObj = data.verses || {};
-      VERSE_TEXTS = {};
-      versesEl.innerHTML = "";
-
-      const keys = Object.keys(versesObj).map(Number).sort((a,b)=>a-b);
-      for (const v of keys){
-        const item = versesObj[String(v)];
-        if (!item) continue;
-
-        const ref = item.reference || `${bookId} ${ch}:${v}`;
-        const verseText = item.verseText || "";
-        const words = Array.isArray(item.words) ? item.words : [];
-        const korLine = (item.kor2 ?? item.kor ?? "");        // prefer words tokens for display (so popup works cleanly)
-        const heHTML = words.length ? makeHebrewLineFromWords(words) : escapeHTML(verseText);
-
-        VERSE_TEXTS[v] = verseText || words.map(w => w.text).join(" ");
-
-        const sec = document.createElement("section");
-        sec.className = "verse";
-        sec.id = `v${v}`;
-        sec.innerHTML = `
-          <div class="ref">${escapeHTML(ref)}</div>
-          <h1 class="he">${heHTML}</h1>
-          <div class="kor">${escapeHTML(korLine)}</div>
-          <div class="btnrow">
-            <button class="playBtn" data-v="${v}">🔊</button>
-            <button class="loopBtn" data-v="${v}">∞</button>
-          </div>
-        `;
-        versesEl.appendChild(sec);
-      }
-
-      const pickedV = buildVerseOptions(versesObj, bookId, ch, focusV);
-      setQS(bookId, ch, pickedV);
-
-      // jump after render
-      requestAnimationFrame(() => jumpToVerse(pickedV));
-    }
-
-    // ========= Wire up =========
-    async function init(){
-      prevVerseBtn.addEventListener("click", () => {
-      const current = Number(verseSelect.value);
-      const options = Array.from(verseSelect.options).map(o => Number(o.value));
-      const min = Math.min(...options);
-    
-      if (current > min){
-        verseSelect.value = String(current - 1);
-        verseSelect.dispatchEvent(new Event("change"));
-      }
-    });
-    
-    nextVerseBtn.addEventListener("click", () => {
-      const current = Number(verseSelect.value);
-      const options = Array.from(verseSelect.options).map(o => Number(o.value));
-      const max = Math.max(...options);
-    
-      if (current < max){
-        verseSelect.value = String(current + 1);
-        verseSelect.dispatchEvent(new Event("change"));
-      }
-    });
-
-      
-      const { b, c, v } = qs();
-
-      buildBookOptions();
-      bookSelect.value = b;
-
-      const realC = await buildChapterOptions(b, c);
-
-      // handlers
-      bookSelect.addEventListener("change", async () => {
-        const nb = bookSelect.value;
-        const realC = await buildChapterOptions(nb, 1);
-        loadChapter(nb, realC, 1);
-      });
-
-      chapterSelect.addEventListener("change", () => {
-        const nb = bookSelect.value;
-        const nc = Number(chapterSelect.value);
-        loadChapter(nb, nc, 1);
-      });
-
-      verseSelect.addEventListener("change", () => {
-        const vv = Number(verseSelect.value);
-        setQS(bookSelect.value, Number(chapterSelect.value), vv);
-        jumpToVerse(vv);
-        updateVerseNavButtons();
-      });
-
-
-      window.addEventListener("hashchange", () => {
-        const m = (location.hash || "").match(/^#v(\d+)$/);
-        if (!m) return;
-        const vv = Number(m[1]);
-        if (Number(verseSelect.value) !== vv){
-          verseSelect.value = String(vv);
-          setQS(bookSelect.value, Number(chapterSelect.value), vv);
-        }
-        jumpToVerse(vv);
-      });
-
-      loadChapter(b, realC, v);
-    }
-
-    init();
-  </script>
 </body>
 </html>
