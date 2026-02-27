@@ -43,7 +43,7 @@
         direction: rtl;
         unicode-bidi: plaintext;
         text-align: left;
-        font-family: var(--hebrew-font); /* 변수로 변경 */
+        font-family: var(--hebrew-font) !important; /* 변수로 변경 */
     }
 
     .kor { margin: 0 0 10px 0; font-size: 0.9rem; color: #111; }
@@ -116,7 +116,7 @@
         direction: rtl;
         unicode-bidi: plaintext;
         text-align: center;
-        font-family: var(--hebrew-font); /* 변수로 변경 */
+        font-family: var(--hebrew-font) !important; /* 변수로 변경 */
     }
 
     .modalBtns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
@@ -690,10 +690,19 @@ const fontFamilies = [
 ];
 
 function applyFontFamily(family) {
-  // CSS의 --hebrew-font 변수를 직접 변경합니다.
-  document.documentElement.style.setProperty('--hebrew-font', family);
+  // 1. CSS 변수 업데이트 (기존 방식 유지)
+  document.documentElement.style.setProperty('--hebrew-font', family, 'important');
+
+  // 2. 특정 클래스에 직접 강제 주입 (가장 확실한 방법)
+  const targets = document.querySelectorAll('h1.he, .wordHead');
+  targets.forEach(el => {
+    el.style.fontFamily = family;
+  });
+
+  // 3. 로컬 스토리지 저장
   localStorage.setItem("bibleFontFamily", family);
 }
+
 
 (function initFontFamily() {
   const saved = localStorage.getItem("bibleFontFamily") || "'Noto Serif Hebrew', serif";
