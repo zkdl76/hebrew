@@ -11,13 +11,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- 주소 끝에 엔터 없이 한 줄로 쭉 이어져야 합니다! -->
-<link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&family=Heebo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Serif+Hebrew:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&family=Heebo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Serif+Hebrew:wght@400;700&family=Playpen+Sans+Hebrew:wght@400;700&display=swap
+ rel="stylesheet">
 
-
-
-
-
-  <style>
+<style>
     /* 1. root에 히브리어 전용 폰트 변수 추가 (기본값 설정) */
     :root {
         --gap: 14px;
@@ -691,7 +688,9 @@ const fontFamilySelect = document.getElementById("fontFamilySelect");
 const fontFamilies = [
   { name: "세리프(기본)", value: "'Noto Serif Hebrew', serif" },
   { name: "고딕(Heebo)", value: "'Heebo', sans-serif" },
-  { name: "현대적(Alef)", value: "'Alef', sans-serif" }
+  { name: "현대적(Alef)", value: "'Alef', sans-serif" },
+  { name: "필기체(Playpen)", value: "'Playpen Sans Hebrew', cursive" }
+
 ];
 
 function applyFontFamily(family) {
