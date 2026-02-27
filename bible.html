@@ -653,7 +653,8 @@ function applyFontSize(size){
   fontSizes.forEach(s=>{
     const opt=document.createElement("option");
     opt.value=s;
-    opt.textContent=s+"px";
+    //opt.textContent=s+"px";
+    opt.textContent = "크기: " + s + "px";
     if(s===saved) opt.selected=true;
     fontSizeSelect.appendChild(opt);
   });
@@ -662,7 +663,7 @@ function applyFontSize(size){
 })();
 
 fontSizeSelect.addEventListener("change", ()=>{
-  applyFontSize(parseInt("크기:"+fontSizeSelect.value));
+  applyFontSize(parseInt(fontSizeSelect.value));
 });
   </script>
 </body>
