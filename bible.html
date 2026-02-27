@@ -2,7 +2,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&display=swap" rel="stylesheet">
+  <!--link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&display=swap" rel="stylesheet"-->
+  <link href="https://fonts.googleapis.com" rel="stylesheet">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bible</title>
@@ -12,117 +13,130 @@
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{--gap:14px;--border:#e5e5e5;--muted:#666;--on:#0b5;--playing:#08f;}
-    body{margin:0; padding:18px; font-family:"Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fff; color:#111;}
-    .wrap{max-width:980px; margin:0 auto;}
-    .verse{border:1px solid var(--border); border-radius:14px; padding:14px; margin:0 0 var(--gap) 0;}
-    .ref{font-weight:700; margin:0 0 8px 0;}
-    h1.he{
-  margin:0 0 10px 0;
-  font-size:1.9rem;
-  line-height:1.25;
-  direction:rtl;
-  unicode-bidi:plaintext;
-  text-align:left;
-  font-family:"Noto Serif Hebrew", serif;
-}
-
-.kor{
-  margin:0 0 10px 0;
-  font-size:0.9rem;
-  color:#111;
-}
-    .btnrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-    button{border:1px solid var(--border); background:#f7f7f7; padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
-    button:hover{background:#f0f0f0;}
-    button.playing{border-color:var(--playing); color:var(--playing); background:#eef6ff;}
-    button.repeatOn{border-color:var(--on); color:var(--on); background:#eafff3;}
-
-    .topbar{
-      position: sticky;
-      top: 8px;
-      z-index: 999;
-      background: #fff;
-      padding: 10px 0;
-      margin: 0 0 14px 0;
-      border-bottom: 1px solid var(--border);
+    /* 1. root에 히브리어 전용 폰트 변수 추가 (기본값 설정) */
+    :root {
+        --gap: 14px;
+        --border: #e5e5e5;
+        --muted: #666;
+        --on: #0b5;
+        --playing: #08f;
+        --hebrew-font: "Noto Serif Hebrew", serif; /* 히브리어 기본 폰트 변수 */
     }
 
-    /* centered selector cluster */
-    .navcenter{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      font-size:13px;
-      color:var(--muted);
-    }
-    .navcenter select{
-      padding:8px 10px;
-      border:1px solid var(--border);
-      border-radius:12px;
-      background:#fff;
-      font-weight:700;
+    body {
+        margin: 0;
+        padding: 18px;
+        font-family: "Nanum Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: #fff;
+        color: #111;
     }
 
-    /* word clickable */
-    .w{cursor:pointer; padding:0 2px; border-radius:6px;}
-    .w:hover{background:#f3f6ff;}
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .verse { border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin: 0 0 var(--gap) 0; }
+    .ref { font-weight: 700; margin: 0 0 8px 0; }
+
+    /* 2. 히브리어 본문 스타일 (변수 적용) */
+    h1.he {
+        margin: 0 0 10px 0;
+        font-size: 1.9rem;
+        line-height: 1.25;
+        direction: rtl;
+        unicode-bidi: plaintext;
+        text-align: left;
+        font-family: var(--hebrew-font); /* 변수로 변경 */
+    }
+
+    .kor { margin: 0 0 10px 0; font-size: 0.9rem; color: #111; }
+    .btnrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    button { border: 1px solid var(--border); background: #f7f7f7; padding: 9px 12px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+    button:hover { background: #f0f0f0; }
+    button.playing { border-color: var(--playing); color: var(--playing); background: #eef6ff; }
+    button.repeatOn { border-color: var(--on); color: var(--on); background: #eafff3; }
+
+    .topbar {
+        position: sticky;
+        top: 8px;
+        z-index: 999;
+        background: #fff;
+        padding: 10px 0;
+        margin: 0 0 14px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .navcenter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .navcenter select {
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        font-weight: 700;
+    }
+
+    .w { cursor: pointer; padding: 0 2px; border-radius: 6px; }
+    .w:hover { background: #f3f6ff; }
 
     /* modal */
-    .modalBg{
-      position:fixed; inset:0; background:rgba(0,0,0,.45);
-      display:none; align-items:center; justify-content:center;
-      padding:18px; z-index:2000;
+    .modalBg {
+        position: fixed; inset: 0; background: rgba(0,0,0,.45);
+        display: none; align-items: center; justify-content: center;
+        padding: 18px; z-index: 2000;
     }
-    .modalBg.on{display:flex;}
-    .modal{
-  width:min(1000px, 90vw);
-  height:60vh;                     /* 화면 높이의 60% */
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,.25);
-  padding:40px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-
-    .modalTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;}
-    .closeBtn{border:1px solid var(--border); background:#f7f7f7; padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:700;}
-    .wordHead{
-  margin:20px 0;
-  font-size:clamp(70px, 9vw, 140px);  /* 반응형 초대형 */
-  line-height:1.1;
-  direction:rtl;
-  unicode-bidi:plaintext;
-  text-align:center;                 /* 가운데 정렬 */
-  font-family:"Noto Serif Hebrew", serif;
-}
-
-    .modalBtns{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
-
-    .error{color:#c00; font-weight:700; margin:10px 0;}
-    button:disabled {
-      opacity:0.4;
-      cursor:default;
+    .modalBg.on { display: flex; }
+    .modal {
+        width: min(1000px, 90vw);
+        height: 60vh;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,.25);
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
-#fontSizeControl{
-  position:fixed;
-  top:10px;
-  right:14px;
-  z-index:3000;
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:999px;
-  padding:6px 10px;
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
-  font-size:13px;
-}
-  </style>
+
+    .modalTop { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .closeBtn { border: 1px solid var(--border); background: #f7f7f7; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+
+    /* 3. 모달 내 큰 단어 스타일 (변수 적용) */
+    .wordHead {
+        margin: 20px 0;
+        font-size: clamp(70px, 9vw, 140px);
+        line-height: 1.1;
+        direction: rtl;
+        unicode-bidi: plaintext;
+        text-align: center;
+        font-family: var(--hebrew-font); /* 변수로 변경 */
+    }
+
+    .modalBtns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    .error { color: #c00; font-weight: 700; margin: 10px 0; }
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    #fontSizeControl {
+        position: fixed;
+        top: 10px;
+        right: 14px;
+        z-index: 3000;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.15);
+        font-size: 13px;
+    }
+</style>
+
 </head>
 <body>
   <div class="wrap">
@@ -136,9 +150,10 @@
         <select id="verseSelect" aria-label="절 이동"></select>
         <span>절</span>
       <button id="nextVerseBtn" style="padding:6px 10px;">&gt;</button>
-<!--div id="fontSizeControl"-->
-<select id="fontSizeSelect"></select>
-<!--/div-->
+        <!--div id="fontSizeControl"-->
+        <select id="fontSizeSelect"></select>
+        <!--/div-->
+        <select id="fontFamilySelect"></select>
 
       </div>
     </div>
@@ -665,6 +680,39 @@ function applyFontSize(size){
 fontSizeSelect.addEventListener("change", ()=>{
   applyFontSize(parseInt(fontSizeSelect.value));
 });
+
+    // ===== font family control =====
+const fontFamilySelect = document.getElementById("fontFamilySelect");
+const fontFamilies = [
+  { name: "세리프(기본)", value: "'Noto Serif Hebrew', serif" },
+  { name: "고딕(Heebo)", value: "'Heebo', sans-serif" },
+  { name: "현대적(Alef)", value: "'Alef', sans-serif" }
+];
+
+function applyFontFamily(family) {
+  // 성경 본문이 들어있는 요소나 body에 적용 (여기선 document 전체)
+  document.documentElement.style.fontFamily = family;
+  localStorage.setItem("bibleFontFamily", family);
+}
+
+(function initFontFamily() {
+  const saved = localStorage.getItem("bibleFontFamily") || "'Noto Serif Hebrew', serif";
+
+  fontFamilies.forEach(f => {
+    const opt = document.createElement("option");
+    opt.value = f.value;
+    opt.textContent = "글꼴: " + f.name;
+    if (f.value === saved) opt.selected = true;
+    fontFamilySelect.appendChild(opt);
+  });
+
+  applyFontFamily(saved);
+})();
+
+fontFamilySelect.addEventListener("change", () => {
+  applyFontFamily(fontFamilySelect.value);
+});
+
   </script>
 </body>
 </html>
