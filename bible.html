@@ -689,9 +689,10 @@ const fontFamilies = [
   { name: "현대적(Alef)", value: "Alef, sans-serif" }
 ];
 
+
 function applyFontFamily(family) {
-  // 성경 본문이 들어있는 요소나 body에 적용 (여기선 document 전체)
-  document.documentElement.style.fontFamily = family;
+  // .style.fontFamily 대신 .style.setProperty를 사용해야 CSS 변수가 바뀝니다!
+  document.documentElement.style.setProperty('--hebrew-font', family);
   localStorage.setItem("bibleFontFamily", family);
 }
 
