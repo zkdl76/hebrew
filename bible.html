@@ -714,7 +714,7 @@ function applyFontFamily(family) {
   fontFamilies.forEach(f => {
     const opt = document.createElement("option");
     opt.value = f.value;
-    opt.textContent = "글꼴: " + f.name;
+    opt.textContent =f.name;
     if (f.value === saved) opt.selected = true;
     fontFamilySelect.appendChild(opt);
   });
